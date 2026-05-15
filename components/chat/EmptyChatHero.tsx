@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import {
   ArrowRight,
   Link as LinkIcon,
@@ -39,89 +38,80 @@ const examples: ExampleCard[] = [
 
 export default function EmptyChatHero() {
   return (
-    <section className="flex flex-col items-center justify-center px-6 pt-16 relative">
+    <section className="relative flex flex-col items-center justify-center px-6 pt-16">
       {/* glow */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-[600px] h-[600px] rounded-full bg-cyan-500/10 blur-[120px]" />
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <div className="h-[600px] w-[600px] rounded-full bg-cyan-500/10 blur-[120px]" />
       </div>
 
       {/* HERO */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="text-center max-w-2xl z-10"
-      >
-        <div className="mx-auto w-20 h-20 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center mb-8 relative overflow-hidden">
+      <div className="z-10 max-w-2xl text-center">
+        <div className="relative mx-auto mb-8 flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-zinc-900">
           <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 to-transparent" />
-          <span className="text-white text-3xl">⟡</span>
+          <span className="text-3xl text-white">⟡</span>
         </div>
 
-        <h1 className="text-4xl font-semibold tracking-tight text-white mb-4">
+        <h1 className="mb-4 text-4xl font-semibold tracking-tight text-white">
           Analyze Any GitHub Repository
         </h1>
 
-        <p className="text-zinc-400 text-lg mb-12 leading-relaxed">
+        <p className="mb-12 text-lg leading-relaxed text-zinc-400">
           Instant engineering intelligence from your codebase. Audit security,
           map dependencies, and optimize performance in seconds.
         </p>
-      </motion.div>
+      </div>
 
       {/* INPUT */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="w-full max-w-3xl z-10"
-      >
-        <div className="flex items-center gap-2 p-2 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
-          <div className="flex items-center gap-2 flex-1 px-3">
+      <div className="z-10 w-full max-w-3xl">
+        <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 p-2 backdrop-blur-md">
+          <div className="flex flex-1 items-center gap-2 px-3">
             <LinkIcon size={16} className="text-zinc-500" />
+
             <input
-              className="w-full bg-transparent outline-none text-white placeholder:text-zinc-600 text-sm"
+              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-zinc-600"
               placeholder="https://github.com/vercel/next.js"
             />
           </div>
 
-          <button className="flex items-center gap-2 px-6 py-3 bg-white text-black rounded-xl hover:bg-zinc-200 transition">
+          <button className="flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-black transition hover:bg-zinc-200">
             Analyze Free
             <ArrowRight size={14} />
           </button>
         </div>
 
-        <div className="mt-6 flex justify-center gap-2 items-center">
+        <div className="mt-6 flex items-center justify-center gap-2">
           <div className="flex gap-1">
-            <span className="w-4 h-1 bg-cyan-400 rounded-full" />
-            <span className="w-4 h-1 bg-cyan-400 rounded-full" />
-            <span className="w-4 h-1 bg-cyan-400 rounded-full" />
-            <span className="w-4 h-1 bg-zinc-800 rounded-full" />
-            <span className="w-4 h-1 bg-zinc-800 rounded-full" />
+            <span className="h-1 w-4 rounded-full bg-cyan-400" />
+            <span className="h-1 w-4 rounded-full bg-cyan-400" />
+            <span className="h-1 w-4 rounded-full bg-cyan-400" />
+            <span className="h-1 w-4 rounded-full bg-zinc-800" />
+            <span className="h-1 w-4 rounded-full bg-zinc-800" />
           </div>
 
-          <p className="text-[11px] text-zinc-500 uppercase tracking-widest">
+          <p className="text-[11px] uppercase tracking-widest text-zinc-500">
             3 free analyses remaining
           </p>
         </div>
-      </motion.div>
+      </div>
 
       {/* EXAMPLE CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-16 w-full max-w-3xl z-10">
+      <div className="z-10 mt-16 grid w-full max-w-3xl grid-cols-1 gap-6 md:grid-cols-2">
         {examples.map((item, i) => (
-          <motion.div
+          <div
             key={i}
-            whileHover={{ y: -4 }}
-            className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-white/20 transition cursor-pointer"
+            className="cursor-pointer rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:-translate-y-1 hover:border-white/20"
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-white/5 text-white">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 text-white">
                   {item.logo}
                 </div>
 
                 <div>
-                  <h3 className="text-white text-sm font-semibold">
+                  <h3 className="text-sm font-semibold text-white">
                     {item.title}
                   </h3>
+
                   <p className="text-[11px] text-zinc-500">
                     {item.subtitle}
                   </p>
@@ -131,10 +121,10 @@ export default function EmptyChatHero() {
               <span className="text-zinc-500">{item.icon}</span>
             </div>
 
-            <p className="text-zinc-400 text-xs leading-relaxed">
+            <p className="text-xs leading-relaxed text-zinc-400">
               {item.description}
             </p>
-          </motion.div>
+          </div>
         ))}
       </div>
     </section>
