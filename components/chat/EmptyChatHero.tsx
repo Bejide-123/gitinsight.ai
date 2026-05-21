@@ -8,6 +8,10 @@ import {
   Component,
 } from "lucide-react";
 import { SiVercel } from "react-icons/si";
+import { useAnalyzeRepo } from "@/hooks/useFetchRepo";
+import { useState } from "react";
+import type { GitHubRepoData } from "@/types/github";
+import Loader from "@/components/chat/Loader"
 
 type ExampleCard = {
   title: string;
@@ -37,6 +41,33 @@ const examples: ExampleCard[] = [
 ];
 
 export default function EmptyChatHero() {
+  const [ repoUrl, setRepoUrl] = useState("");
+  const { mutate, error, isPending } = useAnalyzeRepo();
+
+ const handleAnalyze = () => {
+    mutate(
+      { repoUrl },
+      {
+        onSuccess: (data: GitHubRepoData ) => {
+          console.log("SUCCESS:");
+          console.log(data);
+          setRepoUrl(""); // Clear the input field after successful analysis
+        },
+
+        onError: (error: any) => {
+          console.log("ERROR:");
+          console.log(error);
+        },
+      }
+    );
+  };
+
+  if (isPending) {
+    return <Loader />;
+  }
+
+
+  
   return (
     <section className="relative flex flex-col items-center justify-center px-6 pt-16">
       {/* glow */}
@@ -68,12 +99,16 @@ export default function EmptyChatHero() {
             <LinkIcon size={16} className="text-zinc-500" />
 
             <input
+               value={repoUrl}
+              onChange={(e) => setRepoUrl(e.target.value)}
               className="w-full bg-transparent text-sm text-white outline-none placeholder:text-zinc-600"
               placeholder="https://github.com/vercel/next.js"
             />
           </div>
 
-          <button className="flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-black transition hover:bg-zinc-200">
+          <button
+              onClick={handleAnalyze}
+          className="flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-black transition hover:bg-zinc-200">
             Analyze Free
             <ArrowRight size={14} />
           </button>
@@ -126,6 +161,18 @@ export default function EmptyChatHero() {
             </p>
           </div>
         ))}
+
+        {/* {isLoading && (
+          <div className="col-span-full rounded-2xl border border-white/10 bg-white/5 p-6 text-center text-sm text-zinc-400">
+            Analyzing repository...
+          </div>
+        )} */}
+
+        {error && (
+          <div className="col-span-full rounded-2xl border border-red-500 bg-red-500/10 p-6 text-center text-sm text-red-400">
+            Error analyzing repository: {error.message}
+          </div>
+        )}
       </div>
     </section>
   );

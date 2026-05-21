@@ -16,3 +16,22 @@
     z-index: 9999;
   }
 }
+
+.loader-bar {
+  width: 40%;
+  animation: loading-bar 1.8s ease-in-out infinite;
+}
+
+@keyframes loading-bar {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  50% {
+    transform: translateX(180%);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
+}

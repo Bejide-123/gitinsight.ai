@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ConditionalNavbar from "@/components/layout/ConditionalNavbar";
+import { QueryProvider } from "@/providers/QueryProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,11 +47,13 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-screen flex flex-col bg-[#050505] text-white">
+        <QueryProvider>
         {/* Layout wrapper makes scaling easier later */}
         <div className="flex flex-col min-h-screen">
           <ConditionalNavbar />
           <main className="flex-1">{children}</main>
         </div>
+        </QueryProvider>
       </body>
     </html>
   );
