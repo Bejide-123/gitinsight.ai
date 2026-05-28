@@ -14,7 +14,7 @@ interface AnalyzeRepoResponse {
 export function useRepositoryAnalysis() {
   return useMutation({
     mutationFn: async (input: AnalyzeRepoInput): Promise<AnalyzeRepoResponse> => {
-      const response = await fetch('/api/analyze', {
+      const response = await fetch('/api/analyse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(input),

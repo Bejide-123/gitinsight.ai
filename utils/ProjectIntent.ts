@@ -66,9 +66,7 @@ const PROJECT_INTENT_RULES: IntentSignals[] = [
         'practice',
         'following',
       ],
-      dependencies: [
-        'basic-stack', // React, no advanced libs
-      ],
+      dependencies: [], // Removed 'basic-stack'
       complexity: [
         'simple-structure',
         'no-tests',
@@ -111,6 +109,49 @@ const PROJECT_INTENT_RULES: IntentSignals[] = [
       ],
     },
     weight: 1.2,
+  },
+
+  // STARTUP
+  {
+    intent: 'startup',
+    signals: {
+      readme: [
+        'startup',
+        'growth',
+        'scaling',
+        'investors',
+        'product-market fit',
+      ],
+      dependencies: [
+        'next.js',
+        'prisma',
+        'trpc',
+        'tailwind',
+        'react-query',
+      ],
+      filePatterns: [
+        'src/pages/api',
+        'src/server',
+        'db/schema',
+        'e2e/',
+        'tests/',
+      ],
+      deployment: [
+        'vercel',
+        'railway',
+        'render',
+        'aws',
+        'gcp',
+      ],
+      complexity: [
+        'medium-to-large',
+        'full-stack',
+        'database',
+        'ci-cd',
+        'some-tests',
+      ],
+    },
+    weight: 1.3,
   },
 
   // PRODUCTION SAAS
@@ -192,9 +233,7 @@ const PROJECT_INTENT_RULES: IntentSignals[] = [
         'utility',
         'installation',
       ],
-      dependencies: [
-        'minimal-deps', // Few dependencies
-      ],
+      dependencies: [], // Removed 'minimal-deps'
       filePatterns: [
         'dist/',
         'lib/',
@@ -232,6 +271,7 @@ export function detectProjectIntent(data: {
   };
 
   const detectedSignals: string[] = [];
+  const projectComplexitySignals = getProjectComplexity(data.fileTree, data.packageJson);
 
   // Analyze each intent
   PROJECT_INTENT_RULES.forEach((rule) => {
@@ -274,6 +314,16 @@ export function detectProjectIntent(data: {
         if (data.metadata.homepage?.includes(platform)) {
           intentScore += 5;
           detectedSignals.push(`Deployed: ${platform}`);
+        }
+      });
+    }
+
+    // Check complexity signals
+    if (rule.signals.complexity) {
+      rule.signals.complexity.forEach((signal) => {
+        if (projectComplexitySignals.includes(signal)) {
+          intentScore += 8; // Slightly lower weight than direct signals
+          detectedSignals.push(`Complexity: ${signal}`);
         }
       });
     }
@@ -401,4 +451,95 @@ function getNotRequiredFeatures(intent: ProjectIntent): string[] {
   };
 
   return notRequired[intent];
+}
+
+// Helper functions for complexity analysis
+function getProjectComplexity(fileTree: FileTreeItem[], packageJson: any): string[] {
+  const complexitySignals: string[] = [];
+
+  // File count based complexity
+  const fileCount = fileTree.length;
+  if (fileCount < 50) {
+    complexitySignals.push('small-to-medium');
+  } else if (fileCount < 200) {
+    complexitySignals.push('medium-complexity');
+  } else if (fileCount < 500) {
+    complexitySignals.push('medium-to-large');
+  } else {
+    complexitySignals.push('large-codebase');
+  }
+
+  // Backend detection
+  if (hasBackend(packageJson)) {
+    complexitySignals.push('full-stack');
+  } else {
+    complexitySignals.push('frontend-only');
+  }
+
+  // Test detection
+  if (hasTests(fileTree)) {
+    complexitySignals.push('some-tests');
+  } else {
+    complexitySignals.push('no-tests');
+  }
+
+  // CI/CD detection
+  if (hasCICD(fileTree)) {
+    complexitySignals.push('ci-cd');
+  } else {
+    complexitySignals.push('no-ci-cd');
+  }
+
+  // Database detection (simple check for now)
+  const backendDeps = Object.keys(packageJson?.dependencies || {});
+  if (backendDeps.some(dep => ['prisma', 'sequelize', 'typeorm', 'mongoose', 'knex'].includes(dep))) {
+    complexitySignals.push('database');
+  }
+
+  // Microservices detection (simple check for now)
+  if (fileTree.some(f => f.path.includes('microservices/') || f.path.includes('services/')) && fileCount > 200) {
+    complexitySignals.push('multiple-services');
+  }
+
+  return complexitySignals;
+}
+
+function hasBackend(packageJson: any): boolean {
+  const backendDeps = Object.keys(packageJson?.dependencies || {});
+  const backendFrameworks = [
+    'express',
+    'koa',
+    'nest.js',
+    'fastify',
+    'django',
+    'flask',
+    'spring-boot',
+    'laravel',
+    'ruby-on-rails',
+  ];
+  return backendDeps.some((dep) => backendFrameworks.includes(dep));
+}
+
+function hasTests(fileTree: FileTreeItem[]): boolean {
+  const testPatterns = [
+    'test/',
+    'tests/',
+    '.spec.',
+    '.test.',
+    'jest.config',
+    'vitest.config',
+    'cypress.config',
+  ];
+  return fileTree.some((f) => testPatterns.some((pattern) => f.path.includes(pattern)));
+}
+
+function hasCICD(fileTree: FileTreeItem[]): boolean {
+  const ciCdPatterns = [
+    '.github/workflows',
+    '.gitlab-ci.yml',
+    'jenkinsfile',
+    'azure-pipelines.yml',
+    'bitbucket-pipelines.yml',
+  ];
+  return fileTree.some((f) => ciCdPatterns.some((pattern) => f.path.includes(pattern)));
 }

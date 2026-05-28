@@ -1,6 +1,14 @@
 import { TriangleAlert } from "lucide-react";
+import type { Issue } from "@/types/analysis";
 
-export default function IdentifiedGaps() {
+interface IdentifiedGapsProps {
+  dangerousIssues: Issue[];
+  missingImprovements: Issue[];
+}
+
+export default function IdentifiedGaps({ dangerousIssues, missingImprovements }: IdentifiedGapsProps) {
+  const allGaps = [...dangerousIssues, ...missingImprovements];
+
   return (
     <div className="relative col-span-12 rounded-3xl border border-orange-500/20 bg-orange-500/5 p-8 md:col-span-6">
       
@@ -17,22 +25,18 @@ export default function IdentifiedGaps() {
         </div>
 
         <ul className="space-y-4 text-sm text-zinc-300">
-          
-          <li className="flex gap-3">
-            <span className="text-orange-500">•</span>
-
-            <p>
-              Incomplete API documentation for edge runtime hooks.
-            </p>
-          </li>
-
-          <li className="flex gap-3">
-            <span className="text-orange-500">•</span>
-
-            <p>
-              Unused dependencies detected in package.json (3 items).
-            </p>
-          </li>
+          {allGaps.length === 0 ? (
+            <li className="flex gap-3">
+              <p>No significant gaps identified.</p>
+            </li>
+          ) : (
+            allGaps.map((gap, index) => (
+              <li key={index} className="flex gap-3">
+                <span className="text-orange-500">•</span>
+                <p>{gap.description}</p> {/* Displaying the description of the issue */}
+              </li>
+            ))
+          )}
         </ul>
       </div>
     </div>

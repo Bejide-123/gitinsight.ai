@@ -106,6 +106,7 @@ export interface AnalysisContext {
   codeFiles: Record<string, string>; // path -> content
   selectedFiles: string[];
   projectContext: ProjectContext;
+  warnings: string[]; // Any issues encountered during analysis (e.g. missing README)
 }
 
 // ============================================================================

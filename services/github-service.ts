@@ -88,6 +88,7 @@ export async function fetchReadme(
 
     // README is base64 encoded
     const content = Buffer.from(data.content, 'base64').toString('utf-8');
+    console.log(content);
     return content;
   } catch (error) {
     console.warn( error, 'README not found, skipping README analysis');
@@ -285,6 +286,7 @@ export async function fetchFileContent(
 
     return null;
   } catch (error) {
+    console.log(error, `Failed to fetch file: ${path}`);
     console.warn(`Could not fetch file: ${path}`);
     return null;
   }

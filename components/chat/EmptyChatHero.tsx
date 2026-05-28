@@ -8,10 +8,8 @@ import {
   Component,
 } from "lucide-react";
 import { SiVercel } from "react-icons/si";
-import { useAnalyzeRepo } from "@/hooks/useFetchRepo";
 import { useState } from "react";
-import type { GitHubRepoData } from "@/types/github";
-import Loader from "@/components/chat/Loader"
+import { useRouter } from "next/navigation";
 
 type ExampleCard = {
   title: string;
@@ -42,31 +40,14 @@ const examples: ExampleCard[] = [
 
 export default function EmptyChatHero() {
   const [ repoUrl, setRepoUrl] = useState("");
-  const { mutate, error, isPending } = useAnalyzeRepo();
+  const router = useRouter();
 
  const handleAnalyze = () => {
-    mutate(
-      { repoUrl },
-      {
-        onSuccess: (data: GitHubRepoData ) => {
-          console.log("SUCCESS:");
-          console.log(data);
-          setRepoUrl(""); // Clear the input field after successful analysis
-        },
-
-        onError: (error: any) => {
-          console.log("ERROR:");
-          console.log(error);
-        },
-      }
-    );
+    if (repoUrl.trim()) {
+      const id = crypto.randomUUID(); // Using crypto.randomUUID()
+      router.push(`/chat/${id}?repoUrl=${encodeURIComponent(repoUrl)}`);
+    }
   };
-
-  if (isPending) {
-    return <Loader />;
-  }
-
-
   
   return (
     <section className="relative flex flex-col items-center justify-center px-6 pt-16">
@@ -161,18 +142,6 @@ export default function EmptyChatHero() {
             </p>
           </div>
         ))}
-
-        {/* {isLoading && (
-          <div className="col-span-full rounded-2xl border border-white/10 bg-white/5 p-6 text-center text-sm text-zinc-400">
-            Analyzing repository...
-          </div>
-        )} */}
-
-        {error && (
-          <div className="col-span-full rounded-2xl border border-red-500 bg-red-500/10 p-6 text-center text-sm text-red-400">
-            Error analyzing repository: {error.message}
-          </div>
-        )}
       </div>
     </section>
   );

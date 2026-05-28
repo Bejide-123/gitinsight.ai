@@ -108,6 +108,95 @@ export function analyzeSecurityIssues(
         file: filePath,
       });
     }
+
+    // 6. LOW: Missing Security Headers (e.g., Helmet.js for Node.js/Express)
+    // This is a basic check, more advanced would involve parsing config files
+    if (filePath.includes('server.js') || filePath.includes('app.js') || filePath.includes('middleware')) {
+      if (!content.includes('helmet') && (content.includes('express') || content.includes('koa'))) {
+        issues.push({
+          category: 'Security',
+          severity: 'low',
+          title: 'Missing Security Headers',
+          description: 'Security headers (like X-Content-Type-Options, X-Frame-Options, CSP) are not explicitly set, potentially leaving the application vulnerable to common web attacks.',
+          isDangerous: false,
+          impact: 'Increased risk of XSS, clickjacking, and other client-side attacks.',
+          recommendation: 'Implement a security middleware like Helmet.js (for Express/Koa) or configure security headers directly in your web server (Nginx, Apache).',
+          evidence: ['No "helmet" import or usage found in server-side files.'],
+          file: filePath,
+        });
+      }
+    }
+
+    // 7. MEDIUM: Overly Permissive CORS
+    if (content.includes('Access-Control-Allow-Origin: *') || content.includes('cors({ origin: "*"')) {
+      issues.push({
+        category: 'Security',
+        severity: 'medium',
+        title: 'Overly Permissive CORS Policy',
+        description: 'The CORS policy allows access from any origin (*), which can expose sensitive data or functionality to unauthorized domains.',
+        isDangerous: true,
+        impact: 'Data leakage, CSRF attacks, and unauthorized API access.',
+        recommendation: 'Restrict CORS to specific, trusted origins. Avoid using "*" in production environments.',
+        evidence: ['"Access-Control-Allow-Origin: *" or similar found.'],
+        file: filePath,
+      });
+    }
+
+    // 8. HIGH: Sensitive File Exposure (basic check for common patterns)
+    const sensitiveFilePatterns = [
+      /(\.env|\.env\.local|\.env\.development|\.env\.production)/i,
+      /(config\.js|settings\.js|credentials\.js)/i,
+      /(private_key|secret_key|api_key)/i,
+    ];
+    sensitiveFilePatterns.forEach(pattern => {
+      if (pattern.test(filePath) && content.length > 0) { // Check if file path matches and content is not empty
+        issues.push({
+          category: 'Security',
+          severity: 'high',
+          title: 'Potential Sensitive File Exposure',
+          description: `A file named "${filePath}" appears to contain sensitive information or is a configuration file that should not be publicly accessible.`,
+          isDangerous: true,
+          impact: 'Exposure of sensitive credentials, API keys, or configuration details.',
+          recommendation: 'Ensure sensitive files are properly excluded from version control (e.g., via .gitignore) and not deployed to public environments. Use environment variables for secrets.',
+          evidence: [`File path matches sensitive pattern: ${filePath}`],
+          file: filePath,
+        });
+      }
+    });
+  });
+
+  // Global checks (not file-specific)
+  // 9. MEDIUM: Missing Dependency Vulnerability Scanning (conceptual)
+  // This check assumes we can infer the absence of a scanning tool
+  const hasPackageJson = Object.keys(codeFiles).some(path => path.includes('package.json'));
+  const hasLockFile = Object.keys(codeFiles).some(path => path.includes('package-lock.json') || path.includes('yarn.lock'));
+
+  if (hasPackageJson && hasLockFile) {
+    // This is a very basic heuristic. A real check would involve looking for CI/CD configs
+    // or specific dependency scanning tool configurations.
+    issues.push({
+      category: 'Security',
+      severity: 'medium',
+      title: 'Missing Dependency Vulnerability Scanning',
+      description: 'No explicit configuration for dependency vulnerability scanning (e.g., Dependabot, Snyk, Renovate) was detected. Outdated or vulnerable dependencies can introduce significant security risks.',
+      isDangerous: false,
+      impact: 'Exposure to known vulnerabilities in third-party libraries.',
+      recommendation: 'Integrate a dependency vulnerability scanner into your CI/CD pipeline or use GitHub\'s Dependabot. Regularly update dependencies.',
+      evidence: ['No clear signs of automated dependency scanning setup.'],
+    });
+  }
+
+  // 10. LOW: Missing HTTPS Enforcement (conceptual)
+  // This is hard to detect from code alone, but important to flag
+  issues.push({
+    category: 'Security',
+    severity: 'low',
+    title: 'Consider HTTPS Enforcement',
+    description: 'While not directly detectable from code, ensuring all traffic is served over HTTPS is a fundamental security practice to protect data in transit.',
+    isDangerous: false,
+    impact: 'Data interception, man-in-the-middle attacks if HTTP is used.',
+    recommendation: 'Configure your hosting environment or CDN to enforce HTTPS for all traffic. Obtain and configure SSL/TLS certificates.',
+    evidence: ['Recommendation based on best practices.'],
   });
 
   return issues;
@@ -117,8 +206,9 @@ export function analyzeSecurityIssues(
  * Calculate security score
  */
 export function calculateSecurityScore(issues: Issue[]): number {
-  let score = 100;
+  let score = 100; // Start with a base score
 
+  // Deduct points for each issue
   issues.forEach((issue) => {
     if (issue.severity === 'critical') score -= 40;
     else if (issue.severity === 'high') score -= 25;
@@ -126,5 +216,6 @@ export function calculateSecurityScore(issues: Issue[]): number {
     else if (issue.severity === 'low') score -= 5;
   });
 
+  // Ensure score doesn't go below 0
   return Math.max(0, score);
 }

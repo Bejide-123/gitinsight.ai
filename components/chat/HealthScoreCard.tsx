@@ -1,9 +1,14 @@
-export default function HealthScoreCard() {
+interface HealthScoreCardProps {
+  score: number;
+  level: string;
+}
+
+export default function HealthScoreCard({ score, level }: HealthScoreCardProps) {
   return (
     <div className="relative col-span-12 overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl md:col-span-4">
       
       <div className="absolute right-4 top-4 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-cyan-400">
-        Enterprise-Grade
+        {level}
       </div>
 
       <div className="flex flex-col items-center justify-center py-6">
@@ -29,14 +34,14 @@ export default function HealthScoreCard() {
               strokeWidth="4"
               fill="transparent"
               strokeDasharray="440"
-              strokeDashoffset="26"
+              strokeDashoffset={440 - (score / 100) * 440}
               className="text-white"
             />
           </svg>
 
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-5xl font-bold text-white">
-              94
+              {score}
             </span>
 
             <span className="text-xs text-zinc-500">

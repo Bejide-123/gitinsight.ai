@@ -1,38 +1,26 @@
 "use client";
 
-import { useRepositoryAnalysis } from "@/hooks/useAnalyseRepo";
-
-import MessageBubble from "@/components/chat/MessageBubble";
-import AnalysisResults from "@/components/chat/AnalysisResult";
+import BottomInput from "@/components/chat/BottomInput";
 
 interface ChatContentProps {
-  repoUrl: string;
+  children: React.ReactNode;
+  chatId: string;
+  isLoading: boolean;
 }
 
 export default function ChatContent({
-  repoUrl,
+  children,
+  chatId,
+  isLoading,
 }: ChatContentProps) {
-
-  const { data, isPending } = useRepositoryAnalysis();
-
-  // Example trigger later
-  // useEffect(() => {
-  //   mutate({ repoUrl });
-  // }, []);
-
-  if (isPending) {
-    return <p>Loading...</p>;
-  }
-
   return (
     <>
-      <MessageBubble
-        message={`Analyze ${repoUrl}`}
-      />
-
-      {data && (
-        <AnalysisResults analysis={data.data} />
-      )}
+      <div className="flex-1 overflow-y-auto px-8 py-8 pb-48">
+        <div className="mx-auto flex max-w-6xl flex-col gap-8">
+          {children}
+        </div>
+      </div>
+      {!isLoading && <BottomInput />}
     </>
   );
 }
