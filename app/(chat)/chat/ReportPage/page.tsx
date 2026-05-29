@@ -9,6 +9,7 @@ import {
   Download,
   Share2,
 } from "lucide-react";
+import html2pdf from 'html2pdf.js';
 import ProjectHeader from "@/components/report/Projectheader";
 import ExecutiveSummary from "@/components/report/Executivesummary";
 import EngineeringDimensions from "@/components/report/Engineeringdimensions";
@@ -289,7 +290,7 @@ export default function ReportPage() {
 
       <section className="hide-scrollbar flex-1 overflow-y-scroll bg-zinc-950">
         {/* Content wrapper with padding and spacing */}
-        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 pb-32">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 pb-8">
           
           {/* 1. Project Header */}
           <div className="animate-in fade-in slide-in-from-top duration-500">
@@ -393,6 +394,53 @@ export default function ReportPage() {
               longTermAdvice="This codebase is built for longevity. If you fix the telemetry gap and split the executor service, it will easily support 100M+ tasks/day with minimal overhead."
               sentimentScore={2}
             />
+          </div>
+
+          {/* Footer with Action Buttons */}
+          <div className="mt-16 pt-8 border-t border-white/10">
+            <div className="flex flex-col sm:flex-row gap-3 justify-end">
+              {/* Share Report Button - White */}
+              <button
+                onClick={() => {
+                  // TODO: Implement share functionality
+                  navigator.share?.({
+                    title: `${analysis.repoName} - Analysis Report`,
+                    text: "Check out this repository analysis report",
+                  }).catch(() => {
+                    // Fallback: copy to clipboard or open share dialog
+                    alert("Share functionality would be implemented here");
+                  });
+                }}
+                className="group flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-white/20 bg-white text-zinc-950 font-semibold text-sm hover:bg-white hover:border-white hover:shadow-lg hover:shadow-white/10 transition-all duration-300 active:scale-95"
+              >
+                <Share2 size={16} />
+                Share Report
+              </button>
+
+              {/* Export as PDF Button - Black */}
+              <button
+                onClick={() => {
+                  const element = document.querySelector('section');
+                  if (element) {
+                    const options = {
+                      margin: 10,
+                      filename: `${analysis.repoName}-report.pdf`,
+                      image: { type: 'jpeg' as const, quality: 0.98 },
+                      html2canvas: { scale: 2 },
+                      jsPDF: { orientation: 'portrait' as const, unit: 'mm' as const, format: 'a4' as const }
+                    };
+                    html2pdf().set(options).from(element).save();
+                  }
+                }}
+                className="group flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-white/10 bg-zinc-900 text-white font-semibold text-sm hover:bg-black hover:border-white/20 hover:shadow-lg hover:shadow-black/20 transition-all duration-300 active:scale-95"
+              >
+                <Download size={16} />
+                Export as PDF
+              </button>
+            </div>
+            <p className="text-xs text-zinc-600 text-center mt-4">
+              Last analyzed on {analysis.analyzedAt.toLocaleDateString()} at {analysis.analyzedAt.toLocaleTimeString()}
+            </p>
           </div>
         </div>
       </section>
