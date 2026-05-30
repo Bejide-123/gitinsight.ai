@@ -20,7 +20,7 @@ export default async function ChatPage({
   console.log("ChatPage received repoUrl:", repoUrl); // Added for debugging
 
   return (
-    <section className="relative flex h-full flex-col overflow-hidden">
+    <section className="hide-scrollbar relative flex h-full flex-col overflow-hidden">
       <p className="hidden text-sm text-zinc-500">
         Chat ID: {id}
       </p>

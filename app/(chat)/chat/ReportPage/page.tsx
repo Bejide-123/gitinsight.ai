@@ -8,6 +8,11 @@ import {
   Terminal,
   Download,
   Share2,
+  GitBranch,
+  ListChecks,
+  Rocket,
+  Construction,
+  Atom,
 } from "lucide-react";
 import html2pdf from 'html2pdf.js';
 import ProjectHeader from "@/components/report/Projectheader";
@@ -32,7 +37,7 @@ const MOCK_ANALYSIS = {
   maturityScore: 78,
   level: "Production Candidate",
   isProductionReady: true,
-  analyzedAt: new Date(),
+  analyzedAt: new Date('2026-05-30T09:00:00Z'),
   projectContext: {
     intent: "production-saas" as const,
     confidence: 87,
@@ -96,12 +101,12 @@ export default function ReportPage() {
 
   // Derived data for components
   const dimensions = [
-    { label: "Structure", icon: "account_tree", score: 88 },
-    { label: "Completeness", icon: "checklist", score: 92 },
-    { label: "Readiness", icon: "rocket_launch", score: 65 },
-    { label: "Maintainability", icon: "construction", score: 74 },
-    { label: "Security", icon: "security", score: 81 },
-    { label: "Testing", icon: "science", score: 58 },
+    { label: "Structure", icon: GitBranch, score: 88 },
+    { label: "Completeness", icon: ListChecks, score: 92 },
+    { label: "Readiness", icon: Rocket, score: 65 },
+    { label: "Maintainability", icon: Construction, score: 74 },
+    { label: "Security", icon: Shield, score: 81 },
+    { label: "Testing", icon: Atom, score: 58 },
   ];
 
   const techStack = [
@@ -275,6 +280,20 @@ export default function ReportPage() {
     },
   ];
 
+  const handleExportPDF = () => {
+    const element = document.querySelector('section');
+    if (element) {
+      const options = {
+        margin: 10,
+        filename: `${analysis.repoName}-report.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { orientation: 'portrait' as const, unit: 'mm' as const, format: 'a4' as const }
+      };
+      html2pdf().set(options).from(element).save();
+    }
+  };
+
   return (
     <>
       <style>{`
@@ -290,7 +309,7 @@ export default function ReportPage() {
 
       <section className="hide-scrollbar flex-1 overflow-y-scroll bg-zinc-950">
         {/* Content wrapper with padding and spacing */}
-        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 pb-8">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 pb-4">
           
           {/* 1. Project Header */}
           <div className="animate-in fade-in slide-in-from-top duration-500">
@@ -402,12 +421,10 @@ export default function ReportPage() {
               {/* Share Report Button - White */}
               <button
                 onClick={() => {
-                  // TODO: Implement share functionality
                   navigator.share?.({
                     title: `${analysis.repoName} - Analysis Report`,
                     text: "Check out this repository analysis report",
                   }).catch(() => {
-                    // Fallback: copy to clipboard or open share dialog
                     alert("Share functionality would be implemented here");
                   });
                 }}
@@ -419,19 +436,7 @@ export default function ReportPage() {
 
               {/* Export as PDF Button - Black */}
               <button
-                onClick={() => {
-                  const element = document.querySelector('section');
-                  if (element) {
-                    const options = {
-                      margin: 10,
-                      filename: `${analysis.repoName}-report.pdf`,
-                      image: { type: 'jpeg' as const, quality: 0.98 },
-                      html2canvas: { scale: 2 },
-                      jsPDF: { orientation: 'portrait' as const, unit: 'mm' as const, format: 'a4' as const }
-                    };
-                    html2pdf().set(options).from(element).save();
-                  }
-                }}
+                onClick={handleExportPDF}
                 className="group flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-white/10 bg-zinc-900 text-white font-semibold text-sm hover:bg-black hover:border-white/20 hover:shadow-lg hover:shadow-black/20 transition-all duration-300 active:scale-95"
               >
                 <Download size={16} />

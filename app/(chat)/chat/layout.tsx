@@ -14,20 +14,33 @@ export default function ChatLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-[#050505] text-white">
-      {/* SIDEBAR */}
-      <Sidebar />
+    <>
+      <style>{`
+        /* Hide scrollbar while maintaining scroll functionality */
+        .hide-scrollbar {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;      /* Firefox */
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;              /* Chrome, Safari and Opera */
+        }
+      `}</style>
 
-      {/* MAIN AREA */}
-      <div className="flex flex-col flex-1 ml-[260px] h-full overflow-hidden">
-        {/* HEADER */}
-        <ChatHeader />
+      <div className="flex h-screen w-full overflow-hidden bg-[#050505] text-white">
+        {/* SIDEBAR */}
+        <Sidebar />
 
-        {/* CHAT CONTENT */}
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
+        {/* MAIN AREA */}
+        <div className="flex flex-col flex-1 ml-[260px] h-full overflow-hidden">
+          {/* HEADER */}
+          <ChatHeader />
+
+          {/* CHAT CONTENT */}
+          <main className="hide-scrollbar flex-1 overflow-y-scroll">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

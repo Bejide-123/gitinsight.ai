@@ -15,7 +15,7 @@ export default function AnalysisResults({
   analysis,
 }: AnalysisResultsProps) {
   return (
-    <div className="flex flex-col gap-4 overflow-x-hidden">
+    <div className="hide-scrollbar flex flex-col gap-4 overflow-x-hidden">
 
       {/* HEADER */}
       <div className="flex items-center gap-3">
