@@ -3,6 +3,7 @@ import "@/app/globals.css";
 import Sidebar from "@/components/chat/Sidebar";
 import ChatHeader from "@/components/chat/Header";
 
+
 export const metadata: Metadata = {
   title: "Chat",
   description: "GitInsight AI Chat Interface",

@@ -1,8 +1,11 @@
 "use client";
+import { useRouter } from "next/navigation"; // Fixed: useRouter instead of useNavigate
 
 import { ArrowUp, Paperclip } from "lucide-react";
 
 export default function BottomInput() {
+  const router = useRouter(); // Fixed: useRouter() instead of useNavigate()
+  
   return (
     <div className="absolute inset-x-0 bottom-0 z-50">
       
@@ -14,8 +17,11 @@ export default function BottomInput() {
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-3">
-            <button className="rounded-xl bg-white px-6 py-3 font-heading text-xs font-bold uppercase tracking-widest text-black transition-all hover:bg-zinc-200">
-              Export Results
+            <button
+              onClick={() => router.push("/chat/ReportPage")} // Fixed: router.push() instead of navigate()
+              className="rounded-xl bg-white px-6 py-3 font-heading text-xs font-bold uppercase tracking-widest text-black transition-all hover:bg-zinc-200"
+            >
+              Full Report
             </button>
             <button className="rounded-xl border border-zinc-800 bg-zinc-900 px-6 py-3 font-heading text-xs font-bold uppercase tracking-widest text-white transition-all hover:border-zinc-700 hover:bg-zinc-800">
               Deep Dive Security

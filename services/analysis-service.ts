@@ -100,10 +100,13 @@ interface RepositoryData {
  * Combines all analyzers and produces comprehensive analysis
  */
 export async function analyzeRepository(repoUrl: string): Promise<Analysis> {
+  console.log('Starting analyzeRepository for URL:', repoUrl);
   try {
     // 1. Fetch repository data + code files
     console.log('📥 Fetching repository data...');
     const repoData = await fetchRepositoryWithCode(repoUrl);
+    console.log('✅ Fetched repoData.metadata:', repoData.metadata?.full_name);
+    console.log('✅ Fetched repoData.codeFiles count:', Object.keys(repoData.codeFiles).length);
     
     // 2. Detect project intent
     console.log('🎯 Detecting project intent...');
@@ -244,7 +247,9 @@ export async function analyzeRepository(repoUrl: string): Promise<Analysis> {
  * Get scoring weights for a specific project intent
  */
 function getWeightsForIntent(intent: string): Record<string, number> {
-  return INTENT_WEIGHTS[intent] || INTENT_WEIGHTS['startup'];
+  const weights = INTENT_WEIGHTS[intent] || INTENT_WEIGHTS['startup'];
+  console.log(`Using weights for intent '${intent}':`, weights);
+  return weights;
 }
 
 /**
@@ -263,7 +268,10 @@ function calculateWeightedScore(
     totalWeight += weight;
   });
 
-  return totalWeight > 0 ? totalScore / totalWeight : 0;
+  console.log('Calculated totalScore:', totalScore, 'totalWeight:', totalWeight);
+  const finalScore = totalWeight > 0 ? totalScore / totalWeight : 0;
+  console.log('Final weighted score:', finalScore);
+  return finalScore;
 }
 
 /**
