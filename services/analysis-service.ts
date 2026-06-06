@@ -1,78 +1,108 @@
 // services/analysis.service.ts
 
-import { fetchRepositoryWithCode } from './github-service';
-import { detectProjectIntent } from './projectIntent-service';
-import { analyzeSecurityIssues, type SecurityAnalysisResult } from './securityAnalyser-service';
-import { analyzeArchitectureIssues, type ArchitectureAnalysisResult } from './architecturalAnalyser-service';
-import { analyzeTesting, type TestingAnalysisResult } from './testingAnalyser-service';
-import type { Analysis, Issue, ProjectContext, IssueSeverity } from '@/types/analysis';
-import type { GitHubRepo, FileTreeItem } from '@/types/github';
+import { fetchRepositoryWithCode } from "./github-service";
+import { detectProjectIntent } from "./projectIntent-service";
+import { analyzeSecurityIssues } from "./securityAnalyser-service";
+import {
+  analyzeArchitectureIssues,
+  type ArchitectureAnalysisResult,
+} from "./architecturalAnalyser-service";
+import { analyzeCompleteness } from "./CompletenessAnalyser-service";
+import { analyzeMaintainability } from "./MaintainabilityAnalyser-service";
+import { analyzeReadiness } from "./ReadinessAnalyser-service";
+import { analyzeTesting } from "./testingAnalyser-service";
+import type {
+  Analysis,
+  Issue,
+  ProjectContext,
+  IssueSeverity,
+} from "@/types/analysis";
+import type { GitHubRepo, FileTreeItem } from "@/types/github";
 
 /**
  * Scoring weights for different project intents
  */
 const INTENT_WEIGHTS: Record<string, Record<string, number>> = {
   portfolio: {
-    security: 0.25,
-    architecture: 0.35,
-    testing: 0.10,
-    documentation: 0.30,
+    security: 0.2,
+    architecture: 0.25,
+    testing: 0.1,
+    completeness: 0.15,
+    maintainability: 0.2,
+    readiness: 0.1,
   },
   learning: {
-    security: 0.20,
-    architecture: 0.40,
-    testing: 0.20,
-    documentation: 0.20,
+    security: 0.15,
+    architecture: 0.3,
+    testing: 0.15,
+    completeness: 0.12,
+    maintainability: 0.18,
+    readiness: 0.1,
   },
-  'open-source-library': {
-    security: 0.20,
-    architecture: 0.30,
-    testing: 0.35,
-    documentation: 0.15,
+  "open-source-library": {
+    security: 0.2,
+    architecture: 0.28,
+    testing: 0.3,
+    completeness: 0.12,
+    maintainability: 0.05,
+    readiness: 0.05,
   },
   mvp: {
-    security: 0.30,
-    architecture: 0.30,
-    testing: 0.25,
-    documentation: 0.15,
+    security: 0.25,
+    architecture: 0.25,
+    testing: 0.2,
+    completeness: 0.1,
+    maintainability: 0.12,
+    readiness: 0.08,
   },
   startup: {
-    security: 0.35,
-    architecture: 0.28,
-    testing: 0.25,
-    documentation: 0.12,
+    security: 0.3,
+    architecture: 0.25,
+    testing: 0.2,
+    completeness: 0.08,
+    maintainability: 0.1,
+    readiness: 0.07,
   },
-  'production-saas': {
-    security: 0.40,
-    architecture: 0.28,
-    testing: 0.25,
-    documentation: 0.07,
+  "production-saas": {
+    security: 0.35,
+    architecture: 0.25,
+    testing: 0.2,
+    completeness: 0.05,
+    maintainability: 0.08,
+    readiness: 0.07,
   },
   enterprise: {
-    security: 0.40,
-    architecture: 0.30,
-    testing: 0.20,
-    documentation: 0.10,
+    security: 0.35,
+    architecture: 0.25,
+    testing: 0.18,
+    completeness: 0.08,
+    maintainability: 0.07,
+    readiness: 0.07,
   },
 };
 
 /**
  * Maturity level thresholds
  */
-const MATURITY_LEVELS: Array<{ min: number; max: number; level: string; production: boolean }> = [
-  { min: 0, max: 25, level: 'Prototype', production: false },
-  { min: 26, max: 40, level: 'Early Stage', production: false },
-  { min: 41, max: 55, level: 'Developing', production: false },
-  { min: 56, max: 70, level: 'Production Candidate', production: false },
-  { min: 71, max: 85, level: 'Production', production: true },
-  { min: 86, max: 100, level: 'Enterprise Ready', production: true },
+const MATURITY_LEVELS: Array<{
+  min: number;
+  max: number;
+  level: string;
+  production: boolean;
+}> = [
+  { min: 0, max: 25, level: "Prototype", production: false },
+  { min: 26, max: 40, level: "Early Stage", production: false },
+  { min: 41, max: 55, level: "Developing", production: false },
+  { min: 56, max: 70, level: "Production Candidate", production: false },
+  { min: 71, max: 85, level: "Production", production: true },
+  { min: 86, max: 100, level: "Enterprise Ready", production: true },
 ];
 
 interface CategoryScore {
   score: number;
   weight: number;
   issues: Issue[];
-  metrics?: Record<string, any>;
+  metrics?: Record<string, unknown>;
 }
 
 interface AnalysisMetadata {
@@ -89,7 +119,7 @@ interface AnalysisMetadata {
 
 interface RepositoryData {
   readme: string | null;
-  packageJson: any;
+  packageJson: Record<string, unknown>;
   fileTree: FileTreeItem[];
   codeFiles: Record<string, string>;
   metadata: GitHubRepo;
@@ -100,55 +130,101 @@ interface RepositoryData {
  * Combines all analyzers and produces comprehensive analysis
  */
 export async function analyzeRepository(repoUrl: string): Promise<Analysis> {
-  console.log('Starting analyzeRepository for URL:', repoUrl);
+  console.log("Starting analyzeRepository for URL:", repoUrl);
   try {
     // 1. Fetch repository data + code files
-    console.log('📥 Fetching repository data...');
+    console.log("📥 Fetching repository data...");
     const repoData = await fetchRepositoryWithCode(repoUrl);
-    console.log('✅ Fetched repoData.metadata:', repoData.metadata?.full_name);
-    console.log('✅ Fetched repoData.codeFiles count:', Object.keys(repoData.codeFiles).length);
-    
+    console.log("✅ Fetched repoData.metadata:", repoData.metadata?.full_name);
+    console.log(
+      "✅ Fetched repoData.codeFiles count:",
+      Object.keys(repoData.codeFiles).length,
+    );
+
     // 2. Detect project intent
-    console.log('🎯 Detecting project intent...');
+    console.log("🎯 Detecting project intent...");
     const projectContext = detectProjectIntent({
       readme: repoData.readme,
       packageJson: repoData.packageJson,
       fileTree: repoData.fileTree,
       metadata: repoData.metadata,
     });
-    
-    console.log(`   ✓ Intent: ${projectContext.intent} (${projectContext.confidence}% confidence)`);
-    
+
+    console.log(
+      `   ✓ Intent: ${projectContext.intent} (${projectContext.confidence}% confidence)`,
+    );
+
     // 3. Run all analyzers in parallel
-    console.log('🔍 Running comprehensive analysis...');
-    
-    const [securityResult, architectureResult, testingResult] = await Promise.all([
-      Promise.resolve(analyzeSecurityIssues(repoData.codeFiles, repoData.packageJson)),
-      Promise.resolve(analyzeArchitectureIssues(repoData.codeFiles, repoData.fileTree)),
+    console.log("🔍 Running comprehensive analysis...");
+
+    const [
+      securityResult,
+      architectureResult,
+      testingResult,
+      completenessResult,
+      maintainabilityResult,
+      readinessResult,
+    ] = await Promise.all([
+      Promise.resolve(
+        analyzeSecurityIssues(repoData.codeFiles, repoData.packageJson),
+      ),
+      Promise.resolve(
+        analyzeArchitectureIssues(repoData.codeFiles, repoData.fileTree),
+      ),
       Promise.resolve(analyzeTesting(repoData.fileTree)),
+      Promise.resolve(
+        analyzeCompleteness(
+          repoData.codeFiles,
+          repoData.fileTree,
+          repoData.packageJson,
+        ),
+      ),
+      Promise.resolve(
+        analyzeMaintainability(
+          repoData.codeFiles,
+          repoData.fileTree,
+          repoData.packageJson,
+        ),
+      ),
+      Promise.resolve(
+        analyzeReadiness(
+          repoData.codeFiles,
+          repoData.fileTree,
+          repoData.packageJson,
+          repoData.metadata,
+        ),
+      ),
     ]);
-    
-    console.log(`   ✓ Security: ${securityResult.score}/100 (${securityResult.criticalCount} critical)`);
+
+    console.log(
+      `   ✓ Security: ${securityResult.score}/100 (${securityResult.criticalCount} critical)`,
+    );
     console.log(`   ✓ Architecture: ${architectureResult.score}/100`);
     console.log(`   ✓ Testing: ${testingResult.score}/100`);
-    
+
     // 4. Aggregate all issues
     const allIssues = [
       ...securityResult.issues,
       ...architectureResult.issues,
       ...testingResult.issues,
+      ...completenessResult.issues,
+      ...maintainabilityResult.issues,
+      ...readinessResult.issues,
+      // ...documentationResult.issues,
     ];
-    
+
     // 5. Separate dangerous vs improvement issues
-    const dangerousIssues = allIssues.filter(i => i.isDangerous);
-    const missingImprovements = allIssues.filter(i => !i.isDangerous);
-    
+    const dangerousIssues = allIssues.filter((i) => i.isDangerous);
+    const missingImprovements = allIssues.filter((i) => !i.isDangerous);
+
     console.log(`   ✓ Found ${dangerousIssues.length} dangerous issues`);
-    console.log(`   ✓ Found ${missingImprovements.length} quality improvements`);
-    
+    console.log(
+      `   ✓ Found ${missingImprovements.length} quality improvements`,
+    );
+
     // 6. Build category scores with weights
     const weights = getWeightsForIntent(projectContext.intent);
-    
+
     const categoryScores: Record<string, CategoryScore> = {
       security: {
         score: securityResult.score,
@@ -187,33 +263,68 @@ export async function analyzeRepository(repoUrl: string): Promise<Analysis> {
           testFileDensity: testingResult.testFileDensity,
         },
       },
+      completeness: {
+        score: completenessResult.score,
+        weight: weights.completeness || 0.12,
+        issues: completenessResult.issues,
+        metrics: completenessResult.completenessMetrics,
+      },
+      readiness: {
+        score: readinessResult.score,
+        weight: weights.readiness || 0.15,
+        issues: readinessResult.issues,
+        metrics: readinessResult.readinessMetrics,
+      },
+      maintainability: {
+        score: maintainabilityResult.score,
+        weight: weights.maintainability || 0.12,
+        issues: maintainabilityResult.issues,
+        metrics: maintainabilityResult.maintainabilityMetrics,
+      },
     };
-    
+
     // 7. Calculate overall maturity score using weighted average
     const maturityScore = calculateWeightedScore(
       {
         security: categoryScores.security.score,
         architecture: categoryScores.architecture.score,
         testing: categoryScores.testing.score,
+        completeness: categoryScores.completeness.score,
+        readiness: categoryScores.readiness.score,
+        maintainability: categoryScores.maintainability.score,
       },
-      weights
+      weights,
     );
-    
+
     // 8. Get maturity level
     const { level, production } = getMaturityLevel(maturityScore);
-    
-    console.log(`✅ Overall Score: ${Math.round(maturityScore)}/100 - ${level}`);
-    
-    // 9. Build metadata
-    const metadata = buildAnalysisMetadata(allIssues, repoData, architectureResult);
-    
+
+    console.log(
+      `✅ Overall Score: ${Math.round(maturityScore)}/100 - ${level}`,
+    );
+
+    // 9. Build metadata (for future use)
+    buildAnalysisMetadata(
+      allIssues,
+      repoData,
+      architectureResult,
+    );
+
     // 10. Identify strengths
-    const strengths = identifyStrengths(repoData, categoryScores, projectContext);
-    
+    const strengths = identifyStrengths(
+      repoData,
+      categoryScores,
+      projectContext,
+    );
+
     // 11. Generate recommendations
     const criticalBlockers = generateCriticalBlockers(dangerousIssues);
-    const nextSteps = generateNextSteps(missingImprovements, projectContext, categoryScores);
-    
+    const nextSteps = generateNextSteps(
+      missingImprovements,
+      projectContext,
+      categoryScores,
+    );
+
     // 12. Build final analysis object
     const analysis: Analysis = {
       repoUrl,
@@ -228,17 +339,16 @@ export async function analyzeRepository(repoUrl: string): Promise<Analysis> {
       strengths,
       criticalBlockers,
       nextSteps,
-      metadata,
       analyzedAt: new Date(),
     };
-    
+
     console.log(`\n${generateAnalysisSummary(analysis)}`);
-    
+
     return analysis;
   } catch (error) {
-    console.error('❌ Analysis failed:', error);
+    console.error("❌ Analysis failed:", error);
     throw new Error(
-      `Repository analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Repository analysis failed: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
   }
 }
@@ -247,7 +357,7 @@ export async function analyzeRepository(repoUrl: string): Promise<Analysis> {
  * Get scoring weights for a specific project intent
  */
 function getWeightsForIntent(intent: string): Record<string, number> {
-  const weights = INTENT_WEIGHTS[intent] || INTENT_WEIGHTS['startup'];
+  const weights = INTENT_WEIGHTS[intent] || INTENT_WEIGHTS["startup"];
   console.log(`Using weights for intent '${intent}':`, weights);
   return weights;
 }
@@ -257,7 +367,7 @@ function getWeightsForIntent(intent: string): Record<string, number> {
  */
 function calculateWeightedScore(
   scores: Record<string, number>,
-  weights: Record<string, number>
+  weights: Record<string, number>,
 ): number {
   let totalScore = 0;
   let totalWeight = 0;
@@ -268,25 +378,29 @@ function calculateWeightedScore(
     totalWeight += weight;
   });
 
-  console.log('Calculated totalScore:', totalScore, 'totalWeight:', totalWeight);
+  console.log(
+    "Calculated totalScore:",
+    totalScore,
+    "totalWeight:",
+    totalWeight,
+  );
   const finalScore = totalWeight > 0 ? totalScore / totalWeight : 0;
-  console.log('Final weighted score:', finalScore);
+  console.log("Final weighted score:", finalScore);
   return finalScore;
 }
 
 /**
  * Get maturity level from score
  */
-function getMaturityLevel(
-  score: number
-): { level: string; production: boolean } {
+function getMaturityLevel(score: number): {
+  level: string;
+  production: boolean;
+} {
   const maturityLevel = MATURITY_LEVELS.find(
-    m => score >= m.min && score <= m.max
+    (m) => score >= m.min && score <= m.max,
   );
 
-  return (
-    maturityLevel || { level: 'Unknown', production: false }
-  );
+  return maturityLevel || { level: "Unknown", production: false };
 }
 
 /**
@@ -295,7 +409,7 @@ function getMaturityLevel(
 function buildAnalysisMetadata(
   issues: Issue[],
   repoData: RepositoryData,
-  architectureResult: ArchitectureAnalysisResult
+  architectureResult: ArchitectureAnalysisResult,
 ): AnalysisMetadata {
   const issuesBySeverity: Record<IssueSeverity, number> = {
     critical: 0,
@@ -306,7 +420,7 @@ function buildAnalysisMetadata(
 
   const issuesByCategory: Record<string, number> = {};
 
-  issues.forEach(issue => {
+  issues.forEach((issue) => {
     issuesBySeverity[issue.severity]++;
     issuesByCategory[issue.category] =
       (issuesByCategory[issue.category] || 0) + 1;
@@ -331,91 +445,87 @@ function buildAnalysisMetadata(
 function identifyStrengths(
   repoData: RepositoryData,
   categoryScores: Record<string, CategoryScore>,
-  projectContext: ProjectContext
+  projectContext: ProjectContext,
 ): string[] {
   const strengths: string[] = [];
 
   // High scores
   Object.entries(categoryScores).forEach(([category, data]) => {
     if (data.score >= 85) {
-      strengths.push(
-        `Excellent ${category} practices (${data.score}/100)`
-      );
+      strengths.push(`Excellent ${category} practices (${data.score}/100)`);
     } else if (data.score >= 75) {
-      strengths.push(
-        `Strong ${category} implementation (${data.score}/100)`
-      );
+      strengths.push(`Strong ${category} implementation (${data.score}/100)`);
     }
   });
 
   // Architecture strengths
   if (categoryScores.architecture.metrics?.hasProperLayering) {
     strengths.push(
-      'Well-structured codebase with proper separation of concerns'
+      "Well-structured codebase with proper separation of concerns",
     );
   }
 
   if (categoryScores.architecture.metrics?.circularDependencies === 0) {
-    strengths.push('Clean module structure with zero circular dependencies');
+    strengths.push("Clean module structure with zero circular dependencies");
   }
 
   // Testing strengths
   if (categoryScores.testing.metrics?.hasTestFiles) {
     const frameworks = categoryScores.testing.metrics?.testFrameworks || [];
-    if (frameworks.length > 1) {
-      strengths.push(
-        `Multiple testing frameworks (${frameworks.join(', ')})`
-      );
+    if (frameworks && Array.isArray(frameworks) && frameworks.length > 1) {
+      strengths.push(`Multiple testing frameworks (${(frameworks as string[]).join(", ")})`);
     }
 
     if (
-      categoryScores.testing.metrics?.testingTypes?.unit &&
-      categoryScores.testing.metrics?.testingTypes?.e2e
+      (categoryScores.testing.metrics?.testingTypes as Record<string, boolean>)?.unit &&
+      (categoryScores.testing.metrics?.testingTypes as Record<string, boolean>)?.e2e
     ) {
       strengths.push(
-        'Comprehensive multi-type testing (unit, integration, E2E)'
+        "Comprehensive multi-type testing (unit, integration, E2E)",
       );
     }
   }
 
   if (categoryScores.testing.metrics?.hasCIIntegration) {
-    strengths.push('Automated testing integrated in CI/CD pipeline');
+    strengths.push("Automated testing integrated in CI/CD pipeline");
   }
 
   // Project characteristics
   if (repoData.metadata.homepage) {
-    strengths.push('Active deployment and live service');
+    strengths.push("Active deployment and live service");
   }
 
-  if (
-    repoData.metadata.watchers_count > 50 ||
-    repoData.metadata.stargazers_count > 50
-  ) {
-    strengths.push('Strong community engagement and reputation');
+  const watchersCount = (repoData.metadata as unknown as Record<string, unknown>).watchers_count as number;
+  const stargazersCount = (repoData.metadata as unknown as Record<string, unknown>).stargazers_count as number;
+
+  if (watchersCount > 50 || stargazersCount > 50) {
+    strengths.push("Strong community engagement and reputation");
   }
 
   if (repoData.readme && repoData.readme.length > 1000) {
-    strengths.push('Comprehensive and detailed documentation');
+    strengths.push("Comprehensive and detailed documentation");
   }
 
-  if (repoData.packageJson?.devDependencies?.typescript) {
-    strengths.push('Type-safe with TypeScript throughout the codebase');
+  const devDeps = (repoData.packageJson as Record<string, unknown>).devDependencies as Record<string, unknown>;
+  if (devDeps?.typescript) {
+    strengths.push("Type-safe with TypeScript throughout the codebase");
   }
 
-  if (repoData.packageJson?.scripts?.test) {
-    strengths.push('Automated testing infrastructure configured');
+  const scripts = (repoData.packageJson as Record<string, unknown>).scripts as Record<string, unknown>;
+  if (scripts?.test) {
+    strengths.push("Automated testing infrastructure configured");
   }
 
   // Context-specific strengths
-  if (projectContext.intent === 'production-saas') {
+  if (projectContext.intent === "production-saas") {
     if (categoryScores.security.score >= 80) {
-      strengths.push('Production-grade security practices in place');
+      strengths.push("Production-grade security practices in place");
     }
   }
 
-  if (projectContext.intent === 'enterprise') {
+  if (projectContext.intent === "enterprise") {
     if (categoryScores.security.score >= 85) {
-      strengths.push('Enterprise-level security and compliance standards');
+      strengths.push("Enterprise-level security and compliance standards");
     }
   }
 
@@ -427,9 +537,9 @@ function identifyStrengths(
  */
 function generateCriticalBlockers(dangerousIssues: Issue[]): string[] {
   const blockers = dangerousIssues
-    .filter(i => i.severity === 'critical')
+    .filter((i) => i.severity === "critical")
     .slice(0, 5)
-    .map(i => `${i.title} - ${i.impact}`);
+    .map((i) => `${i.title} - ${i.impact}`);
 
   return blockers.length > 0 ? blockers : [];
 }
@@ -440,30 +550,30 @@ function generateCriticalBlockers(dangerousIssues: Issue[]): string[] {
 function generateNextSteps(
   issues: Issue[],
   projectContext: ProjectContext,
-  categoryScores: Record<string, CategoryScore>
+  categoryScores: Record<string, CategoryScore>,
 ): string[] {
   const steps: string[] = [];
 
   // Critical security issues
   const criticalSecurity = issues.filter(
-    i => i.category === 'Security' && i.severity === 'critical'
+    (i) => i.category === "Security" && i.severity === "critical",
   );
 
   if (criticalSecurity.length > 0) {
     steps.push(`🔒 Fix ${criticalSecurity.length} critical security issue(s)`);
-    criticalSecurity.slice(0, 1).forEach(issue => {
+    criticalSecurity.slice(0, 1).forEach((issue) => {
       steps.push(`   → ${issue.recommendation}`);
     });
   }
 
   // High priority architecture
   const highArchitecture = issues.filter(
-    i => i.category === 'Architecture' && i.severity === 'high'
+    (i) => i.category === "Architecture" && i.severity === "high",
   );
 
   if (highArchitecture.length > 0) {
     steps.push(`🏗️  Resolve ${highArchitecture.length} architecture issue(s)`);
-    highArchitecture.slice(0, 1).forEach(issue => {
+    highArchitecture.slice(0, 1).forEach((issue) => {
       steps.push(`   → ${issue.recommendation}`);
     });
   }
@@ -478,33 +588,34 @@ function generateNextSteps(
   }
 
   // Context-specific actions
-  if (projectContext.intent === 'production-saas') {
-    if (categoryScores.architecture.metrics?.circularDependencies > 0) {
+  if (projectContext.intent === "production-saas") {
+    const circulalDeps = (categoryScores.architecture.metrics?.circularDependencies ?? 0) as number;
+    if (circulalDeps > 0) {
       steps.push(
-        `⚠️  Remove ${categoryScores.architecture.metrics.circularDependencies} circular dependencies`
+        `⚠️  Remove ${circulalDeps} circular dependencies`,
       );
     }
 
     if (!categoryScores.testing.metrics?.hasCIIntegration) {
       steps.push(
-        `✅ Integrate tests into CI/CD pipeline for continuous validation`
+        `✅ Integrate tests into CI/CD pipeline for continuous validation`,
       );
     }
   }
 
-  if (projectContext.intent === 'enterprise') {
+  if (projectContext.intent === "enterprise") {
     steps.push(`📋 Implement comprehensive audit logging`);
     steps.push(`🔐 Configure enterprise-grade security hardening`);
   }
 
   // Medium priority items
   const mediumPriority = issues
-    .filter(i => i.severity === 'medium')
+    .filter((i) => i.severity === "medium")
     .slice(0, 2);
 
   if (mediumPriority.length > 0) {
     steps.push(`📈 Address medium-priority improvements`);
-    mediumPriority.forEach(issue => {
+    mediumPriority.forEach((issue) => {
       steps.push(`   → ${issue.recommendation}`);
     });
   }
@@ -525,7 +636,7 @@ function sortIssuesByPriority(issues: Issue[]): Issue[] {
 
   return [...issues].sort(
     (a, b) =>
-      (severityOrder[a.severity] ?? 4) - (severityOrder[b.severity] ?? 4)
+      (severityOrder[a.severity] ?? 4) - (severityOrder[b.severity] ?? 4),
   );
 }
 
@@ -533,7 +644,7 @@ function sortIssuesByPriority(issues: Issue[]): Issue[] {
  * Generate human-readable analysis summary
  */
 export function generateAnalysisSummary(analysis: Analysis): string {
-  const divider = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
+  const divider = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
 
   return `
 📊 REPOSITORY ANALYSIS SUMMARY
@@ -542,31 +653,38 @@ ${divider}
 📍 Repository: ${analysis.repoName}
 🎯 Project Type: ${analysis.projectContext.intent} (${analysis.projectContext.confidence}% confidence)
 📈 Maturity Score: ${analysis.maturityScore}/100 - ${analysis.level}
-✅ Production Ready: ${analysis.isProductionReady ? '✓ Yes' : '✗ No'}
+✅ Production Ready: ${analysis.isProductionReady ? "✓ Yes" : "✗ No"}
 
 📋 CATEGORY SCORES:
-   🔒 Security: ${analysis.categoryScores.security.score}/100
-   🏗️  Architecture: ${analysis.categoryScores.architecture.score}/100
-   🧪 Testing: ${analysis.categoryScores.testing.score}/100
+   🔒 Security: ${analysis.categoryScores.security?.score}/100
+   🏗️  Architecture: ${analysis.categoryScores.architecture?.score}/100
+   🧪 Testing: ${analysis.categoryScores.testing?.score}/100
 
 ⚠️  ISSUES FOUND:
-   Critical: ${analysis.metadata.issuesBySeverity.critical}
-   High: ${analysis.metadata.issuesBySeverity.high}
-   Medium: ${analysis.metadata.issuesBySeverity.medium}
-   Low: ${analysis.metadata.issuesBySeverity.low}
+   Dangerous: ${analysis.dangerousIssues?.length ?? 0}
+   Improvements: ${analysis.missingImprovements?.length ?? 0}
 
 🌟 TOP STRENGTHS:
-${analysis.strengths.slice(0, 3).map(s => `   ✓ ${s}`).join('\n')}
+${analysis.strengths
+  .slice(0, 3)
+  .map((s) => `   ✓ ${s}`)
+  .join("\n")}
 
 🚨 CRITICAL BLOCKERS:
 ${
   analysis.criticalBlockers.length > 0
-    ? analysis.criticalBlockers.slice(0, 3).map(b => `   ⚠️  ${b}`).join('\n')
-    : '   None'
+    ? analysis.criticalBlockers
+        .slice(0, 3)
+        .map((b) => `   ⚠️  ${b}`)
+        .join("\n")
+    : "   None"
 }
 
 📝 NEXT STEPS:
-${analysis.nextSteps.slice(0, 5).map((step, i) => `   ${i + 1}. ${step}`).join('\n')}
+${analysis.nextSteps
+  .slice(0, 5)
+  .map((step, i) => `   ${i + 1}. ${step}`)
+  .join("\n")}
 
 ${divider}
 `;

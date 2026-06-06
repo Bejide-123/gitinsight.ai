@@ -90,7 +90,7 @@ export default function EmptyChatHero() {
           <button
               onClick={handleAnalyze}
           className="flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-black transition hover:bg-zinc-200">
-            Analyze Free
+            Analyze
             <ArrowRight size={14} />
           </button>
         </div>

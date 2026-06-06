@@ -1,5 +1,5 @@
-import ChatContent from "@/components/chat/ChatContent";
 import AnalysisWrapper from "@/components/chat/AnalysisWrapper";
+import NotFoundHero from "@/components/chat/ErrorComponent";
 
 type ChatPageProps = {
   params: {
@@ -28,9 +28,7 @@ export default async function ChatPage({
       {repoUrl ? (
         <AnalysisWrapper repoUrl={decodeURIComponent(repoUrl)} chatId={id} />
       ) : (
-        <ChatContent chatId={id} isLoading={false}>
-          <p className="text-center text-zinc-500">No repository URL provided for analysis.</p>
-        </ChatContent>
+          <NotFoundHero />
       )}
     </section>
   );

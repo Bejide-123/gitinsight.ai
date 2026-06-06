@@ -23,11 +23,32 @@
 }
 
 .hide-scrollbar {
-  -ms-overflow-style: none;      /* IE and Edge */
-  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none !important;      /* IE and Edge */
+  scrollbar-width: none !important;          /* Firefox */
+  overflow: -moz-scrollbars-none !important; /* Firefox */
 }
 .hide-scrollbar::-webkit-scrollbar {
-  display: none;                  /* Chrome, Safari, Opera */
+  display: none !important;                  /* Chrome, Safari, Opera */
+  width: 0 !important;
+  height: 0 !important;
+}
+
+html, body, * {
+  -ms-overflow-style: none !important;      /* IE and Edge */
+  scrollbar-width: none !important;          /* Firefox */
+}
+
+html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar {
+  display: none !important;                  /* Chrome, Safari, Opera */
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Additional scrollbar hiding for all overflow scenarios */
+div::-webkit-scrollbar, section::-webkit-scrollbar, main::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 @keyframes loading-bar {
