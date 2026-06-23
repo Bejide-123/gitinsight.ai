@@ -63,10 +63,35 @@ export async function fetchFileTree(
   branch: string = "main"
 ): Promise<FileTreeItem[]> {
   try {
+    // First, get the commit SHA for the branch
+    let commitSha: string;
+    try {
+      const { data: branchData } = await octokit.repos.getBranch({
+        owner,
+        repo,
+        branch,
+      });
+      commitSha = branchData.commit.sha;
+    } catch (error: any) {
+      // If branch doesn't exist, try alternative
+      if (branch === "main") {
+        console.warn("Main branch not found, trying master...");
+        const { data: branchData } = await octokit.repos.getBranch({
+          owner,
+          repo,
+          branch: "master",
+        });
+        commitSha = branchData.commit.sha;
+      } else {
+        throw error;
+      }
+    }
+
+    // Now fetch the tree recursively using the commit SHA
     const { data } = await octokit.git.getTree({
       owner,
       repo,
-      tree_sha: branch,
+      tree_sha: commitSha,
       recursive: "1",
     });
     return data.tree as FileTreeItem[];
@@ -92,7 +117,9 @@ export async function fetchReadme(
 ): Promise<string | null> {
   try {
     const { data } = await octokit.repos.getReadme({ owner, repo });
-    return Buffer.from(data.content, "base64").toString("utf-8");
+    const readmeContent = Buffer.from(data.content, "base64").toString("utf-8");
+    console.log("Fetched README content:", readmeContent);
+    return readmeContent;
   } catch (error) {
     console.warn(error, "README not found, skipping README analysis");
     return null;
@@ -184,19 +211,40 @@ export async function fetchMultipleFiles(
 // ============================================================
 
 export function selectFilesToAnalyze(fileTree: FileTreeItem[]): string[] {
+  console.log(`[selectFilesToAnalyze] Received fileTree with ${fileTree.length} items.`);
   const selected: Set<string> = new Set();
   const CODE_EXTENSIONS = [".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs"];
 
   const isCodeFile = (path: string) =>
     CODE_EXTENSIONS.some((ext) => path.endsWith(ext));
 
+  // TIER 0 — Documentation & Root files (for completeness check)
+  const DOC_AND_ROOT_FILES = [
+    "README.md",
+    "LICENSE",
+    "LICENSE.md",
+    "CHANGELOG.md",
+    "CHANGELOG.txt",
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md",
+    ".env.example",
+    ".env.sample",
+    ".gitignore",
+  ];
+
+  DOC_AND_ROOT_FILES.forEach((file) => {
+    const found = fileTree.find(
+      (f) => f.path === file || f.path.endsWith(`/${file}`)
+    );
+    if (found) selected.add(found.path);
+  });
+  console.log(`[selectFilesToAnalyze] After TIER 0 (Docs & Root): ${selected.size} files selected.`);
+
   // TIER 1 — Config & entry points
   const CONFIG_FILES = [
     "package.json",
     "tsconfig.json",
     "jsconfig.json",
-    ".env.example",
-    ".env.local.example",
     "next.config.js",
     "next.config.mjs",
     "next.config.ts",
@@ -207,6 +255,8 @@ export function selectFilesToAnalyze(fileTree: FileTreeItem[]): string[] {
     ".eslintrc.js",
     ".eslintrc.json",
     ".eslintrc.ts",
+    "eslint.config.js",
+    "eslint.config.mjs",
     "jest.config.js",
     "jest.config.ts",
     "vitest.config.ts",
@@ -215,8 +265,11 @@ export function selectFilesToAnalyze(fileTree: FileTreeItem[]): string[] {
     "Dockerfile",
     ".github/workflows/main.yml",
     ".github/workflows/ci.yml",
+    ".github/workflows/test.yml",
     "vercel.json",
     "railway.json",
+    "postcss.config.js",
+    "postcss.config.mjs",
   ];
 
   CONFIG_FILES.forEach((file) => {
@@ -225,6 +278,7 @@ export function selectFilesToAnalyze(fileTree: FileTreeItem[]): string[] {
     );
     if (found) selected.add(found.path);
   });
+  console.log(`[selectFilesToAnalyze] After TIER 1 (Config & Entry): ${selected.size} files selected.`);
 
   const ENTRY_PATTERNS = [
     "src/main",
@@ -243,6 +297,7 @@ export function selectFilesToAnalyze(fileTree: FileTreeItem[]): string[] {
     );
     if (found) selected.add(found.path);
   });
+  console.log(`[selectFilesToAnalyze] After TIER 1 (Entry Patterns): ${selected.size} files selected.`);
 
   // TIER 2 — Business logic
   const BUSINESS_LOGIC_PATTERNS = [
@@ -265,13 +320,18 @@ export function selectFilesToAnalyze(fileTree: FileTreeItem[]): string[] {
       f.path.includes("/lib/"),
     (f: FileTreeItem) =>
       f.path.includes("middleware") || f.path.includes("/middleware/"),
+    (f: FileTreeItem) =>
+      f.path.includes("/types/") ||
+      f.path.includes("/interfaces/"),
   ];
 
   BUSINESS_LOGIC_PATTERNS.forEach((matcher) => {
     fileTree
       .filter((f) => matcher(f) && isCodeFile(f.path) && f.type === "blob")
+      .slice(0, 50) // Increased limit per pattern for more comprehensive business logic analysis
       .forEach((f) => selected.add(f.path));
   });
+  console.log(`[selectFilesToAnalyze] After TIER 2 (Business Logic): ${selected.size} files selected.`);
 
   // TIER 3 — Pages & routes (up to 15)
   fileTree
@@ -287,6 +347,7 @@ export function selectFilesToAnalyze(fileTree: FileTreeItem[]): string[] {
     )
     .slice(0, 15)
     .forEach((f) => selected.add(f.path));
+  console.log(`[selectFilesToAnalyze] After TIER 3 (Pages & Routes): ${selected.size} files selected.`);
 
   // TIER 4 — Components (strategic mix)
   const componentFiles = fileTree.filter(
@@ -310,6 +371,7 @@ export function selectFilesToAnalyze(fileTree: FileTreeItem[]): string[] {
     .sort((a, b) => (b.size ?? 0) - (a.size ?? 0))
     .slice(0, 8)
     .forEach((f) => selected.add(f.path));
+  console.log(`[selectFilesToAnalyze] After TIER 4 (Components): ${selected.size} files selected.`);
 
   // TIER 5 — Test files (up to 5)
   fileTree
@@ -326,6 +388,7 @@ export function selectFilesToAnalyze(fileTree: FileTreeItem[]): string[] {
     )
     .slice(0, 5)
     .forEach((f) => selected.add(f.path));
+  console.log(`[selectFilesToAnalyze] After TIER 5 (Test Files): ${selected.size} files selected.`);
 
   // TIER 6 — Database & schema (up to 5)
   fileTree
@@ -342,9 +405,12 @@ export function selectFilesToAnalyze(fileTree: FileTreeItem[]): string[] {
     )
     .slice(0, 5)
     .forEach((f) => selected.add(f.path));
+  console.log(`[selectFilesToAnalyze] After TIER 6 (Database & Schema): ${selected.size} files selected.`);
 
   // Cap at 50
-  return [...selected].slice(0, 50);
+  const finalSelection = [...selected].slice(0, 50);
+  console.log(`[selectFilesToAnalyze] Final selection before return: ${finalSelection.length} files.`);
+  return finalSelection;
 }
 
 // ============================================================

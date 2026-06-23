@@ -1,5 +1,3 @@
-// services/analysis.service.ts
-
 import { fetchRepositoryWithCode } from "./github-service";
 import { detectProjectIntent } from "./projectIntent-service";
 import { analyzeSecurityIssues } from "./securityAnalyser-service";
@@ -11,17 +9,20 @@ import { analyzeCompleteness } from "./CompletenessAnalyser-service";
 import { analyzeMaintainability } from "./MaintainabilityAnalyser-service";
 import { analyzeReadiness } from "./ReadinessAnalyser-service";
 import { analyzeTesting } from "./testingAnalyser-service";
+import { generateAIInsights } from "./ai-service";
 import type {
   Analysis,
   Issue,
   ProjectContext,
   IssueSeverity,
+  AIInsightsData,
 } from "@/types/analysis";
 import type { GitHubRepo, FileTreeItem } from "@/types/github";
 
-/**
- * Scoring weights for different project intents
- */
+// ============================================================
+// SCORING WEIGHTS
+// ============================================================
+
 const INTENT_WEIGHTS: Record<string, Record<string, number>> = {
   portfolio: {
     security: 0.2,
@@ -81,9 +82,10 @@ const INTENT_WEIGHTS: Record<string, Record<string, number>> = {
   },
 };
 
-/**
- * Maturity level thresholds
- */
+// ============================================================
+// MATURITY LEVELS
+// ============================================================
+
 const MATURITY_LEVELS: Array<{
   min: number;
   max: number;
@@ -97,6 +99,10 @@ const MATURITY_LEVELS: Array<{
   { min: 71, max: 85, level: "Production", production: true },
   { min: 86, max: 100, level: "Enterprise Ready", production: true },
 ];
+
+// ============================================================
+// TYPES
+// ============================================================
 
 interface CategoryScore {
   score: number;
@@ -125,23 +131,88 @@ interface RepositoryData {
   metadata: GitHubRepo;
 }
 
-/**
- * Main analysis orchestrator
- * Combines all analyzers and produces comprehensive analysis
- */
+// ============================================================
+// TECH STACK EXTRACTION
+// ============================================================
+
+function extractTechStack(packageJson: Record<string, unknown> | null): string[] {
+  if (!packageJson) return [];
+
+  const deps = {
+    ...((packageJson.dependencies as Record<string, string>) ?? {}),
+    ...((packageJson.devDependencies as Record<string, string>) ?? {}),
+  };
+
+  const KNOWN_TECH: Record<string, string> = {
+    next: "Next.js",
+    react: "React",
+    vue: "Vue",
+    nuxt: "Nuxt",
+    svelte: "Svelte",
+    typescript: "TypeScript",
+    tailwindcss: "Tailwind CSS",
+    prisma: "Prisma",
+    "@prisma/client": "Prisma",
+    supabase: "Supabase",
+    "@supabase/supabase-js": "Supabase",
+    firebase: "Firebase",
+    mongoose: "MongoDB",
+    pg: "PostgreSQL",
+    mysql2: "MySQL",
+    redis: "Redis",
+    stripe: "@stripe/stripe-js",
+    "@stripe/stripe-js": "Stripe",
+    clerk: "Clerk",
+    "@clerk/nextjs": "Clerk",
+    "next-auth": "NextAuth",
+    zod: "Zod",
+    axios: "Axios",
+    "@tanstack/react-query": "TanStack Query",
+    zustand: "Zustand",
+    redux: "Redux",
+    "@reduxjs/toolkit": "Redux Toolkit",
+    jest: "Jest",
+    vitest: "Vitest",
+    playwright: "Playwright",
+    cypress: "Cypress",
+    docker: "Docker",
+    express: "Express",
+    fastify: "Fastify",
+    hono: "Hono",
+    drizzle: "Drizzle ORM",
+    "drizzle-orm": "Drizzle ORM",
+    "@google/generative-ai": "Gemini AI",
+    "@anthropic-ai/sdk": "Claude AI",
+    openai: "OpenAI",
+  };
+
+  const detected: string[] = [];
+
+  Object.keys(deps).forEach((dep) => {
+    const label = KNOWN_TECH[dep];
+    if (label && !detected.includes(label)) {
+      detected.push(label);
+    }
+  });
+
+  return detected;
+}
+
+// ============================================================
+// MAIN ANALYSIS ORCHESTRATOR
+// ============================================================
+
 export async function analyzeRepository(repoUrl: string): Promise<Analysis> {
   console.log("Starting analyzeRepository for URL:", repoUrl);
+
   try {
-    // 1. Fetch repository data + code files
+    // ── STEP 1: Fetch repository data ──────────────────────────
     console.log("📥 Fetching repository data...");
     const repoData = await fetchRepositoryWithCode(repoUrl);
-    console.log("✅ Fetched repoData.metadata:", repoData.metadata?.full_name);
-    console.log(
-      "✅ Fetched repoData.codeFiles count:",
-      Object.keys(repoData.codeFiles).length,
-    );
+    console.log("✅ Fetched:", repoData.metadata?.full_name);
+    console.log("✅ Code files:", Object.keys(repoData.codeFiles).length);
 
-    // 2. Detect project intent
+    // ── STEP 2: Detect project intent ──────────────────────────
     console.log("🎯 Detecting project intent...");
     const projectContext = detectProjectIntent({
       readme: repoData.readme,
@@ -149,14 +220,10 @@ export async function analyzeRepository(repoUrl: string): Promise<Analysis> {
       fileTree: repoData.fileTree,
       metadata: repoData.metadata,
     });
+    console.log(`   ✓ Intent: ${projectContext.intent} (${projectContext.confidence}% confidence)`);
 
-    console.log(
-      `   ✓ Intent: ${projectContext.intent} (${projectContext.confidence}% confidence)`,
-    );
-
-    // 3. Run all analyzers in parallel
+    // ── STEP 3: Run all analyzers in parallel ──────────────────
     console.log("🔍 Running comprehensive analysis...");
-
     const [
       securityResult,
       architectureResult,
@@ -165,64 +232,35 @@ export async function analyzeRepository(repoUrl: string): Promise<Analysis> {
       maintainabilityResult,
       readinessResult,
     ] = await Promise.all([
-      Promise.resolve(
-        analyzeSecurityIssues(repoData.codeFiles, repoData.packageJson),
-      ),
-      Promise.resolve(
-        analyzeArchitectureIssues(repoData.codeFiles, repoData.fileTree),
-      ),
+      Promise.resolve(analyzeSecurityIssues(repoData.codeFiles, repoData.packageJson)),
+      Promise.resolve(analyzeArchitectureIssues(repoData.codeFiles, repoData.fileTree)),
       Promise.resolve(analyzeTesting(repoData.fileTree)),
-      Promise.resolve(
-        analyzeCompleteness(
-          repoData.codeFiles,
-          repoData.fileTree,
-          repoData.packageJson,
-        ),
-      ),
-      Promise.resolve(
-        analyzeMaintainability(
-          repoData.codeFiles,
-          repoData.fileTree,
-          repoData.packageJson,
-        ),
-      ),
-      Promise.resolve(
-        analyzeReadiness(
-          repoData.codeFiles,
-          repoData.fileTree,
-          repoData.packageJson,
-          repoData.metadata,
-        ),
-      ),
+      Promise.resolve(analyzeCompleteness(repoData.codeFiles, repoData.fileTree, repoData.packageJson)),
+      Promise.resolve(analyzeMaintainability(repoData.codeFiles, repoData.fileTree, repoData.packageJson)),
+      Promise.resolve(analyzeReadiness(repoData.codeFiles, repoData.fileTree, repoData.packageJson, repoData.metadata)),
     ]);
 
-    console.log(
-      `   ✓ Security: ${securityResult.score}/100 (${securityResult.criticalCount} critical)`,
-    );
+    console.log(`   ✓ Security: ${securityResult.score}/100 (${securityResult.criticalCount} critical)`);
     console.log(`   ✓ Architecture: ${architectureResult.score}/100`);
     console.log(`   ✓ Testing: ${testingResult.score}/100`);
 
-    // 4. Aggregate all issues
-    const allIssues = [
+    // ── STEP 4: Aggregate all issues ───────────────────────────
+    const allIssues: Issue[] = [
       ...securityResult.issues,
       ...architectureResult.issues,
       ...testingResult.issues,
       ...completenessResult.issues,
       ...maintainabilityResult.issues,
       ...readinessResult.issues,
-      // ...documentationResult.issues,
     ];
 
-    // 5. Separate dangerous vs improvement issues
     const dangerousIssues = allIssues.filter((i) => i.isDangerous);
     const missingImprovements = allIssues.filter((i) => !i.isDangerous);
 
     console.log(`   ✓ Found ${dangerousIssues.length} dangerous issues`);
-    console.log(
-      `   ✓ Found ${missingImprovements.length} quality improvements`,
-    );
+    console.log(`   ✓ Found ${missingImprovements.length} quality improvements`);
 
-    // 6. Build category scores with weights
+    // ── STEP 5: Build category scores ──────────────────────────
     const weights = getWeightsForIntent(projectContext.intent);
 
     const categoryScores: Record<string, CategoryScore> = {
@@ -283,7 +321,7 @@ export async function analyzeRepository(repoUrl: string): Promise<Analysis> {
       },
     };
 
-    // 7. Calculate overall maturity score using weighted average
+    // ── STEP 6: Calculate maturity score ───────────────────────
     const maturityScore = calculateWeightedScore(
       {
         security: categoryScores.security.score,
@@ -296,36 +334,67 @@ export async function analyzeRepository(repoUrl: string): Promise<Analysis> {
       weights,
     );
 
-    // 8. Get maturity level
     const { level, production } = getMaturityLevel(maturityScore);
+    console.log(`✅ Overall Score: ${Math.round(maturityScore)}/100 - ${level}`);
 
-    console.log(
-      `✅ Overall Score: ${Math.round(maturityScore)}/100 - ${level}`,
-    );
+    // ── STEP 7: Identify strengths ─────────────────────────────
+    const strengths = identifyStrengths(repoData, categoryScores, projectContext);
 
-    // 9. Build metadata (for future use)
-    buildAnalysisMetadata(
-      allIssues,
-      repoData,
-      architectureResult,
-    );
-
-    // 10. Identify strengths
-    const strengths = identifyStrengths(
-      repoData,
-      categoryScores,
-      projectContext,
-    );
-
-    // 11. Generate recommendations
+    // ── STEP 8: Generate recommendations ───────────────────────
     const criticalBlockers = generateCriticalBlockers(dangerousIssues);
-    const nextSteps = generateNextSteps(
-      missingImprovements,
-      projectContext,
-      categoryScores,
-    );
+    const nextSteps = generateNextSteps(missingImprovements, projectContext, categoryScores);
 
-    // 12. Build final analysis object
+    // ── STEP 9: Extract tech stack ─────────────────────────────
+    const techStack = extractTechStack(repoData.packageJson);
+
+    // ── STEP 10: Generate AI insights ─────────────────────────
+    // NOTE: This runs AFTER all scores and strengths are ready
+    console.log("🤖 Generating AI insights...");
+
+    let aiInsights: AIInsightsData | null = null;
+
+    try {
+      const aiOutput = await generateAIInsights({
+        repoName: repoData.metadata.full_name,
+        readme: repoData.readme,
+        projectContext,
+        categoryScores: {
+          security: categoryScores.security.score,
+          architecture: categoryScores.architecture.score,
+          testing: categoryScores.testing.score,
+          completeness: categoryScores.completeness.score,
+          maintainability: categoryScores.maintainability.score,
+          readiness: categoryScores.readiness.score,
+        },
+        dangerousIssues,
+        missingImprovements,
+        strengths,
+        techStack,
+        packageJson: repoData.packageJson,
+      });
+
+      aiInsights = {
+        executiveSummary: aiOutput.executiveSummary,
+        recommendations: aiOutput.recommendations,
+        productionVerdict: aiOutput.productionVerdict,
+        roadmapPhases: aiOutput.roadmapPhases,
+        architecturalStrengths: aiOutput.architecturalStrengths,
+        criticalWeaknesses: aiOutput.criticalWeaknesses,
+        longTermOutlook: aiOutput.longTermOutlook,
+        sentimentScore: aiOutput.sentimentScore,
+      };
+
+      console.log("✅ AI insights generated successfully");
+    } catch (aiError) {
+      // AI failure should NOT break the whole analysis
+      console.warn("⚠️ AI insights failed, continuing without:", aiError);
+      aiInsights = null;
+    }
+
+    // ── STEP 11: Build metadata ────────────────────────────────
+    buildAnalysisMetadata(allIssues, repoData, architectureResult);
+
+    // ── STEP 12: Build final analysis object ───────────────────
     const analysis: Analysis = {
       repoUrl,
       repoName: repoData.metadata.full_name,
@@ -340,6 +409,7 @@ export async function analyzeRepository(repoUrl: string): Promise<Analysis> {
       criticalBlockers,
       nextSteps,
       analyzedAt: new Date(),
+      aiInsights, // null if Gemini failed — UI handles this gracefully
     };
 
     console.log(`\n${generateAnalysisSummary(analysis)}`);
@@ -353,18 +423,14 @@ export async function analyzeRepository(repoUrl: string): Promise<Analysis> {
   }
 }
 
-/**
- * Get scoring weights for a specific project intent
- */
+// ============================================================
+// HELPERS
+// ============================================================
+
 function getWeightsForIntent(intent: string): Record<string, number> {
-  const weights = INTENT_WEIGHTS[intent] || INTENT_WEIGHTS["startup"];
-  console.log(`Using weights for intent '${intent}':`, weights);
-  return weights;
+  return INTENT_WEIGHTS[intent] ?? INTENT_WEIGHTS["startup"];
 }
 
-/**
- * Calculate weighted score from category scores
- */
 function calculateWeightedScore(
   scores: Record<string, number>,
   weights: Record<string, number>,
@@ -373,39 +439,23 @@ function calculateWeightedScore(
   let totalWeight = 0;
 
   Object.entries(scores).forEach(([category, score]) => {
-    const weight = weights[category] || 0;
+    const weight = weights[category] ?? 0;
     totalScore += score * weight;
     totalWeight += weight;
   });
 
-  console.log(
-    "Calculated totalScore:",
-    totalScore,
-    "totalWeight:",
-    totalWeight,
-  );
-  const finalScore = totalWeight > 0 ? totalScore / totalWeight : 0;
-  console.log("Final weighted score:", finalScore);
-  return finalScore;
+  return totalWeight > 0 ? totalScore / totalWeight : 0;
 }
 
-/**
- * Get maturity level from score
- */
-function getMaturityLevel(score: number): {
-  level: string;
-  production: boolean;
-} {
-  const maturityLevel = MATURITY_LEVELS.find(
-    (m) => score >= m.min && score <= m.max,
+function getMaturityLevel(score: number): { level: string; production: boolean } {
+  return (
+    MATURITY_LEVELS.find((m) => score >= m.min && score <= m.max) ?? {
+      level: "Unknown",
+      production: false,
+    }
   );
-
-  return maturityLevel || { level: "Unknown", production: false };
 }
 
-/**
- * Build analysis metadata
- */
 function buildAnalysisMetadata(
   issues: Issue[],
   repoData: RepositoryData,
@@ -422,8 +472,7 @@ function buildAnalysisMetadata(
 
   issues.forEach((issue) => {
     issuesBySeverity[issue.severity]++;
-    issuesByCategory[issue.category] =
-      (issuesByCategory[issue.category] || 0) + 1;
+    issuesByCategory[issue.category] = (issuesByCategory[issue.category] ?? 0) + 1;
   });
 
   return {
@@ -439,9 +488,6 @@ function buildAnalysisMetadata(
   };
 }
 
-/**
- * Identify project strengths
- */
 function identifyStrengths(
   repoData: RepositoryData,
   categoryScores: Record<string, CategoryScore>,
@@ -449,7 +495,6 @@ function identifyStrengths(
 ): string[] {
   const strengths: string[] = [];
 
-  // High scores
   Object.entries(categoryScores).forEach(([category, data]) => {
     if (data.score >= 85) {
       strengths.push(`Excellent ${category} practices (${data.score}/100)`);
@@ -458,31 +503,23 @@ function identifyStrengths(
     }
   });
 
-  // Architecture strengths
   if (categoryScores.architecture.metrics?.hasProperLayering) {
-    strengths.push(
-      "Well-structured codebase with proper separation of concerns",
-    );
+    strengths.push("Well-structured codebase with proper separation of concerns");
   }
 
   if (categoryScores.architecture.metrics?.circularDependencies === 0) {
     strengths.push("Clean module structure with zero circular dependencies");
   }
 
-  // Testing strengths
   if (categoryScores.testing.metrics?.hasTestFiles) {
-    const frameworks = categoryScores.testing.metrics?.testFrameworks || [];
-    if (frameworks && Array.isArray(frameworks) && frameworks.length > 1) {
+    const frameworks = categoryScores.testing.metrics?.testFrameworks;
+    if (Array.isArray(frameworks) && frameworks.length > 1) {
       strengths.push(`Multiple testing frameworks (${(frameworks as string[]).join(", ")})`);
     }
 
-    if (
-      (categoryScores.testing.metrics?.testingTypes as Record<string, boolean>)?.unit &&
-      (categoryScores.testing.metrics?.testingTypes as Record<string, boolean>)?.e2e
-    ) {
-      strengths.push(
-        "Comprehensive multi-type testing (unit, integration, E2E)",
-      );
+    const testingTypes = categoryScores.testing.metrics?.testingTypes as Record<string, boolean>;
+    if (testingTypes?.unit && testingTypes?.e2e) {
+      strengths.push("Comprehensive multi-type testing (unit, integration, E2E)");
     }
   }
 
@@ -490,15 +527,12 @@ function identifyStrengths(
     strengths.push("Automated testing integrated in CI/CD pipeline");
   }
 
-  // Project characteristics
   if (repoData.metadata.homepage) {
     strengths.push("Active deployment and live service");
   }
 
-  const watchersCount = (repoData.metadata as unknown as Record<string, unknown>).watchers_count as number;
-  const stargazersCount = (repoData.metadata as unknown as Record<string, unknown>).stargazers_count as number;
-
-  if (watchersCount > 50 || stargazersCount > 50) {
+  const meta = repoData.metadata as unknown as Record<string, unknown>;
+  if ((meta.watchers_count as number) > 50 || (meta.stargazers_count as number) > 50) {
     strengths.push("Strong community engagement and reputation");
   }
 
@@ -511,42 +545,24 @@ function identifyStrengths(
     strengths.push("Type-safe with TypeScript throughout the codebase");
   }
 
-  const scripts = (repoData.packageJson as Record<string, unknown>).scripts as Record<string, unknown>;
-  if (scripts?.test) {
-    strengths.push("Automated testing infrastructure configured");
+  if (projectContext.intent === "production-saas" && categoryScores.security.score >= 80) {
+    strengths.push("Production-grade security practices in place");
   }
 
-  // Context-specific strengths
-  if (projectContext.intent === "production-saas") {
-    if (categoryScores.security.score >= 80) {
-      strengths.push("Production-grade security practices in place");
-    }
+  if (projectContext.intent === "enterprise" && categoryScores.security.score >= 85) {
+    strengths.push("Enterprise-level security and compliance standards");
   }
 
-  if (projectContext.intent === "enterprise") {
-    if (categoryScores.security.score >= 85) {
-      strengths.push("Enterprise-level security and compliance standards");
-    }
-  }
-
-  return strengths.slice(0, 10); // Top 10 strengths
+  return strengths.slice(0, 10);
 }
 
-/**
- * Generate critical blockers
- */
 function generateCriticalBlockers(dangerousIssues: Issue[]): string[] {
-  const blockers = dangerousIssues
+  return dangerousIssues
     .filter((i) => i.severity === "critical")
     .slice(0, 5)
     .map((i) => `${i.title} - ${i.impact}`);
-
-  return blockers.length > 0 ? blockers : [];
 }
 
-/**
- * Generate prioritized next steps
- */
 function generateNextSteps(
   issues: Issue[],
   projectContext: ProjectContext,
@@ -554,52 +570,37 @@ function generateNextSteps(
 ): string[] {
   const steps: string[] = [];
 
-  // Critical security issues
   const criticalSecurity = issues.filter(
     (i) => i.category === "Security" && i.severity === "critical",
   );
-
   if (criticalSecurity.length > 0) {
     steps.push(`🔒 Fix ${criticalSecurity.length} critical security issue(s)`);
-    criticalSecurity.slice(0, 1).forEach((issue) => {
-      steps.push(`   → ${issue.recommendation}`);
-    });
+    criticalSecurity.slice(0, 1).forEach((i) => steps.push(`   → ${i.recommendation}`));
   }
 
-  // High priority architecture
   const highArchitecture = issues.filter(
     (i) => i.category === "Architecture" && i.severity === "high",
   );
-
   if (highArchitecture.length > 0) {
     steps.push(`🏗️  Resolve ${highArchitecture.length} architecture issue(s)`);
-    highArchitecture.slice(0, 1).forEach((issue) => {
-      steps.push(`   → ${issue.recommendation}`);
-    });
+    highArchitecture.slice(0, 1).forEach((i) => steps.push(`   → ${i.recommendation}`));
   }
 
-  // Testing improvements
   if (categoryScores.testing.score < 70) {
-    const testingIssues = categoryScores.testing.issues.slice(0, 1);
-    if (testingIssues.length > 0) {
+    const testingIssue = categoryScores.testing.issues[0];
+    if (testingIssue) {
       steps.push(`🧪 Improve testing coverage`);
-      steps.push(`   → ${testingIssues[0].recommendation}`);
+      steps.push(`   → ${testingIssue.recommendation}`);
     }
   }
 
-  // Context-specific actions
   if (projectContext.intent === "production-saas") {
-    const circulalDeps = (categoryScores.architecture.metrics?.circularDependencies ?? 0) as number;
-    if (circulalDeps > 0) {
-      steps.push(
-        `⚠️  Remove ${circulalDeps} circular dependencies`,
-      );
+    const circularDeps = (categoryScores.architecture.metrics?.circularDependencies ?? 0) as number;
+    if (circularDeps > 0) {
+      steps.push(`⚠️  Remove ${circularDeps} circular dependencies`);
     }
-
     if (!categoryScores.testing.metrics?.hasCIIntegration) {
-      steps.push(
-        `✅ Integrate tests into CI/CD pipeline for continuous validation`,
-      );
+      steps.push(`✅ Integrate tests into CI/CD pipeline`);
     }
   }
 
@@ -608,52 +609,110 @@ function generateNextSteps(
     steps.push(`🔐 Configure enterprise-grade security hardening`);
   }
 
-  // Medium priority items
-  const mediumPriority = issues
+  issues
     .filter((i) => i.severity === "medium")
-    .slice(0, 2);
+    .slice(0, 2)
+    .forEach((i) => steps.push(`   → ${i.recommendation}`));
 
-  if (mediumPriority.length > 0) {
-    steps.push(`📈 Address medium-priority improvements`);
-    mediumPriority.forEach((issue) => {
-      steps.push(`   → ${issue.recommendation}`);
-    });
-  }
-
-  return steps.slice(0, 12); // Top 12 recommendations
+  return steps.slice(0, 12);
 }
 
-/**
- * Sort issues by severity priority
- */
 function sortIssuesByPriority(issues: Issue[]): Issue[] {
-  const severityOrder: Record<IssueSeverity, number> = {
+  const order: Record<IssueSeverity, number> = {
     critical: 0,
     high: 1,
     medium: 2,
     low: 3,
   };
-
-  return [...issues].sort(
-    (a, b) =>
-      (severityOrder[a.severity] ?? 4) - (severityOrder[b.severity] ?? 4),
-  );
+  return [...issues].sort((a, b) => (order[a.severity] ?? 4) - (order[b.severity] ?? 4));
 }
 
-/**
- * Generate human-readable analysis summary
- */
+export async function getAnalysisById(
+  id: string,
+  repoUrl: string,
+): Promise<Analysis> {
+  // TODO: Replace this with actual database fetch logic.
+  // This is a placeholder to simulate fetching an analysis by ID.
+  console.log(`Fetching analysis for ID: ${id} and URL: ${repoUrl}`);
+
+  // For now, we'll return a mock analysis, potentially updated with the real repoUrl
+  const MOCK_ANALYSIS: Analysis = {
+    repoUrl: "https://github.com/acme/core-engine",
+    repoName: "acme/core-engine",
+    maturityScore: 78,
+    level: "Production Candidate",
+    isProductionReady: true,
+    analyzedAt: new Date("2026-05-30T09:00:00Z"),
+    projectContext: {
+      intent: "production-saas",
+      confidence: 87,
+      signals: ["Dependency: sentry", "File: .github/workflows"],
+      expectedFeatures: ["Testing", "Security", "CI/CD"],
+      notRequiredFeatures: ["Kubernetes"],
+    },
+    dangerousIssues: [
+      {
+        category: "Security",
+        severity: "critical",
+        title: "Redis Over-exposure",
+        description: "Connection pooling is unbounded in the cluster-sync module.",
+        isDangerous: true,
+        impact: "Out of memory on load spikes",
+        recommendation: "Add maxConnections limit to Redis pool config",
+        evidence: [],
+      },
+      {
+        category: "Security",
+        severity: "medium",
+        title: "Zod Schema Tightening",
+        description: "Input validation lacks strict numeric range checks.",
+        isDangerous: false,
+        impact: "Invalid data can reach processing layer",
+        recommendation: "Add .min() .max() constraints to concurrency fields",
+        evidence: [],
+      },
+    ],
+    missingImprovements: [],
+    strengths: [
+      "Exceptional domain isolation in the Lib layer",
+      "Modern tech stack with zero legacy baggage",
+      "Semantic Git commit history",
+    ],
+    criticalBlockers: ["Fix unbounded Redis connection pool"],
+    nextSteps: [
+      "Add OpenTelemetry instrumentation",
+      "Wrap DB calls in circuit breakers",
+    ],
+    categoryScores: {
+      security: { score: 81, weight: 0.35, issues: [] },
+      architecture: { score: 88, weight: 0.25, issues: [] },
+      testing: { score: 58, weight: 0.2, issues: [] },
+      completeness: { score: 92, weight: 0.05, issues: [] },
+      readiness: { score: 65, weight: 0.07, issues: [] },
+      maintainability: { score: 74, weight: 0.08, issues: [] },
+    },
+    aiInsights: null,
+  };
+
+  return {
+    ...MOCK_ANALYSIS,
+    repoUrl: repoUrl || MOCK_ANALYSIS.repoUrl,
+    // In a real scenario, you'd fetch from DB and populate all fields
+    // For now, we'll just use the mock and potentially update the repoUrl
+  };
+}
+
 export function generateAnalysisSummary(analysis: Analysis): string {
   const divider = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
 
   return `
 📊 REPOSITORY ANALYSIS SUMMARY
 ${divider}
-
 📍 Repository: ${analysis.repoName}
 🎯 Project Type: ${analysis.projectContext.intent} (${analysis.projectContext.confidence}% confidence)
 📈 Maturity Score: ${analysis.maturityScore}/100 - ${analysis.level}
 ✅ Production Ready: ${analysis.isProductionReady ? "✓ Yes" : "✗ No"}
+🤖 AI Insights: ${analysis.aiInsights ? "✓ Generated" : "✗ Unavailable"}
 
 📋 CATEGORY SCORES:
    🔒 Security: ${analysis.categoryScores.security?.score}/100
@@ -665,32 +724,15 @@ ${divider}
    Improvements: ${analysis.missingImprovements?.length ?? 0}
 
 🌟 TOP STRENGTHS:
-${analysis.strengths
-  .slice(0, 3)
-  .map((s) => `   ✓ ${s}`)
-  .join("\n")}
+${analysis.strengths.slice(0, 3).map((s) => `   ✓ ${s}`).join("\n")}
 
 🚨 CRITICAL BLOCKERS:
-${
-  analysis.criticalBlockers.length > 0
-    ? analysis.criticalBlockers
-        .slice(0, 3)
-        .map((b) => `   ⚠️  ${b}`)
-        .join("\n")
-    : "   None"
-}
-
-📝 NEXT STEPS:
-${analysis.nextSteps
-  .slice(0, 5)
-  .map((step, i) => `   ${i + 1}. ${step}`)
-  .join("\n")}
+${analysis.criticalBlockers.length > 0
+  ? analysis.criticalBlockers.slice(0, 3).map((b) => `   ⚠️  ${b}`).join("\n")
+  : "   None"}
 
 ${divider}
 `;
 }
 
-/**
- * Export types for use in other modules
- */
 export type { CategoryScore, AnalysisMetadata, RepositoryData };

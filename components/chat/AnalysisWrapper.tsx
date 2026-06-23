@@ -62,7 +62,7 @@ export default function AnalysisWrapper({ repoUrl, chatId }: AnalysisWrapperProp
   if (analysisData) {
     return (
       <ChatContent chatId={chatId} isLoading={isPending}>
-        <AnalysisResult analysis={analysisData} />
+        <AnalysisResult analysis={analysisData} reportId={chatId} />
       </ChatContent>
     );
   }

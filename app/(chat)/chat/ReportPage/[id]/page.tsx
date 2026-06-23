@@ -23,6 +23,7 @@ import ProductionReadiness from "@/components/report/ProductionReadiness";
 import EvolutionRoadmap from "@/components/report/EvolutionRoadmap";
 import AIInsights from "@/components/report/AiInsights";
 import ReportActions from "@/components/report/Reportactions";
+import type { Analysis } from "@/types/analysis";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -30,14 +31,20 @@ import ReportActions from "@/components/report/Reportactions";
 
 type ReportPageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ repoUrl?: string; repoName?: string; stars?: string; forks?: string; language?: string }>;
+  searchParams: Promise<{
+    repoUrl?: string;
+    repoName?: string;
+    stars?: string;
+    forks?: string;
+    language?: string;
+  }>;
 };
 
 // ---------------------------------------------------------------------------
-// Mock data — replace with real API call using id/repoUrl
+// Fallback mock — used until real API + DB is wired
 // ---------------------------------------------------------------------------
 
-const MOCK_ANALYSIS = {
+const MOCK_ANALYSIS: Analysis = {
   repoUrl: "https://github.com/acme/core-engine",
   repoName: "acme/core-engine",
   maturityScore: 78,
@@ -45,7 +52,7 @@ const MOCK_ANALYSIS = {
   isProductionReady: true,
   analyzedAt: new Date("2026-05-30T09:00:00Z"),
   projectContext: {
-    intent: "production-saas" as const,
+    intent: "production-saas",
     confidence: 87,
     signals: ["Dependency: sentry", "File: .github/workflows"],
     expectedFeatures: ["Testing", "Security", "CI/CD"],
@@ -54,10 +61,9 @@ const MOCK_ANALYSIS = {
   dangerousIssues: [
     {
       category: "Security",
-      severity: "critical" as const,
+      severity: "critical",
       title: "Redis Over-exposure",
-      description:
-        "Connection pooling is unbounded in the cluster-sync module, leading to potential OOM on spikes.",
+      description: "Connection pooling is unbounded in the cluster-sync module.",
       isDangerous: true,
       impact: "Out of memory on load spikes",
       recommendation: "Add maxConnections limit to Redis pool config",
@@ -65,24 +71,12 @@ const MOCK_ANALYSIS = {
     },
     {
       category: "Security",
-      severity: "medium" as const,
+      severity: "medium",
       title: "Zod Schema Tightening",
-      description:
-        "Input validation for task payloads lacks strict numeric range checks for concurrency fields.",
+      description: "Input validation lacks strict numeric range checks.",
       isDangerous: false,
       impact: "Invalid data can reach processing layer",
       recommendation: "Add .min() .max() constraints to concurrency fields",
-      evidence: [],
-    },
-    {
-      category: "Dependencies",
-      severity: "low" as const,
-      title: "Stale Dependencies",
-      description:
-        "Package `fast-deep-equal` is 2 major versions behind. Non-breaking for current logic.",
-      isDangerous: false,
-      impact: "Missing perf improvements",
-      recommendation: "Run npm update fast-deep-equal",
       evidence: [],
     },
   ],
@@ -96,177 +90,90 @@ const MOCK_ANALYSIS = {
   nextSteps: [
     "Add OpenTelemetry instrumentation",
     "Wrap DB calls in circuit breakers",
-    "Integrate k6 load tests into CI",
   ],
-  categoryScores: {},
-  aiInsights: "",
+  categoryScores: {
+    security: { score: 81, weight: 0.35, issues: [] },
+    architecture: { score: 88, weight: 0.25, issues: [] },
+    testing: { score: 58, weight: 0.2, issues: [] },
+    completeness: { score: 92, weight: 0.05, issues: [] },
+    readiness: { score: 65, weight: 0.07, issues: [] },
+    maintainability: { score: 74, weight: 0.08, issues: [] },
+  },
+  aiInsights: null,
 };
 
 // ---------------------------------------------------------------------------
-// Derived component data
+// Static fallbacks for when aiInsights is null
 // ---------------------------------------------------------------------------
 
-const dimensions = [
-  { label: "Structure", icon: GitBranch, score: 88 },
-  { label: "Completeness", icon: ListChecks, score: 92 },
-  { label: "Readiness", icon: Rocket, score: 65 },
-  { label: "Maintainability", icon: Construction, score: 74 },
-  { label: "Security", icon: Shield, score: 81 },
-  { label: "Testing", icon: Atom, score: 58 },
+const FALLBACK_TECH_STACK = [
+  "Next.js 14", "TypeScript 5.4", "PostgreSQL",
+  "Tailwind CSS", "Redis", "Zod", "Prisma", "Docker",
 ];
 
-const techStack = [
-  "Next.js 14",
-  "TypeScript 5.4",
-  "PostgreSQL",
-  "Tailwind CSS",
-  "Redis",
-  "Zod",
-  "Prisma",
-  "Docker",
-  "K8s",
-];
-
-const capabilities = [
+const FALLBACK_CAPABILITIES = [
   { name: "JWT Authentication", status: "pass" as const },
   { name: "Stripe Payments", status: "missing" as const },
   { name: "Websocket Support", status: "pass" as const },
   { name: "Real-time Notifications", status: "incomplete" as const },
 ];
 
-const recommendations = [
+const FALLBACK_RECOMMENDATIONS = [
   {
-    title: "Implement Telemetry",
-    description:
-      "Add OpenTelemetry instrumentation to track task latency across distributed nodes for real-time visibility.",
+    title: "Review Critical Issues",
+    description: "Address critical and high severity issues from the vulnerability scan.",
     impact: "High Impact" as const,
     impactScore: 90,
     difficulty: 40,
     priority: 1 as const,
   },
   {
-    title: "Circuit Breakers",
-    description:
-      "Wrap database calls in circuit breakers to prevent cascading failures during DB locks and high-latency spikes.",
-    impact: "High Impact" as const,
-    impactScore: 80,
-    difficulty: 60,
+    title: "Improve Test Coverage",
+    description: "Add unit and integration tests to improve confidence in the codebase.",
+    impact: "Medium Impact" as const,
+    impactScore: 70,
+    difficulty: 50,
     priority: 2 as const,
   },
   {
-    title: "Load Testing CI",
-    description:
-      "Integrate k6 performance tests into GitHub Actions to monitor potential regressions in system throughput.",
-    impact: "Medium Impact" as const,
-    impactScore: 60,
-    difficulty: 35,
+    title: "Enhance Documentation",
+    description: "Improve README and inline documentation for better developer experience.",
+    impact: "Low Impact" as const,
+    impactScore: 40,
+    difficulty: 20,
     priority: 3 as const,
   },
 ];
 
-const fileTree = [
+const FALLBACK_ROADMAP = [
   {
-    name: "src",
-    path: "src",
-    type: "folder" as const,
-    children: [
-      {
-        name: "app",
-        path: "src/app",
-        type: "folder" as const,
-        comment: "Route handlers",
-        children: [
-          {
-            name: "layout.tsx",
-            path: "src/app/layout.tsx",
-            type: "file" as const,
-            status: "clean" as const,
-          },
-          {
-            name: "page.tsx",
-            path: "src/app/page.tsx",
-            type: "file" as const,
-            status: "warning" as const,
-          },
-        ],
-      },
-      {
-        name: "core",
-        path: "src/core",
-        type: "folder" as const,
-        comment: "Engine logic",
-        children: [
-          {
-            name: "scheduler.ts",
-            path: "src/core/scheduler.ts",
-            type: "file" as const,
-            status: "none" as const,
-          },
-          {
-            name: "executor.ts",
-            path: "src/core/executor.ts",
-            type: "file" as const,
-            status: "warning" as const,
-            annotation: "1,243 lines — too large",
-          },
-        ],
-      },
-      {
-        name: "shared",
-        path: "src/shared",
-        type: "folder" as const,
-        children: [],
-      },
-    ],
+    number: 1,
+    title: "Current State",
+    description: "Foundation established with core features.",
+    status: "completed" as const,
+    tags: ["CORE"],
   },
   {
-    name: "package.json",
-    path: "package.json",
-    type: "file" as const,
-    status: "none" as const,
+    number: 2,
+    title: "Stabilization",
+    description: "Fix identified issues and harden the codebase.",
+    status: "active" as const,
   },
   {
-    name: "docker-compose.yml",
-    path: "docker-compose.yml",
-    type: "file" as const,
-    status: "none" as const,
+    number: 3,
+    title: "Production Ready",
+    description: "Add testing, monitoring, and security hardening.",
+    status: "upcoming" as const,
+  },
+  {
+    number: 4,
+    title: "Scale",
+    description: "Optimize for growth and performance.",
+    status: "future" as const,
   },
 ];
 
-const qualityChecks = [
-  {
-    name: "TypeScript Strict Mode",
-    icon: Code2,
-    status: "passed" as const,
-    detail: "Enabled across entire codebase",
-  },
-  {
-    name: "Unit Test Coverage",
-    icon: TestTube2,
-    status: "partial" as const,
-    detail: "58% total coverage (Target: 80%)",
-  },
-  {
-    name: "CI/CD Pipeline",
-    icon: RefreshCw,
-    status: "passed" as const,
-    detail: "GitHub Actions configured",
-  },
-  {
-    name: "Secrets Scan",
-    icon: Shield,
-    status: "passed" as const,
-    detail: "No raw secrets found in commits",
-  },
-  {
-    name: "ESLint Compliance",
-    icon: Terminal,
-    status: "missing" as const,
-    detail: "12 warning(s) detected",
-  },
-];
-
-const productionCategories = [
+const FALLBACK_PRODUCTION_CATEGORIES = [
   {
     title: "Scalability",
     items: [
@@ -293,38 +200,6 @@ const productionCategories = [
   },
 ];
 
-const roadmapPhases = [
-  {
-    number: 1,
-    title: "Foundational MVP",
-    description:
-      "Core orchestration, basic task dispatch, and Redis transport implementation completed.",
-    status: "completed" as const,
-    tags: ["AUTH", "ENGINE"],
-  },
-  {
-    number: 2,
-    title: "Enterprise Scaling",
-    description:
-      "Telemetry, observability, and robust error handling patterns for multi-node deployments.",
-    status: "active" as const,
-  },
-  {
-    number: 3,
-    title: "Global Resilience",
-    description:
-      "Multi-region deployment architecture and dynamic node discovery for global availability.",
-    status: "upcoming" as const,
-  },
-  {
-    number: 4,
-    title: "AI Optimization",
-    description:
-      "Dynamic resource allocation based on predicted workload patterns using local inference models.",
-    status: "future" as const,
-  },
-];
-
 // ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
@@ -333,20 +208,123 @@ export default async function ReportPage({ params, searchParams }: ReportPagePro
   const { id } = await params;
   const { repoUrl, repoName, stars, forks, language } = await searchParams;
 
-  // TODO: Replace with real data fetch once analysis service + DB is wired
+  // TODO: Replace with real DB fetch once wired
   // const analysis = await getAnalysisById(id);
-  // console.log("Report for:", id, repoUrl, repoName, stars, forks, language);
+  console.log("Report for:", id, repoUrl);
 
-  const analysis = {
+  const analysis: Analysis = {
     ...MOCK_ANALYSIS,
-    repoUrl: repoUrl || MOCK_ANALYSIS.repoUrl,
-    repoName: repoName || MOCK_ANALYSIS.repoName,
-    metadata: {
-      stars: stars ? parseInt(stars, 10) : undefined,
-      forks: forks ? parseInt(forks, 10) : undefined,
-      language: language || undefined,
-    },
+    repoUrl: repoUrl ?? MOCK_ANALYSIS.repoUrl,
+    repoName: repoName ?? MOCK_ANALYSIS.repoName,
   };
+
+  // ── Resolve AI-powered sections (real if available, fallback otherwise) ──
+
+  const executiveSummary = analysis.aiInsights?.executiveSummary ?? "";
+
+  const recommendations =
+    analysis.aiInsights?.recommendations ?? FALLBACK_RECOMMENDATIONS;
+
+  const roadmapPhases =
+    analysis.aiInsights?.roadmapPhases ?? FALLBACK_ROADMAP;
+
+  const productionVerdict =
+    analysis.aiInsights?.productionVerdict ??
+    "Further analysis needed to determine production readiness.";
+
+  const aiStrengths =
+    analysis.aiInsights?.architecturalStrengths ?? analysis.strengths;
+
+  const aiWeaknesses =
+    analysis.aiInsights?.criticalWeaknesses ??
+    analysis.dangerousIssues.slice(0, 3).map((i) => i.title);
+
+  const longTermOutlook =
+    analysis.aiInsights?.longTermOutlook ??
+    "With the right improvements, this project has strong potential.";
+
+  const sentimentScore = analysis.aiInsights?.sentimentScore ?? 2;
+
+  // ── Resolve score-based sections ──────────────────────────────────────────
+
+  const dimensions = [
+    {
+      label: "Structure",
+      icon: GitBranch,
+      score: analysis.categoryScores.architecture?.score ?? 0,
+    },
+    {
+      label: "Completeness",
+      icon: ListChecks,
+      score: analysis.categoryScores.completeness?.score ?? 0,
+    },
+    {
+      label: "Readiness",
+      icon: Rocket,
+      score: analysis.categoryScores.readiness?.score ?? 0,
+    },
+    {
+      label: "Maintainability",
+      icon: Construction,
+      score: analysis.categoryScores.maintainability?.score ?? 0,
+    },
+    {
+      label: "Security",
+      icon: Shield,
+      score: analysis.categoryScores.security?.score ?? 0,
+    },
+    {
+      label: "Testing",
+      icon: Atom,
+      score: analysis.categoryScores.testing?.score ?? 0,
+    },
+  ];
+
+  const qualityChecks = [
+    {
+      name: "TypeScript Strict Mode",
+      icon: Code2,
+      status: "passed" as const,
+      detail: "Enabled across entire codebase",
+    },
+    {
+      name: "Unit Test Coverage",
+      icon: TestTube2,
+      status:
+        (analysis.categoryScores.testing?.score ?? 0) >= 80
+          ? ("passed" as const)
+          : (analysis.categoryScores.testing?.score ?? 0) >= 40
+            ? ("partial" as const)
+            : ("missing" as const),
+      detail: `${analysis.categoryScores.testing?.score ?? 0}% coverage score`,
+    },
+    {
+      name: "CI/CD Pipeline",
+      icon: RefreshCw,
+      status: "passed" as const,
+      detail: "GitHub Actions configured",
+    },
+    {
+      name: "Secrets Scan",
+      icon: Shield,
+      status:
+        analysis.dangerousIssues.some((i) => i.title.toLowerCase().includes("secret"))
+          ? ("missing" as const)
+          : ("passed" as const),
+      detail:
+        analysis.dangerousIssues.some((i) => i.title.toLowerCase().includes("secret"))
+          ? "Potential secrets detected"
+          : "No raw secrets found",
+    },
+    {
+      name: "ESLint Compliance",
+      icon: Terminal,
+      status: "partial" as const,
+      detail: "Linting configuration detected",
+    },
+  ];
+
+  const overallReadinessScore = analysis.categoryScores.readiness?.score ?? 0;
 
   return (
     <>
@@ -366,30 +344,34 @@ export default async function ReportPage({ params, searchParams }: ReportPagePro
           {/* 1. Project Header */}
           <ProjectHeader analysis={analysis} />
 
-          {/* Repo Metadata Display */}
-          {(analysis.metadata?.stars !== undefined || analysis.metadata?.forks !== undefined || analysis.metadata?.language) && (
-            <div className="rounded-xl border border-zinc-700 bg-zinc-900/50 p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  {analysis.metadata?.stars !== undefined && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-zinc-400">⭐ Stars:</span>
-                      <span className="font-semibold text-white">{analysis.metadata.stars.toLocaleString()}</span>
-                    </div>
-                  )}
-                  {analysis.metadata?.forks !== undefined && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-zinc-400">🍴 Forks:</span>
-                      <span className="font-semibold text-white">{analysis.metadata.forks.toLocaleString()}</span>
-                    </div>
-                  )}
-                  {analysis.metadata?.language && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-zinc-400">Language:</span>
-                      <span className="inline-block px-3 py-1 rounded-full bg-zinc-800 text-white font-medium">{analysis.metadata.language}</span>
-                    </div>
-                  )}
-                </div>
+          {/* Repo metadata bar */}
+          {(stars ?? forks ?? language) && (
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 px-5 py-3">
+              <div className="flex flex-wrap items-center gap-6 text-sm">
+                {stars && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-zinc-500">Stars</span>
+                    <span className="font-semibold text-white">
+                      {parseInt(stars, 10).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+                {forks && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-zinc-500">Forks</span>
+                    <span className="font-semibold text-white">
+                      {parseInt(forks, 10).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+                {language && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-zinc-500">Language</span>
+                    <span className="rounded-full bg-zinc-800 px-3 py-0.5 text-white font-medium">
+                      {language}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -399,44 +381,49 @@ export default async function ReportPage({ params, searchParams }: ReportPagePro
           {/* 2. Executive AI Summary */}
           <ExecutiveSummary
             repoName={analysis.repoName}
-            summary={analysis.aiInsights}
+            summary={executiveSummary}
           />
 
-          {/* 3. Engineering Dimensions */}
+          {/* 3. Engineering Dimensions — from real category scores */}
           <EngineeringDimensions
             dimensions={dimensions}
-            totalFilesAnalyzed={42}
+            totalFilesAnalyzed={analysis.selectedFilesCount ?? 0}
           />
 
           {/* 4. Tech Stack + Core Capabilities */}
           <TechStackAndCapabilities
-            techStack={techStack}
-            capabilities={capabilities}
+            techStack={FALLBACK_TECH_STACK}
+            capabilities={FALLBACK_CAPABILITIES}
           />
 
           <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-          {/* 5. Vulnerability & Audit Findings */}
+          {/* 5. Vulnerability & Audit Findings — real issues */}
           <VulnerabilityFindings issues={analysis.dangerousIssues} />
 
-          {/* 6. Strategic Recommendations */}
+          {/* 6. Strategic Recommendations — AI or fallback */}
           <StrategicRecommendations recommendations={recommendations} />
 
           <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
           {/* 7. Project Structure */}
           <ProjectStructure
-            fileTree={fileTree}
+            fileTree={analysis.fileTreeStructure ?? []}
             stats={{
-              logicSeparation: 84,
-              unusedModules: 12,
-              bundleSize: "4.2MB",
+              logicSeparation: analysis.categoryScores.architecture?.score ?? 0,
+              unusedModules: 0,
+              bundleSize: "—",
             }}
-            healthWarning={{
-              folder: "components",
-              message:
-                "42 files with avg 850 lines. High circular dependency between ChartCard.tsx and DataParser.ts.",
-            }}
+            healthWarning={
+              analysis.dangerousIssues.some((i) => i.category === "Architecture")
+                ? {
+                    folder: "components",
+                    message: analysis.dangerousIssues
+                      .filter((i) => i.category === "Architecture")[0]
+                      ?.description ?? "",
+                  }
+                : undefined
+            }
           />
 
           {/* 8 & 9. Quality Gateways + Engineering Checks */}
@@ -444,31 +431,27 @@ export default async function ReportPage({ params, searchParams }: ReportPagePro
 
           <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-          {/* 10. Production Readiness */}
+          {/* 10. Production Readiness — AI verdict */}
           <ProductionReadiness
-            overallScore={68}
-            categories={productionCategories}
-            verdict="The architecture is solid for MVP, but lacks the necessary observability for a production environment."
+            overallScore={overallReadinessScore}
+            categories={FALLBACK_PRODUCTION_CATEGORIES}
+            verdict={productionVerdict}
           />
 
-          {/* 11. Evolution Roadmap */}
+          {/* 11. Evolution Roadmap — AI or fallback */}
           <EvolutionRoadmap phases={roadmapPhases} />
 
           <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
           {/* 12. AI Engineering Insights */}
           <AIInsights
-            strengths={analysis.strengths}
-            weaknesses={[
-              "Large component files (executor.ts is becoming a monolith)",
-              "Proprietary logic leaking into UI components",
-              "High cyclomatic complexity in Parser module",
-            ]}
-            longTermAdvice="This codebase is built for longevity. If you fix the telemetry gap and split the executor service, it will easily support 100M+ tasks/day with minimal overhead."
-            sentimentScore={2}
+            strengths={aiStrengths}
+            weaknesses={aiWeaknesses}
+            longTermAdvice={longTermOutlook}
+            sentimentScore={sentimentScore}
           />
 
-          {/* Footer Actions — client component handles PDF + share */}
+          {/* Footer Actions */}
           <ReportActions
             repoName={analysis.repoName}
             analyzedAt={analysis.analyzedAt}

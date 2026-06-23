@@ -1,8 +1,20 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Hero() {
+  const [ repoUrl, setRepoUrl] = useState("");
+  const router = useRouter();
+
+  const handleAnalyze = () => {
+    if (repoUrl.trim()) {
+      const id = crypto.randomUUID(); // Using crypto.randomUUID()
+      router.push(`/chat/${id}?repoUrl=${encodeURIComponent(repoUrl)}`);
+    }
+  };
+
   return (
     <section className="relative pt-28 pb-24 px-6 overflow-hidden">
 
@@ -88,8 +100,12 @@ export default function Hero() {
             <input
               className="flex-1 bg-transparent px-4 py-3 text-white text-sm outline-none placeholder:text-white/20"
               placeholder="https://github.com/organization/repo"
+              value={repoUrl}
+              onChange={(e) => setRepoUrl(e.target.value)}
             />
-            <button className="px-6 py-3 bg-white text-black text-sm font-medium rounded-lg hover:bg-zinc-200 transition">
+            <button
+              onClick={() => handleAnalyze()}
+            className="px-6 py-3 bg-white text-black text-sm font-medium rounded-lg hover:bg-zinc-200 transition">
               Analyze
             </button>
           </div>

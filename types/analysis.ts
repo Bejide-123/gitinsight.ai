@@ -57,6 +57,29 @@ export interface CategoryScore {
 // COMPLETE ANALYSIS RESULT
 // ============================================================================
 
+export interface AIInsightsData {
+  executiveSummary: string;
+  recommendations: {
+    title: string;
+    description: string;
+    impact: "High Impact" | "Medium Impact" | "Low Impact";
+    impactScore: number;
+    difficulty: number;
+    priority: 1 | 2 | 3;
+  }[];
+  productionVerdict: string;
+  roadmapPhases: {
+    number: number;
+    title: string;
+    description: string;
+    status: "completed" | "active" | "upcoming" | "future";
+    tags?: string[];
+  }[];
+  architecturalStrengths: string[];
+  criticalWeaknesses: string[];
+  longTermOutlook: string;
+  sentimentScore: number;
+}
 export interface Analysis {
   // ===== Identification =====
   repoUrl: string;
@@ -94,7 +117,7 @@ export interface Analysis {
   // ===== Recommendations =====
   criticalBlockers: string[]; // Must fix before production
   nextSteps: string[]; // Suggested improvements
-  aiInsights?: string; // AI-generated recommendations (from Claude API)
+  aiInsights?: AIInsightsData | null // AI-generated recommendations (from Claude API)
 }
 
 // ============================================================================

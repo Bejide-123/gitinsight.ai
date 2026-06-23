@@ -9,10 +9,12 @@ import PriorityOptimization from "./PriorityOptimization";
 
 interface AnalysisResultsProps {
   analysis: Analysis;
+  reportId?: string;
 }
 
 export default function AnalysisResults({
   analysis,
+  reportId,
 }: AnalysisResultsProps) {
   return (
     <div className="hide-scrollbar flex flex-col gap-4 overflow-x-hidden">
@@ -64,6 +66,7 @@ export default function AnalysisResults({
         <IdentifiedGaps
           dangerousIssues={analysis.dangerousIssues}
           missingImprovements={analysis.missingImprovements}
+          reportId={reportId}
         />
 
         <PriorityOptimization
