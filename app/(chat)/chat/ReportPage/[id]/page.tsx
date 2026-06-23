@@ -1,3 +1,4 @@
+import { getAnalysisById } from "@/services/analysis-service";
 import {
   Code2,
   TestTube2,
@@ -41,166 +42,6 @@ type ReportPageProps = {
 };
 
 // ---------------------------------------------------------------------------
-// Fallback mock — used until real API + DB is wired
-// ---------------------------------------------------------------------------
-
-const MOCK_ANALYSIS: Analysis = {
-  repoUrl: "https://github.com/acme/core-engine",
-  repoName: "acme/core-engine",
-  maturityScore: 78,
-  level: "Production Candidate",
-  isProductionReady: true,
-  analyzedAt: new Date("2026-05-30T09:00:00Z"),
-  projectContext: {
-    intent: "production-saas",
-    confidence: 87,
-    signals: ["Dependency: sentry", "File: .github/workflows"],
-    expectedFeatures: ["Testing", "Security", "CI/CD"],
-    notRequiredFeatures: ["Kubernetes"],
-  },
-  dangerousIssues: [
-    {
-      category: "Security",
-      severity: "critical",
-      title: "Redis Over-exposure",
-      description: "Connection pooling is unbounded in the cluster-sync module.",
-      isDangerous: true,
-      impact: "Out of memory on load spikes",
-      recommendation: "Add maxConnections limit to Redis pool config",
-      evidence: [],
-    },
-    {
-      category: "Security",
-      severity: "medium",
-      title: "Zod Schema Tightening",
-      description: "Input validation lacks strict numeric range checks.",
-      isDangerous: false,
-      impact: "Invalid data can reach processing layer",
-      recommendation: "Add .min() .max() constraints to concurrency fields",
-      evidence: [],
-    },
-  ],
-  missingImprovements: [],
-  strengths: [
-    "Exceptional domain isolation in the Lib layer",
-    "Modern tech stack with zero legacy baggage",
-    "Semantic Git commit history",
-  ],
-  criticalBlockers: ["Fix unbounded Redis connection pool"],
-  nextSteps: [
-    "Add OpenTelemetry instrumentation",
-    "Wrap DB calls in circuit breakers",
-  ],
-  categoryScores: {
-    security: { score: 81, weight: 0.35, issues: [] },
-    architecture: { score: 88, weight: 0.25, issues: [] },
-    testing: { score: 58, weight: 0.2, issues: [] },
-    completeness: { score: 92, weight: 0.05, issues: [] },
-    readiness: { score: 65, weight: 0.07, issues: [] },
-    maintainability: { score: 74, weight: 0.08, issues: [] },
-  },
-  aiInsights: null,
-};
-
-// ---------------------------------------------------------------------------
-// Static fallbacks for when aiInsights is null
-// ---------------------------------------------------------------------------
-
-const FALLBACK_TECH_STACK = [
-  "Next.js 14", "TypeScript 5.4", "PostgreSQL",
-  "Tailwind CSS", "Redis", "Zod", "Prisma", "Docker",
-];
-
-const FALLBACK_CAPABILITIES = [
-  { name: "JWT Authentication", status: "pass" as const },
-  { name: "Stripe Payments", status: "missing" as const },
-  { name: "Websocket Support", status: "pass" as const },
-  { name: "Real-time Notifications", status: "incomplete" as const },
-];
-
-const FALLBACK_RECOMMENDATIONS = [
-  {
-    title: "Review Critical Issues",
-    description: "Address critical and high severity issues from the vulnerability scan.",
-    impact: "High Impact" as const,
-    impactScore: 90,
-    difficulty: 40,
-    priority: 1 as const,
-  },
-  {
-    title: "Improve Test Coverage",
-    description: "Add unit and integration tests to improve confidence in the codebase.",
-    impact: "Medium Impact" as const,
-    impactScore: 70,
-    difficulty: 50,
-    priority: 2 as const,
-  },
-  {
-    title: "Enhance Documentation",
-    description: "Improve README and inline documentation for better developer experience.",
-    impact: "Low Impact" as const,
-    impactScore: 40,
-    difficulty: 20,
-    priority: 3 as const,
-  },
-];
-
-const FALLBACK_ROADMAP = [
-  {
-    number: 1,
-    title: "Current State",
-    description: "Foundation established with core features.",
-    status: "completed" as const,
-    tags: ["CORE"],
-  },
-  {
-    number: 2,
-    title: "Stabilization",
-    description: "Fix identified issues and harden the codebase.",
-    status: "active" as const,
-  },
-  {
-    number: 3,
-    title: "Production Ready",
-    description: "Add testing, monitoring, and security hardening.",
-    status: "upcoming" as const,
-  },
-  {
-    number: 4,
-    title: "Scale",
-    description: "Optimize for growth and performance.",
-    status: "future" as const,
-  },
-];
-
-const FALLBACK_PRODUCTION_CATEGORIES = [
-  {
-    title: "Scalability",
-    items: [
-      { label: "Stateless API Design", status: "pass" as const },
-      { label: "Pod Autoscaling", status: "pass" as const },
-      { label: "Multi-region Data", status: "fail" as const },
-    ],
-  },
-  {
-    title: "Observability",
-    items: [
-      { label: "Structured Logging", status: "pass" as const },
-      { label: "Metric Aggregation", status: "warn" as const },
-      { label: "Error Tracing", status: "fail" as const },
-    ],
-  },
-  {
-    title: "Performance",
-    items: [
-      { label: "Edge Caching", status: "pass" as const },
-      { label: "Bundle Analysis", status: "pass" as const },
-      { label: "Query Indexing", status: "warn" as const },
-    ],
-  },
-];
-
-// ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 
@@ -209,24 +50,18 @@ export default async function ReportPage({ params, searchParams }: ReportPagePro
   const { repoUrl, repoName, stars, forks, language } = await searchParams;
 
   // TODO: Replace with real DB fetch once wired
-  // const analysis = await getAnalysisById(id);
+  const analysis = await getAnalysisById(id, repoUrl as string);
   console.log("Report for:", id, repoUrl);
-
-  const analysis: Analysis = {
-    ...MOCK_ANALYSIS,
-    repoUrl: repoUrl ?? MOCK_ANALYSIS.repoUrl,
-    repoName: repoName ?? MOCK_ANALYSIS.repoName,
-  };
 
   // ── Resolve AI-powered sections (real if available, fallback otherwise) ──
 
   const executiveSummary = analysis.aiInsights?.executiveSummary ?? "";
 
   const recommendations =
-    analysis.aiInsights?.recommendations ?? FALLBACK_RECOMMENDATIONS;
+    analysis.aiInsights?.recommendations
 
   const roadmapPhases =
-    analysis.aiInsights?.roadmapPhases ?? FALLBACK_ROADMAP;
+    analysis.aiInsights?.roadmapPhases
 
   const productionVerdict =
     analysis.aiInsights?.productionVerdict ??
@@ -392,8 +227,8 @@ export default async function ReportPage({ params, searchParams }: ReportPagePro
 
           {/* 4. Tech Stack + Core Capabilities */}
           <TechStackAndCapabilities
-            techStack={FALLBACK_TECH_STACK}
-            capabilities={FALLBACK_CAPABILITIES}
+            techStack={analysis.aiInsights?.techStack ?? []}
+            capabilities={analysis.aiInsights?.capabilities ?? []}
           />
 
           <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
@@ -402,7 +237,7 @@ export default async function ReportPage({ params, searchParams }: ReportPagePro
           <VulnerabilityFindings issues={analysis.dangerousIssues} />
 
           {/* 6. Strategic Recommendations — AI or fallback */}
-          <StrategicRecommendations recommendations={recommendations} />
+          <StrategicRecommendations recommendations={recommendations ?? []} />
 
           <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
@@ -434,12 +269,12 @@ export default async function ReportPage({ params, searchParams }: ReportPagePro
           {/* 10. Production Readiness — AI verdict */}
           <ProductionReadiness
             overallScore={overallReadinessScore}
-            categories={FALLBACK_PRODUCTION_CATEGORIES}
+            categories={analysis.aiInsights?.productionCategories ?? []}
             verdict={productionVerdict}
           />
 
           {/* 11. Evolution Roadmap — AI or fallback */}
-          <EvolutionRoadmap phases={roadmapPhases} />
+          <EvolutionRoadmap phases={roadmapPhases ?? []} />
 
           <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 

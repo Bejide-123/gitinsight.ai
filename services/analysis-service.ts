@@ -436,15 +436,25 @@ function calculateWeightedScore(
   weights: Record<string, number>,
 ): number {
   let totalScore = 0;
-  let totalWeight = 0;
+  const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
 
+  if (totalWeight === 0) {
+    // Avoid division by zero if no weights are provided.
+    // Fallback to a simple average.
+    const scoreValues = Object.values(scores);
+    return scoreValues.length > 0
+      ? scoreValues.reduce((sum, score) => sum + score, 0) / scoreValues.length
+      : 0;
+  }
+  
   Object.entries(scores).forEach(([category, score]) => {
     const weight = weights[category] ?? 0;
-    totalScore += score * weight;
-    totalWeight += weight;
+    // Normalize the weight against the total sum of weights for the intent
+    const normalizedWeight = weight / totalWeight;
+    totalScore += score * normalizedWeight;
   });
 
-  return totalWeight > 0 ? totalScore / totalWeight : 0;
+  return totalScore;
 }
 
 function getMaturityLevel(score: number): { level: string; production: boolean } {
@@ -635,71 +645,8 @@ export async function getAnalysisById(
   // This is a placeholder to simulate fetching an analysis by ID.
   console.log(`Fetching analysis for ID: ${id} and URL: ${repoUrl}`);
 
-  // For now, we'll return a mock analysis, potentially updated with the real repoUrl
-  const MOCK_ANALYSIS: Analysis = {
-    repoUrl: "https://github.com/acme/core-engine",
-    repoName: "acme/core-engine",
-    maturityScore: 78,
-    level: "Production Candidate",
-    isProductionReady: true,
-    analyzedAt: new Date("2026-05-30T09:00:00Z"),
-    projectContext: {
-      intent: "production-saas",
-      confidence: 87,
-      signals: ["Dependency: sentry", "File: .github/workflows"],
-      expectedFeatures: ["Testing", "Security", "CI/CD"],
-      notRequiredFeatures: ["Kubernetes"],
-    },
-    dangerousIssues: [
-      {
-        category: "Security",
-        severity: "critical",
-        title: "Redis Over-exposure",
-        description: "Connection pooling is unbounded in the cluster-sync module.",
-        isDangerous: true,
-        impact: "Out of memory on load spikes",
-        recommendation: "Add maxConnections limit to Redis pool config",
-        evidence: [],
-      },
-      {
-        category: "Security",
-        severity: "medium",
-        title: "Zod Schema Tightening",
-        description: "Input validation lacks strict numeric range checks.",
-        isDangerous: false,
-        impact: "Invalid data can reach processing layer",
-        recommendation: "Add .min() .max() constraints to concurrency fields",
-        evidence: [],
-      },
-    ],
-    missingImprovements: [],
-    strengths: [
-      "Exceptional domain isolation in the Lib layer",
-      "Modern tech stack with zero legacy baggage",
-      "Semantic Git commit history",
-    ],
-    criticalBlockers: ["Fix unbounded Redis connection pool"],
-    nextSteps: [
-      "Add OpenTelemetry instrumentation",
-      "Wrap DB calls in circuit breakers",
-    ],
-    categoryScores: {
-      security: { score: 81, weight: 0.35, issues: [] },
-      architecture: { score: 88, weight: 0.25, issues: [] },
-      testing: { score: 58, weight: 0.2, issues: [] },
-      completeness: { score: 92, weight: 0.05, issues: [] },
-      readiness: { score: 65, weight: 0.07, issues: [] },
-      maintainability: { score: 74, weight: 0.08, issues: [] },
-    },
-    aiInsights: null,
-  };
-
-  return {
-    ...MOCK_ANALYSIS,
-    repoUrl: repoUrl || MOCK_ANALYSIS.repoUrl,
-    // In a real scenario, you'd fetch from DB and populate all fields
-    // For now, we'll just use the mock and potentially update the repoUrl
-  };
+  // For now, we'll just call the analyzeRepository function
+  return analyzeRepository(repoUrl);
 }
 
 export function generateAnalysisSummary(analysis: Analysis): string {
