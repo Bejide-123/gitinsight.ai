@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useRepositoryAnalysis } from "@/hooks/useAnalyseRepo";
 import Loader from "@/components/chat/Loader";
 import ChatContent from "@/components/chat/ChatContent";
 import AnalysisResult from "@/components/chat/AnalysisResult";
-import type { Analysis } from "@/types/analysis";
 
 interface AnalysisWrapperProps {
   repoUrl: string;
@@ -14,36 +12,11 @@ interface AnalysisWrapperProps {
 
 export default function AnalysisWrapper({ repoUrl, chatId }: AnalysisWrapperProps) {
   const {
-    mutate,
+    data: analysisData,
     isPending,
     isError,
-    data: analysisData,
     error,
-  } = useMutation<Analysis, Error, string>({
-    mutationFn: async (url: string) => {
-      const response = await fetch("/api/analyse", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ repoUrl: url }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to analyze repository");
-      }
-
-      const result = await response.json();
-      return result.data; // Extract the actual analysis data
-    },
-  });
-
-  useEffect(() => {
-    if (repoUrl) {
-      mutate(repoUrl);
-    }
-  }, [repoUrl, mutate]);
+  } = useRepositoryAnalysis(repoUrl);
 
   if (isPending) {
     return <Loader />;
@@ -59,10 +32,10 @@ export default function AnalysisWrapper({ repoUrl, chatId }: AnalysisWrapperProp
     );
   }
 
-  if (analysisData) {
+  if (analysisData?.data) {
     return (
       <ChatContent chatId={chatId} isLoading={isPending}>
-        <AnalysisResult analysis={analysisData} reportId={chatId} />
+        <AnalysisResult analysis={analysisData.data} reportId={chatId} />
       </ChatContent>
     );
   }
