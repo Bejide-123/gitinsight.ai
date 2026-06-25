@@ -61,12 +61,12 @@ export function analyzeCompleteness(
     } else {
       issues.push({
         category: 'Completeness',
-        severity: 'high',
+        severity: 'medium',
         title: 'Incomplete README',
         description: 'README.md exists but is too short or lacks essential information.',
         isDangerous: false,
         impact: 'Users cannot understand project purpose, setup, or usage',
-        recommendation: 'Create comprehensive README with: project description, installation, usage examples, contributing guidelines, license info.',
+        recommendation: 'Expand README with: project description, installation, usage examples, contributing guidelines, license info.',
         evidence: [],
       });
     }
@@ -83,34 +83,34 @@ export function analyzeCompleteness(
     });
   }
 
-  // 2. Check for CHANGELOG
+  // 2. Check for CHANGELOG (community/OSS — only matters once others depend on releases)
   if (treePathsLower.some(p => p.includes('changelog') || p.includes('history'))) {
     completenessMetrics.hasChangelog = true;
   } else {
     issues.push({
       category: 'Completeness',
-      severity: 'medium',
+      severity: 'low',
       title: 'Missing CHANGELOG',
       description: 'No CHANGELOG file to track version history.',
       isDangerous: false,
-      impact: 'Users cannot see what changed between versions',
-      recommendation: 'Create CHANGELOG.md documenting all releases, features, fixes, and breaking changes.',
+      impact: 'Relevant mainly once others depend on version-to-version changes',
+      recommendation: 'Add CHANGELOG.md once the project has external users or releases.',
       evidence: [],
     });
   }
 
-  // 3. Check for CONTRIBUTING
+  // 3. Check for CONTRIBUTING (community/OSS — only matters with outside contributors)
   if (treePathsLower.some(p => p.includes('contributing'))) {
     completenessMetrics.hasContributing = true;
   } else {
     issues.push({
       category: 'Completeness',
-      severity: 'medium',
+      severity: 'low',
       title: 'Missing CONTRIBUTING.md',
       description: 'No guidelines for contributors.',
       isDangerous: false,
-      impact: 'Potential contributors unsure how to contribute',
-      recommendation: 'Create CONTRIBUTING.md with: how to set up dev environment, coding standards, PR process, testing requirements.',
+      impact: 'Only relevant once the project accepts outside contributions',
+      recommendation: 'Add CONTRIBUTING.md if opening this project up to contributors.',
       evidence: [],
     });
   }
@@ -121,17 +121,17 @@ export function analyzeCompleteness(
   } else {
     issues.push({
       category: 'Completeness',
-      severity: 'high',
+      severity: 'low',
       title: 'Missing LICENSE File',
       description: 'No license file found.',
       isDangerous: false,
-      impact: 'Legal uncertainty about code usage rights',
-      recommendation: 'Add LICENSE file (MIT, Apache 2.0, GPL, etc.). Update package.json with license field.',
+      impact: 'Unclear usage rights if this project is shared publicly',
+      recommendation: 'Add LICENSE file (MIT, Apache 2.0, GPL, etc.) if this is or will be public.',
       evidence: [],
     });
   }
 
-  // 5. Check for CODE_OF_CONDUCT
+  // 5. Check for CODE_OF_CONDUCT (community/OSS — only relevant with a public community)
   if (treePathsLower.some(p => p.includes('code_of_conduct') || p.includes('code-of-conduct'))) {
     completenessMetrics.hasCodeOfConduct = true;
   } else {
@@ -141,13 +141,13 @@ export function analyzeCompleteness(
       title: 'Missing Code of Conduct',
       description: 'No CODE_OF_CONDUCT.md for community guidelines.',
       isDangerous: false,
-      impact: 'No clear expectations for respectful community interaction',
-      recommendation: 'Add CODE_OF_CONDUCT.md (e.g., based on Contributor Covenant).',
+      impact: 'Only relevant for projects with an open community',
+      recommendation: 'Add CODE_OF_CONDUCT.md (e.g., based on Contributor Covenant) once building a public community.',
       evidence: [],
     });
   }
 
-  // 6. Check for Issue Templates
+  // 6. Check for Issue Templates (community/OSS)
   if (treePathsLower.some(p => p.includes('.github/issue') || p.includes('issue_template'))) {
     completenessMetrics.hasIssueTemplates = true;
   } else {
@@ -157,13 +157,13 @@ export function analyzeCompleteness(
       title: 'Missing Issue Templates',
       description: 'No GitHub issue templates configured.',
       isDangerous: false,
-      impact: 'Issues lack consistent structure and information',
+      impact: 'Minor — useful once others start filing issues',
       recommendation: 'Create .github/ISSUE_TEMPLATE/ with bug report and feature request templates.',
       evidence: [],
     });
   }
 
-  // 7. Check for PR Template
+  // 7. Check for PR Template (community/OSS)
   if (treePathsLower.some(p => p.includes('.github/pull_request') || p.includes('pr_template'))) {
     completenessMetrics.hasPrTemplate = true;
   } else {
@@ -173,7 +173,7 @@ export function analyzeCompleteness(
       title: 'Missing Pull Request Template',
       description: 'No PR template to guide contributors.',
       isDangerous: false,
-      impact: 'Pull requests lack consistent format and checklist',
+      impact: 'Minor — useful once you have external contributors',
       recommendation: 'Create .github/pull_request_template.md with PR checklist and description template.',
       evidence: [],
     });
@@ -209,16 +209,16 @@ export function analyzeCompleteness(
     });
   }
 
-  // 9. Check for Type Definitions
-  const hasTypeDefinitions = filePaths.some(f => f.endsWith('.ts') || f.endsWith('.tsx')) &&
-    (treePathsLower.some(p => p.includes('types/') || p.includes('types.ts')));
+  // 9. Check for Type Definitions (only relevant if TypeScript is actually used)
+  const usesTypeScript = filePaths.some(f => f.endsWith('.ts') || f.endsWith('.tsx'));
+  const hasTypeDefinitions = treePathsLower.some(p => p.includes('types/') || p.includes('types.ts'));
 
-  if (hasTypeDefinitions) {
+  if (!usesTypeScript || hasTypeDefinitions) {
     completenessMetrics.hasTypeDefinitions = true;
-  } else if (packageJson?.devDependencies?.typescript) {
+  } else {
     issues.push({
       category: 'Completeness',
-      severity: 'medium',
+      severity: 'low',
       title: 'Missing Type Definitions Organization',
       description: 'TypeScript is used but types are not centrally organized.',
       isDangerous: false,
@@ -228,15 +228,19 @@ export function analyzeCompleteness(
     });
   }
 
-  // 10. Check for Environment Examples
-  if (treePathsLower.some(p => p.includes('.env.example') || p.includes('.env.sample'))) {
+  // 10. Check for Environment Examples (only matters if env vars are actually used)
+  const handlesEnvVars = Object.values(codeFiles).some(content =>
+    content.includes('process.env') || content.includes('import.meta.env')
+  );
+
+  if (treePathsLower.some(p => p.includes('.env.example') || p.includes('.env.sample')) || !handlesEnvVars) {
     completenessMetrics.hasEnvExample = true;
   } else {
     issues.push({
       category: 'Completeness',
       severity: 'medium',
       title: 'Missing Environment Template',
-      description: 'No .env.example or .env.sample file.',
+      description: 'Code reads environment variables but no .env.example was found.',
       isDangerous: false,
       impact: 'New developers unsure what environment variables are needed',
       recommendation: 'Create .env.example with all required environment variables and descriptions.',
@@ -250,11 +254,11 @@ export function analyzeCompleteness(
   } else {
     issues.push({
       category: 'Completeness',
-      severity: 'high',
+      severity: 'medium',
       title: 'Missing CI/CD Pipeline',
       description: 'No continuous integration/deployment configuration found.',
       isDangerous: false,
-      impact: 'No automated testing or deployment',
+      impact: 'No automated testing or deployment checks',
       recommendation: 'Set up GitHub Actions, GitLab CI, or CircleCI with automated tests and deployment.',
       evidence: [],
     });
@@ -262,29 +266,29 @@ export function analyzeCompleteness(
 
   // 12. Check for Documentation
   const hasDocsFolder = treePathsLower.some(p => p.includes('/docs/') || p.includes('/documentation/'));
-  const readmeLength = Object.values(codeFiles)
-    .find(content => content.includes('# '))?.length || 0;
+  const readmePathForLength = filePaths.find(f => f.toLowerCase().includes('readme'));
+  const readmeLength = readmePathForLength ? (codeFiles[readmePathForLength]?.length ?? 0) : 0;
 
   if (hasDocsFolder || readmeLength > 1500) {
     completenessMetrics.hasDocumentation = true;
   } else {
     issues.push({
       category: 'Completeness',
-      severity: 'medium',
+      severity: 'low',
       title: 'Limited Project Documentation',
       description: 'No dedicated docs folder or comprehensive README.',
       isDangerous: false,
       impact: 'Users have limited guidance on features and usage',
-      recommendation: 'Create docs/ folder with API docs, guides, examples, and architecture documentation.',
+      recommendation: 'Create docs/ folder with API docs, guides, examples, and architecture documentation as the project grows.',
       evidence: [],
     });
   }
 
-  // Count completed metrics
+  // Count completed metrics (informational — display purposes only)
   completenessMetrics.completedItems = Object.values(completenessMetrics)
     .filter((v, i) => typeof v === 'boolean' && v).length;
 
-  const score = calculateCompletenessScore(completenessMetrics, issues);
+  const score = calculateCompletenessScore(completenessMetrics, fileTree);
 
   return {
     issues,
@@ -294,33 +298,53 @@ export function analyzeCompleteness(
 }
 
 /**
- * Calculate completeness score
+ * Calculate completeness score.
+ *
+ * Each check below contributes a fixed point value to the score EXACTLY
+ * ONCE if present. There is no separate "ratio" calculation layered on
+ * top of flat deductions and per-issue deductions for the same missing
+ * item — that triple-counting is what was driving every analyzed repo
+ * toward 0 regardless of what was actually in it.
+ *
+ * Core completeness (README, config, env handling, CI, license, types,
+ * docs) makes up 70 of 100 points — these matter for any project.
+ * Community/OSS infrastructure (CHANGELOG, CONTRIBUTING, CODE_OF_CONDUCT,
+ * issue/PR templates) makes up the remaining 30 — these only really
+ * matter once a project has outside contributors, so they're weighted
+ * accordingly rather than punished the same as a missing README.
  */
 export function calculateCompletenessScore(
   metrics: CompletenessAnalysisResult['completenessMetrics'],
-  issues: Issue[]
+  fileTree: FileTreeItem[]
 ): number {
-  // Base score from completed items
-  const completionScore = (metrics.completedItems / metrics.totalItems) * 100;
+  let score = 0;
 
-  // Deduct points for critical missing items
-  let deductions = 0;
+  // Core completeness — 70 pts total
+  if (metrics.hasReadme) score += 15;
+  if (metrics.hasConfigFiles) score += 15;
+  if (metrics.hasEnvExample) score += 10;
+  if (metrics.hasCICD) score += 10;
+  if (metrics.hasLicense) score += 10;
+  if (metrics.hasTypeDefinitions) score += 5;
+  if (metrics.hasDocumentation) score += 5;
 
-  if (!metrics.hasReadme) deductions += 15;
-  if (!metrics.hasLicense) deductions += 10;
-  if (!metrics.hasCICD) deductions += 12;
-  if (!metrics.hasConfigFiles) deductions += 8;
-  if (!metrics.hasContributing) deductions += 5;
-  if (!metrics.hasDocumentation) deductions += 8;
-  if (!metrics.hasEnvExample) deductions += 5;
+  // Community/OSS — 30 pts total
+  if (metrics.hasChangelog) score += 6;
+  if (metrics.hasContributing) score += 6;
+  if (metrics.hasCodeOfConduct) score += 6;
+  if (metrics.hasIssueTemplates) score += 6;
+  if (metrics.hasPrTemplate) score += 6;
 
-  // Additional deduction for issues
-  issues.forEach(issue => {
-    if (issue.severity === 'high') deductions += 3;
-    else if (issue.severity === 'medium') deductions += 1;
-  });
+  score = Math.max(0, Math.min(100, score));
 
-  return Math.max(0, Math.min(100, completionScore - deductions));
+  // A repo with actual code in it should never read as a flat 0 — that
+  // number should only ever describe a genuinely empty repository.
+  const hasAnyCode = fileTree.some(f => f.type === 'blob');
+  if (hasAnyCode) {
+    score = Math.max(score, 8);
+  }
+
+  return Math.round(score);
 }
 
 export type { CompletenessAnalysisResult };

@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowUp, Paperclip, Star, GitFork } from "lucide-react";
 import { useState } from "react";
-import { useAnalyzeRepo } from "@/hooks/useFetchRepo";
+import { useAnalyzeRepo, extractRepoMetadata } from "@/hooks/useFetchRepo";
 
 export default function BottomInput() {
   const router = useRouter();
@@ -27,10 +27,8 @@ export default function BottomInput() {
     }
   };
 
-  const metadata = repoData?.data?.metadata;
-  const stars = metadata?.stargazers_count || 0;
-  const forks = metadata?.forks_count || 0;
-  const language = metadata?.language || "Unknown";
+  const metadata = extractRepoMetadata(repoData);
+  console.log(metadata)
 
   const handleFetchMetadata = () => {
     if (!repoUrl.trim()) return;
@@ -45,9 +43,10 @@ export default function BottomInput() {
     const params = new URLSearchParams();
     params.set('repoUrl', repoUrl);
     params.set('repoName', repoName);
-    if (stars) params.set('stars', String(stars));
-    if (forks) params.set('forks', String(forks));
-    if (language && language !== 'Unknown') params.set('language', language);
+    if (metadata?.stars) params.set('stars', String(metadata.stars));
+    if (metadata?.forks) params.set('forks', String(metadata.forks));
+    if (metadata?.language && metadata.language !== 'Unknown') params.set('language', metadata.language);
+    
 
     router.push(`/chat/ReportPage/${id}?${params.toString()}`);
   };
@@ -82,10 +81,10 @@ export default function BottomInput() {
             <div className="rounded-xl border border-zinc-700 bg-zinc-900/50 p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold text-white">{metadata.full_name}</h3>
-                  {language !== "Unknown" && (
+                  <h3 className="text-sm font-semibold text-white">{metadata.name}</h3>
+                  {metadata.language !== "Unknown" && (
                     <span className="inline-block px-2 py-1 text-xs rounded bg-zinc-800 text-zinc-300">
-                      {language}
+                      {metadata.language}
                     </span>
                   )}
                 </div>
@@ -93,11 +92,11 @@ export default function BottomInput() {
               <div className="flex gap-6 text-xs text-zinc-400">
                 <div className="flex items-center gap-1">
                   <Star size={14} />
-                  <span>{stars.toLocaleString()} stars</span>
+                  <span>{metadata.stars.toLocaleString()} stars</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <GitFork size={14} />
-                  <span>{forks.toLocaleString()} forks</span>
+                  <span>{metadata.forks.toLocaleString()} forks</span>
                 </div>
               </div>
               {metadata.description && (

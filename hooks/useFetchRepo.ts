@@ -55,7 +55,7 @@ export function useAnalyzeRepo() {
   });
 }
 
-export function useExtractRepoMetadata(repoData: AnalyzeRepoResponse | null): RepoMetadata | null {
+export function extractRepoMetadata(repoData: AnalyzeRepoResponse | undefined): RepoMetadata | null {
   if (!repoData?.data?.metadata) return null;
 
   const metadata = repoData.data.metadata;
@@ -63,7 +63,7 @@ export function useExtractRepoMetadata(repoData: AnalyzeRepoResponse | null): Re
     stars: metadata.stargazers_count,
     forks: metadata.forks_count,
     language: metadata.language,
-    name: metadata.name,
+    name: metadata.full_name,
     description: metadata.description,
     url: metadata.html_url,
   };

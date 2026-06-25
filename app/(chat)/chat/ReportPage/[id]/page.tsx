@@ -177,7 +177,12 @@ export default async function ReportPage({ params, searchParams }: ReportPagePro
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 pb-8">
 
           {/* 1. Project Header */}
-          <ProjectHeader analysis={analysis} />
+          <ProjectHeader
+            analysis={analysis}
+            stars={stars ? parseInt(stars) : undefined}
+            forks={forks ? parseInt(forks) : undefined}
+            language={language}
+          />
 
           {/* Repo metadata bar */}
           {(stars ?? forks ?? language) && (

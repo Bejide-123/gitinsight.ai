@@ -25,7 +25,14 @@ interface ReadinessAnalysisResult {
 }
 
 /**
- * Analyze project readiness for production deployment
+ * Analyze project readiness for deployment.
+ *
+ * Load balancing, disaster recovery, and full container orchestration are
+ * SCALE infrastructure — they matter once a project has real production
+ * traffic, not before. A solo MVP deployed on Vercel doesn't need its own
+ * Kubernetes config to be "deployable." Those checks stay for visibility
+ * but are weighted low; baseline deploy-readiness (lock file, env handling,
+ * basic error visibility, dependency scanning) carries the real weight.
  */
 export function analyzeReadiness(
   codeFiles: Record<string, string>,
@@ -54,50 +61,54 @@ export function analyzeReadiness(
   const filePaths = Object.keys(codeFiles);
   const treePathsLower = fileTree.map(f => f.path.toLowerCase());
 
+  // A platform-deployed app (Vercel/Netlify/Render homepage set) doesn't
+  // need its own Dockerfile to be "deployable" — the platform IS the
+  // deployment path.
+  const isPlatformDeployed = Boolean(metadata?.homepage);
+
   // 1. Check Deployment Configuration
   const hasDockerfile = filePaths.some(f => f.toLowerCase() === 'dockerfile' || f.includes('dockerfile'));
   const hasDockerCompose = treePathsLower.some(p => p.includes('docker-compose'));
-  const hasKubernetes = treePathsLower.some(p => p.includes('kubernetes') || p.includes('k8s') || p.includes('.yaml'));
+  const hasKubernetes = treePathsLower.some(p => p.includes('kubernetes') || p.includes('k8s'));
   const hasTerraform = treePathsLower.some(p => p.includes('terraform'));
 
-  if (hasDockerfile || hasDockerCompose || hasKubernetes || hasTerraform) {
+  if (hasDockerfile || hasDockerCompose || hasKubernetes || hasTerraform || isPlatformDeployed) {
     readinessMetrics.hasDeploymentConfig = true;
   } else {
     issues.push({
       category: 'Readiness',
-      severity: 'critical',
-      title: 'Missing Deployment Configuration',
-      description: 'No Dockerfile, Docker Compose, Kubernetes, or Terraform configuration found.',
+      severity: 'medium',
+      title: 'No Clear Deployment Path',
+      description: 'No Dockerfile, Docker Compose, or detected live deployment found.',
       isDangerous: false,
-      impact: 'Cannot containerize or deploy application reliably',
-      recommendation: 'Create Dockerfile for containerization. Add docker-compose.yml for local dev. Consider Kubernetes or Terraform for production.',
+      impact: 'Unclear how this project would be deployed or run in production',
+      recommendation: 'Add a Dockerfile, or deploy to a platform like Vercel/Render/Railway.',
       evidence: [],
     });
   }
 
   // 2. Check Environment Management
-  const hasEnvFile = filePaths.some(f => f.toLowerCase().includes('.env'));
   const hasEnvExample = treePathsLower.some(p => p.includes('.env.example') || p.includes('.env.sample'));
   const handlesEnvVars = Object.values(codeFiles).some(content =>
     content.includes('process.env') || content.includes('Deno.env') || content.includes('import.meta.env')
   );
 
-  if (hasEnvFile && hasEnvExample && handlesEnvVars) {
+  if (hasEnvExample || !handlesEnvVars) {
     readinessMetrics.hasEnvironmentManagement = true;
   } else {
     issues.push({
       category: 'Readiness',
       severity: 'high',
-      title: 'Incomplete Environment Management',
-      description: 'Missing or incomplete environment variable configuration.',
-      isDangerous: true,
-      impact: 'Secrets exposed in code, configuration not portable',
-      recommendation: 'Implement proper env var handling. Use .env.example, handle secrets securely, support multiple environments.',
+      title: 'Incomplete Environment Variable Setup',
+      description: 'Code reads environment variables but no .env.example documents them.',
+      isDangerous: false,
+      impact: 'Hard for anyone to know what config is required to run this project',
+      recommendation: 'Add a .env.example listing every required variable with a placeholder value.',
       evidence: [],
     });
   }
 
-  // 3. Check for Health Checks
+  // 3. Check for Health Checks (scale concern — low severity pre-traffic)
   const hasHealthEndpoint = Object.values(codeFiles).some(content =>
     content.includes('/health') || content.includes('healthcheck') || content.includes('/status')
   );
@@ -107,20 +118,19 @@ export function analyzeReadiness(
   } else {
     issues.push({
       category: 'Readiness',
-      severity: 'high',
-      title: 'Missing Health Check Endpoint',
-      description: 'No health check endpoint for monitoring and load balancing.',
+      severity: 'low',
+      title: 'No Health Check Endpoint',
+      description: 'No /health or /status endpoint found.',
       isDangerous: false,
-      impact: 'Load balancers cannot detect unhealthy instances',
-      recommendation: 'Implement /health or /status endpoint that returns service health status.',
+      impact: 'Relevant once running behind a load balancer or uptime monitor',
+      recommendation: 'Add a simple /health endpoint when introducing uptime monitoring.',
       evidence: [],
     });
   }
 
   // 4. Check for Error Monitoring
   const hasErrorMonitoring = Object.values(codeFiles).some(content =>
-    content.includes('sentry') || content.includes('datadog') || content.includes('newrelic') ||
-    content.includes('error tracking') || content.includes('exception handling')
+    content.includes('sentry') || content.includes('datadog') || content.includes('newrelic')
   );
 
   if (hasErrorMonitoring) {
@@ -128,12 +138,12 @@ export function analyzeReadiness(
   } else {
     issues.push({
       category: 'Readiness',
-      severity: 'high',
-      title: 'Missing Error Monitoring',
+      severity: 'medium',
+      title: 'No Error Monitoring',
       description: 'No error tracking or monitoring system configured.',
       isDangerous: false,
-      impact: 'Cannot detect and fix production errors quickly',
-      recommendation: 'Integrate Sentry, Datadog, New Relic, or similar error tracking platform.',
+      impact: 'Production errors may go unnoticed',
+      recommendation: 'Integrate Sentry, Datadog, or similar once this serves real users.',
       evidence: [],
     });
   }
@@ -150,16 +160,16 @@ export function analyzeReadiness(
     issues.push({
       category: 'Readiness',
       severity: 'medium',
-      title: 'Missing Logging Infrastructure',
+      title: 'No Structured Logging',
       description: 'No structured logging system configured.',
       isDangerous: false,
       impact: 'Difficult to debug issues in production',
-      recommendation: 'Implement structured logging with Winston, Pino, or Bunyan. Log to files or cloud service.',
+      recommendation: 'Implement structured logging with Winston, Pino, or similar.',
       evidence: [],
     });
   }
 
-  // 6. Check for Backup Strategy
+  // 6. Check for Backup Strategy (only matters once there's real user data)
   const hasBackupConfig = treePathsLower.some(p =>
     p.includes('backup') || p.includes('disaster') || p.includes('recovery')
   );
@@ -169,12 +179,12 @@ export function analyzeReadiness(
   } else {
     issues.push({
       category: 'Readiness',
-      severity: 'critical',
-      title: 'Missing Backup/Disaster Recovery Plan',
-      description: 'No backup or disaster recovery configuration.',
+      severity: 'low',
+      title: 'No Documented Backup Strategy',
+      description: 'No backup or disaster recovery documentation found.',
       isDangerous: false,
-      impact: 'Data loss risk, no recovery plan for outages',
-      recommendation: 'Document backup strategy. Implement automated backups. Test recovery procedures regularly.',
+      impact: 'Worth addressing once the database holds real user data',
+      recommendation: 'Document a backup approach once this handles real user data in production.',
       evidence: [],
     });
   }
@@ -182,20 +192,20 @@ export function analyzeReadiness(
   // 7. Check for Security Scanning
   const hasSecurityScanning = Object.values(codeFiles).some(content =>
     content.includes('dependabot') || content.includes('snyk') || content.includes('sonarqube') ||
-    content.includes('trivy') || content.includes('owasp')
-  );
+    content.includes('trivy')
+  ) || treePathsLower.some(p => p.includes('dependabot'));
 
   if (hasSecurityScanning) {
     readinessMetrics.hasSecurityScanning = true;
   } else {
     issues.push({
       category: 'Readiness',
-      severity: 'high',
-      title: 'Missing Security Vulnerability Scanning',
-      description: 'No automated security scanning configured.',
+      severity: 'low',
+      title: 'No Automated Dependency Scanning',
+      description: 'No Dependabot config or vulnerability scanner detected.',
       isDangerous: false,
-      impact: 'Unknown vulnerabilities in dependencies',
-      recommendation: 'Enable Dependabot, Snyk, or similar. Scan dependencies and code regularly.',
+      impact: 'Vulnerable dependencies could go unnoticed',
+      recommendation: 'Enable Dependabot (free, built into GitHub) for automatic dependency alerts.',
       evidence: [],
     });
   }
@@ -210,20 +220,20 @@ export function analyzeReadiness(
   } else {
     issues.push({
       category: 'Readiness',
-      severity: 'high',
+      severity: 'medium',
       title: 'Missing Dependency Lock File',
-      description: 'No lock file (package-lock.json, yarn.lock, etc.).',
+      description: 'No lock file (package-lock.json, yarn.lock, etc.) found.',
       isDangerous: false,
-      impact: 'Inconsistent dependencies across environments',
-      recommendation: 'Commit lock file to version control. Use npm ci or yarn install --frozen-lockfile in CI/CD.',
+      impact: 'Dependency versions can drift between environments',
+      recommendation: 'Commit the lock file to version control. Use npm ci in CI/CD.',
       evidence: [],
     });
   }
 
   // 9. Check Performance Optimization
   const hasPerformanceOptimization = Object.values(codeFiles).some(content =>
-    content.includes('compression') || content.includes('minify') || content.includes('bundle') ||
-    content.includes('lazy load') || content.includes('code splitting') || content.includes('cache')
+    content.includes('lazy') || content.includes('dynamic(') || content.includes('next/image') ||
+    content.includes('code splitting')
   );
 
   if (hasPerformanceOptimization) {
@@ -231,53 +241,42 @@ export function analyzeReadiness(
   } else {
     issues.push({
       category: 'Readiness',
-      severity: 'medium',
-      title: 'Missing Performance Optimization',
-      description: 'No performance optimization measures configured.',
+      severity: 'low',
+      title: 'No Obvious Performance Optimization',
+      description: 'No lazy loading, code splitting, or image optimization detected.',
       isDangerous: false,
-      impact: 'Slow application, poor user experience',
-      recommendation: 'Enable compression, code splitting, lazy loading. Optimize bundle size. Use caching strategies.',
+      impact: 'Minor — worth revisiting as the app grows',
+      recommendation: 'Consider lazy loading and image optimization as the app scales.',
       evidence: [],
     });
   }
 
-  // 10. Check Load Balancing
+  // 10. Check Load Balancing (genuinely only relevant at scale — visibility only, low weight)
   const hasLoadBalancing = Object.values(codeFiles).some(content =>
-    content.includes('load.balanc') || content.includes('nginx') || content.includes('haproxy') ||
-    content.includes('alb') || content.includes('nlb')
+    content.includes('nginx') || content.includes('haproxy') || content.includes('load.balanc')
   );
 
-  if (hasLoadBalancing) {
-    readinessMetrics.hasLoadBalancing = true;
-  } else {
-    issues.push({
-      category: 'Readiness',
-      severity: 'medium',
-      title: 'Missing Load Balancer Configuration',
-      description: 'No load balancing setup for high availability.',
-      isDangerous: false,
-      impact: 'Single point of failure, cannot handle traffic spikes',
-      recommendation: 'Configure load balancer (Nginx, HAProxy, AWS ALB/NLB) for traffic distribution.',
-      evidence: [],
-    });
-  }
+  readinessMetrics.hasLoadBalancing = hasLoadBalancing || isPlatformDeployed;
+  // No issue raised here — not actionable or expected before real scale.
 
-  // 11. Check Rate Limiting
+  // 11. Check Rate Limiting (only flagged meaningfully if there are public API routes)
+  const hasApiRoutes = filePaths.some(f => f.includes('/api/') || f.includes('routes'));
   const hasRateLimiting = Object.values(codeFiles).some(content =>
-    content.includes('rate.limit') || content.includes('throttle') || content.includes('express-rate-limit')
+    content.includes('rate.limit') || content.includes('rate-limit') || content.includes('throttle') ||
+    content.includes('express-rate-limit')
   );
 
-  if (hasRateLimiting) {
+  if (hasRateLimiting || !hasApiRoutes) {
     readinessMetrics.hasRateLimiting = true;
   } else {
     issues.push({
       category: 'Readiness',
       severity: 'medium',
-      title: 'Missing Rate Limiting',
-      description: 'No rate limiting protection for API endpoints.',
+      title: 'No Rate Limiting on API Routes',
+      description: 'Public API routes were found with no rate limiting detected.',
       isDangerous: true,
-      impact: 'Vulnerable to DoS attacks and abuse',
-      recommendation: 'Implement rate limiting on API endpoints. Use express-rate-limit or similar middleware.',
+      impact: 'API routes are exposed to abuse or basic DoS attempts',
+      recommendation: 'Implement rate limiting on API endpoints (e.g. express-rate-limit).',
       evidence: [],
     });
   }
@@ -285,7 +284,7 @@ export function analyzeReadiness(
   // 12. Check Caching Strategy
   const hasCaching = Object.values(codeFiles).some(content =>
     content.includes('redis') || content.includes('memcached') || content.includes('cache-control') ||
-    content.includes('etag') || content.includes('caching')
+    content.includes('revalidate')
   );
 
   if (hasCaching) {
@@ -294,11 +293,11 @@ export function analyzeReadiness(
     issues.push({
       category: 'Readiness',
       severity: 'low',
-      title: 'Missing Caching Strategy',
-      description: 'No caching mechanism for performance optimization.',
+      title: 'No Caching Strategy',
+      description: 'No caching mechanism detected.',
       isDangerous: false,
-      impact: 'Slower response times, higher resource usage',
-      recommendation: 'Implement Redis/Memcached caching, HTTP caching headers, and CDN caching.',
+      impact: 'Minor — only matters at meaningful traffic volume',
+      recommendation: 'Add caching once response times or DB load become a real bottleneck.',
       evidence: [],
     });
   }
@@ -306,7 +305,7 @@ export function analyzeReadiness(
   readinessMetrics.readyItems = Object.values(readinessMetrics)
     .filter((v, i) => typeof v === 'boolean' && v).length;
 
-  const score = calculateReadinessScore(readinessMetrics, issues);
+  const score = calculateReadinessScore(readinessMetrics, fileTree);
 
   return {
     issues,
@@ -316,37 +315,51 @@ export function analyzeReadiness(
 }
 
 /**
- * Calculate readiness score
+ * Calculate readiness score.
+ *
+ * Each item below contributes a fixed point value to the score EXACTLY
+ * ONCE if present — no ratio calculation layered on top of flat
+ * deductions and per-issue deductions for the same missing item.
+ *
+ * Baseline deploy-readiness (lock file, deployment path, env handling,
+ * logging, security scanning) makes up 65 of 100 points — this is what
+ * any deployed app actually needs. Scale infrastructure (health checks,
+ * rate limiting, perf optimization, caching, load balancing, backups)
+ * makes up the remaining 35 — these matter once there's real production
+ * traffic, not as a baseline expectation for every project.
  */
 export function calculateReadinessScore(
   metrics: ReadinessAnalysisResult['readinessMetrics'],
-  issues: Issue[]
+  fileTree: FileTreeItem[]
 ): number {
-  // Base score from ready items
-  const readyScore = (metrics.readyItems / metrics.totalItems) * 100;
+  let score = 0;
 
-  // Heavy deductions for critical missing items
-  let deductions = 0;
+  // Baseline deploy-readiness — 65 pts total
+  if (metrics.hasDependencyPinning) score += 15;
+  if (metrics.hasDeploymentConfig) score += 15;
+  if (metrics.hasEnvironmentManagement) score += 15;
+  if (metrics.hasLoggingInfra) score += 10;
+  if (metrics.hasSecurityScanning) score += 10;
 
-  if (!metrics.hasDeploymentConfig) deductions += 20;
-  if (!metrics.hasEnvironmentManagement) deductions += 15;
-  if (!metrics.hasHealthChecks) deductions += 12;
-  if (!metrics.hasErrorMonitoring) deductions += 12;
-  if (!metrics.hasBackupStrategy) deductions += 15;
-  if (!metrics.hasSecurityScanning) deductions += 10;
-  if (!metrics.hasDependencyPinning) deductions += 8;
-  if (!metrics.hasLoggingInfra) deductions += 8;
-  if (!metrics.hasPerformanceOptimization) deductions += 6;
-  if (!metrics.hasRateLimiting) deductions += 8;
+  // Scale infrastructure — 35 pts total
+  if (metrics.hasHealthChecks) score += 8;
+  if (metrics.hasRateLimiting) score += 8;
+  if (metrics.hasErrorMonitoring) score += 7;
+  if (metrics.hasPerformanceOptimization) score += 6;
+  if (metrics.hasCaching) score += 3;
+  if (metrics.hasLoadBalancing) score += 2;
+  if (metrics.hasBackupStrategy) score += 1;
 
-  // Additional deductions for issues
-  issues.forEach(issue => {
-    if (issue.severity === 'critical') deductions += 5;
-    else if (issue.severity === 'high') deductions += 3;
-    else if (issue.severity === 'medium') deductions += 1;
-  });
+  score = Math.max(0, Math.min(100, score));
 
-  return Math.max(0, Math.min(100, readyScore - deductions));
+  // A repo with actual code in it should never read as a flat 0 — that
+  // number should only ever describe a genuinely empty repository.
+  const hasAnyCode = fileTree.some(f => f.type === 'blob');
+  if (hasAnyCode) {
+    score = Math.max(score, 8);
+  }
+
+  return Math.round(score);
 }
 
 export type { ReadinessAnalysisResult };
