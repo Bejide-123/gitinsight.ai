@@ -75,45 +75,63 @@ export default function EvolutionRoadmap({ phases }: EvolutionRoadmapProps) {
     const container = scrollContainerRef.current;
     if (!container) return;
 
+    // requestAnimationFrame loop that continuously nudges scrollLeft
+    // while the cursor sits near an edge. Storing the speed in a ref-like
+    // mutable variable (not state) avoids re-running this effect on every
+    // mouse move — state updates here would be both slow and unnecessary.
+    let scrollSpeed = 0;
+    let rafId: number;
+
+    const tick = () => {
+      if (scrollSpeed !== 0) {
+        container.scrollLeft += scrollSpeed;
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+
+    const EDGE_ZONE = 100; // px from each edge that triggers auto-scroll
+    const MAX_SPEED = 12; // px per frame at the very edge
+
     const handleMouseMove = (e: MouseEvent) => {
       const rect = container.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const width = rect.width;
-      
-      // Calculate scroll speed based on position
-      const scrollSpeed = 8;
-      const threshold = 100;
 
-      if (x < threshold) {
-        // Scroll left
-        container.scrollLeft -= scrollSpeed;
-      } else if (x > width - threshold) {
-        // Scroll right
-        container.scrollLeft += scrollSpeed;
+      if (x < EDGE_ZONE) {
+        // Closer to the edge = faster scroll, eases in rather than snapping
+        const intensity = (EDGE_ZONE - x) / EDGE_ZONE;
+        scrollSpeed = -MAX_SPEED * intensity;
+      } else if (x > width - EDGE_ZONE) {
+        const intensity = (x - (width - EDGE_ZONE)) / EDGE_ZONE;
+        scrollSpeed = MAX_SPEED * intensity;
+      } else {
+        scrollSpeed = 0;
       }
     };
 
+    const handleMouseLeave = () => {
+      scrollSpeed = 0;
+    };
+
     const handleScroll = () => {
-      if (!container) return;
-      setShowLeftGradient(container.scrollLeft > 0);
+      setShowLeftGradient(container.scrollLeft > 4);
       setShowRightGradient(
-        container.scrollLeft < container.scrollWidth - container.clientWidth - 10
+        container.scrollLeft < container.scrollWidth - container.clientWidth - 4
       );
     };
 
-    const animationFrame = setInterval(() => {
-      container.dispatchEvent(new Event("scroll"));
-    }, 50);
-
     container.addEventListener("mousemove", handleMouseMove);
+    container.addEventListener("mouseleave", handleMouseLeave);
     container.addEventListener("scroll", handleScroll);
 
     handleScroll();
 
     return () => {
+      cancelAnimationFrame(rafId);
       container.removeEventListener("mousemove", handleMouseMove);
+      container.removeEventListener("mouseleave", handleMouseLeave);
       container.removeEventListener("scroll", handleScroll);
-      clearInterval(animationFrame);
     };
   }, []);
 
@@ -134,11 +152,12 @@ export default function EvolutionRoadmap({ phases }: EvolutionRoadmapProps) {
           <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-zinc-950 to-transparent z-10 pointer-events-none" />
         )}
 
-        {/* Scrollable container */}
+        {/* Scrollable container — overflow-x-auto is what actually allows
+            scrollLeft manipulation to take effect; overflow-x-hidden
+            (the previous value) silently blocked all scrolling. */}
         <div
           ref={scrollContainerRef}
-          className="flex items-center gap-4 overflow-x-hidden pb-2 scroll-smooth cursor-grab active:cursor-grabbing"
-          style={{ scrollBehavior: "auto" }}
+          className="flex items-center gap-4 overflow-x-auto pb-2 cursor-grab active:cursor-grabbing [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
         >
           {phases.map((phase) => {
             const config = PHASE_CONFIG[phase.status];

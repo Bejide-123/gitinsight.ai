@@ -374,6 +374,7 @@ export async function analyzeRepository(repoUrl: string): Promise<Analysis> {
       });
 
       aiInsights = {
+        ...aiOutput,
         executiveSummary: aiOutput.executiveSummary,
         recommendations: aiOutput.recommendations,
         productionVerdict: aiOutput.productionVerdict,
@@ -410,6 +411,9 @@ export async function analyzeRepository(repoUrl: string): Promise<Analysis> {
       nextSteps,
       analyzedAt: new Date(),
       aiInsights, // null if Gemini failed — UI handles this gracefully
+      techStack,
+      fileTreeStructure: repoData.fileTree,
+      selectedFilesCount: Object.keys(repoData.codeFiles).length,
     };
 
     console.log(`\n${generateAnalysisSummary(analysis)}`);

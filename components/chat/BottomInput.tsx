@@ -43,8 +43,8 @@ export default function BottomInput() {
     const params = new URLSearchParams();
     params.set('repoUrl', repoUrl);
     params.set('repoName', repoName);
-    if (metadata?.stars) params.set('stars', String(metadata.stars));
-    if (metadata?.forks) params.set('forks', String(metadata.forks));
+    if (metadata?.stars != null) params.set('stars', String(metadata.stars));
+    if (metadata?.forks != null) params.set('forks', String(metadata.forks));
     if (metadata?.language && metadata.language !== 'Unknown') params.set('language', metadata.language);
     
 
@@ -62,7 +62,8 @@ export default function BottomInput() {
           <div className="flex flex-wrap gap-3">
             <button
               onClick={goToReport}
-              className="rounded-xl bg-white px-6 py-3 text-xs font-bold uppercase tracking-widest text-black transition-all hover:bg-zinc-200"
+              disabled={!repoUrl.trim() || isPending}
+              className="rounded-xl bg-white px-6 py-3 text-xs font-bold uppercase tracking-widest text-black transition-all hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Full Report
             </button>
@@ -126,7 +127,8 @@ export default function BottomInput() {
 
             <button
               onClick={goToReport}
-              className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-black transition-all hover:bg-zinc-200"
+              disabled={!repoUrl.trim() || isPending}
+              className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-black transition-all hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ArrowUp size={20} strokeWidth={2.5} />
             </button>

@@ -1,6 +1,6 @@
 // services/ai.service.ts
 
-import { geminiModel } from "@/lib/gemini";
+import { geminiModel } from "@/config/gemini";
 import type { ProjectContext, Issue } from "@/types/analysis";
 
 interface AIAnalysisInput {

@@ -232,7 +232,7 @@ export default async function ReportPage({ params, searchParams }: ReportPagePro
 
           {/* 4. Tech Stack + Core Capabilities */}
           <TechStackAndCapabilities
-            techStack={analysis.aiInsights?.techStack ?? []}
+            techStack={analysis.techStack ?? []}
             capabilities={analysis.aiInsights?.capabilities ?? []}
           />
 

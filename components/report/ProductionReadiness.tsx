@@ -111,6 +111,7 @@ export default function ProductionReadiness({
               <ul className="space-y-2.5">
                 {cat.items.map((item) => {
                   const config = ITEM_ICON[item.status];
+                  if (!config) return null;
                   const Icon = config.icon;
                   return (
                     <li

@@ -53,7 +53,7 @@ function FileTreeNode({ node, depth = 0 }: { node: FileNode; depth?: number }) {
           </span>
           {node.comment && (
             <span className="text-[9px] text-zinc-600 tracking-tighter ml-auto flex-shrink-0">
-              // {node.comment}
+              {node.comment}
             </span>
           )}
         </div>
@@ -67,8 +67,8 @@ function FileTreeNode({ node, depth = 0 }: { node: FileNode; depth?: number }) {
         )}
       </div>
 
-      {node.children?.map((child) => (
-        <FileTreeNode key={child.name} node={child} depth={depth + 1} />
+      {node.children?.map((child, index) => (
+        <FileTreeNode key={`${child.name}-${index}`} node={child} depth={depth + 1} />
       ))}
     </div>
   );
@@ -93,8 +93,8 @@ export default function ProjectStructure({
           </h3>
 
           <div className="font-mono text-[12px] space-y-0.5 text-zinc-400 p-4 bg-black/30 rounded-2xl border border-white/5 overflow-x-auto">
-            {fileTree.map((node) => (
-              <FileTreeNode key={node.name} node={node} />
+            {fileTree.map((node, index) => (
+              <FileTreeNode key={`${node.name}-${index}`} node={node} />
             ))}
           </div>
         </div>

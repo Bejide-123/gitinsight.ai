@@ -79,6 +79,18 @@ export interface AIInsightsData {
   criticalWeaknesses: string[];
   longTermOutlook: string;
   sentimentScore: number;
+  techStack?: string[];
+  capabilities?: {
+    name: string;
+    status: "pass" | "missing" | "incomplete";
+  }[];
+  productionCategories?: {
+    title: string;
+    items: {
+      label: string;
+      status: "pass" | "warn" | "fail";
+    }[];
+  }[];
 }
 export interface Analysis {
   // ===== Identification =====
@@ -94,6 +106,9 @@ export interface Analysis {
   level: string; // "Portfolio Project", "MVP - Feature Complete", etc.
   isProductionReady: boolean;
 
+  // ===== Tech Stack =====
+  techStack: string[];
+
   // ===== Category Scores =====
   categoryScores: {
     security?: CategoryScore;
@@ -105,6 +120,9 @@ export interface Analysis {
     devops?: CategoryScore;
     codeQuality?: CategoryScore;
     functionality?: CategoryScore;
+    completeness?: CategoryScore;
+    readiness?: CategoryScore;
+    maintainability?: CategoryScore;
   };
 
   // ===== Issues (Separated by Type) =====
@@ -113,6 +131,8 @@ export interface Analysis {
 
   // ===== Strengths =====
   strengths: string[];
+  fileTreeStructure?: any[];
+  selectedFilesCount?: number;
 
   // ===== Recommendations =====
   criticalBlockers: string[]; // Must fix before production
