@@ -10,7 +10,10 @@ interface AnalysisWrapperProps {
   chatId: string;
 }
 
-export default function AnalysisWrapper({ repoUrl, chatId }: AnalysisWrapperProps) {
+export default function AnalysisWrapper({
+  repoUrl,
+  chatId,
+}: AnalysisWrapperProps) {
   const {
     data: analysisData,
     isPending,
@@ -34,12 +37,19 @@ export default function AnalysisWrapper({ repoUrl, chatId }: AnalysisWrapperProp
 
   if (analysisData?.data) {
     return (
-      <ChatContent chatId={chatId} isLoading={isPending}>
-        <AnalysisResult analysis={analysisData.data} reportId={chatId} />
+      <ChatContent
+        chatId={analysisData.chatId || chatId}
+        isLoading={isPending}
+      >
+        <AnalysisResult
+          analysis={analysisData.data}
+          reportId={analysisData.reportId || chatId}
+        />
       </ChatContent>
     );
   }
 
   return null;
 }
+
 

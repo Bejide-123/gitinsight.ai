@@ -8,25 +8,27 @@ interface AnalyzeRepoInput {
 interface AnalyzeRepoResponse {
   success: boolean;
   data?: Analysis;
+  reportId?: string;
+  chatId?: string;
   error?: string;
 }
 
 export function useRepositoryAnalysis(repoUrl: AnalyzeRepoInput | null) {
   return useQuery({
-    queryKey: ['repoAnalysis', repoUrl],
+    queryKey: ["repoAnalysis", repoUrl],
     queryFn: async (): Promise<AnalyzeRepoResponse> => {
       if (!repoUrl) {
         throw new Error("Repository URL is required");
       }
-      const response = await fetch('/api/analyse', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/analyse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ repoUrl }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to analyze repository');
+        throw new Error(error.error || "Failed to analyze repository");
       }
 
       return response.json();
@@ -34,3 +36,4 @@ export function useRepositoryAnalysis(repoUrl: AnalyzeRepoInput | null) {
     enabled: !!repoUrl, // The query will not run until the repoUrl is available
   });
 }
+
