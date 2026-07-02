@@ -307,7 +307,13 @@ export async function generateAIInsights(
       .replace(/```\n?/g, "")
       .trim();
 
-    return JSON.parse(clean) as AIAnalysisOutput;
+    try {
+      return JSON.parse(clean) as AIAnalysisOutput;
+    } catch (jsonError) {
+      console.error("Gemini AI JSON parsing error:", jsonError);
+      console.log("Raw Gemini AI response:", text);
+      return buildFallback(input);
+    }
   } catch (error) {
     console.error("Gemini AI error:", error);
     // Return safe fallback so analysis doesn't break

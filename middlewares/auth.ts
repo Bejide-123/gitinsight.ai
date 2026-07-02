@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 
 export function authMiddleware(req: NextRequest) {
-  const token = req.cookies.get("token")?.value;
+  const token = req.cookies.get("token")?.value || req.cookies.get("auth_token")?.value;
 
   if (!token) {
+    if (req.nextUrl.pathname.startsWith('/api')) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
@@ -20,6 +23,9 @@ export function authMiddleware(req: NextRequest) {
     });
 
   } catch (error) {
+    if (req.nextUrl.pathname.startsWith('/api')) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
     return NextResponse.redirect(new URL("/login", req.url));
   }
 }

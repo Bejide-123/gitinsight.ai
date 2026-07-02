@@ -5,45 +5,24 @@ import { ZodError } from "zod";
 import dbConnect from "@/lib/db";
 import Report from "@/models/Report";
 import Chat from "@/models/Chat";
-import { headers } from 'next/headers';
+// Authentication disabled for demo: analysis runs without checking cookies or headers
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const validated = analyzeRepoSchema.parse(body);
+
+    // For the presentation/demo we bypass auth and allow anonymous analysis
     const analysisResult = await analyzeRepository(validated.repoUrl);
 
     await dbConnect();
 
-    const headersList = headers();
-    const userPayload = headersList.get('x-user');
-
-    if (!userPayload) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const user = JSON.parse(userPayload);
-
-    const report = new Report({ ...analysisResult, userId: user.id });
-    await report.save();
-
-    const chat = new Chat({
-      userId: user.id,
-      report: report._id,
-      messages: [
-        {
-          role: "assistant",
-          content: "Analysis complete. Here is your report.",
-        },
-      ],
-    });
-    await chat.save();
-
+    // Do not persist report/chat when auth is disabled — return analysis directly
     return NextResponse.json({
       success: true,
       data: analysisResult,
-      reportId: report._id,
-      chatId: chat._id,
+      reportId: null,
+      chatId: null,
     });
   } catch (error: unknown) {
     console.error("Analysis API Error:", error);

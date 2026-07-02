@@ -9,6 +9,7 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
 // Helper to handle errors consistently
@@ -30,7 +31,8 @@ export const login = async (loginData: LoginData): Promise<{ token: string; user
     const response = await apiClient.post('/login', loginData);
     const { token, ...userData } = response.data;
     
-    // Save token to cookies
+    // Save a client-side fallback cookie so protected routes can still authenticate
+    // if the server-set HTTP-only cookie is not available in the browser for any reason.
     setAuthToken(token);
     
     return { token, user: userData };
@@ -74,7 +76,7 @@ export const getAuthToken = (): string | null => {
   const cookies = document.cookie.split(';');
   for (const cookie of cookies) {
     const [name, value] = cookie.trim().split('=');
-    if (name === 'auth_token') {
+    if (name === 'token' || name === 'auth_token') {
       return decodeURIComponent(value);
     }
   }
@@ -87,9 +89,9 @@ export const getAuthToken = (): string | null => {
 export const setAuthToken = (token: string): void => {
   if (typeof document === 'undefined') return;
   
-  // Set cookie with security options
   const maxAge = 7 * 24 * 60 * 60; // 7 days
-  document.cookie = `auth_token=${encodeURIComponent(token)}; path=/; max-age=${maxAge}; SameSite=Strict; Secure`;
+  const secureFlag = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+  document.cookie = `auth_token=${encodeURIComponent(token)}; path=/; max-age=${maxAge}; SameSite=Lax${secureFlag}`;
 };
 
 /**
