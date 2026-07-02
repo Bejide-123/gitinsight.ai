@@ -114,7 +114,7 @@ export default function EngineeringDimensions({
                     />
                   </div>
                   <span className="text-lg font-bold tracking-tight text-white">
-                    {dim.score}
+                    {Math.round(dim.score)}
                     <span className="text-xs text-zinc-500">%</span>
                   </span>
                 </div>

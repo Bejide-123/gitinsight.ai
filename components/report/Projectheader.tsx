@@ -6,12 +6,14 @@ interface ProjectHeaderProps {
   analysis: Analysis;
   stars?: number;
   forks?: number;
+  language?: string;
 }
 
 export default function ProjectHeader({
   analysis,
-  stars = 12400,
-  forks = 892,
+  stars = 0,
+  forks = 0,
+  language = "Unknown",
 }: ProjectHeaderProps) {
   const {
     repoName,
@@ -114,7 +116,7 @@ export default function ProjectHeader({
                     </span>
                   </div>
                   <span className="text-xs font-bold text-white">
-                    {(stars / 1000).toFixed(1)}k
+                    {stars.toLocaleString()}
                   </span>
                 </div>
 
@@ -127,7 +129,7 @@ export default function ProjectHeader({
                     </span>
                   </div>
                   <span className="text-xs font-bold text-white">
-                    {(forks / 1000).toFixed(1)}k
+                    {forks.toLocaleString()}
                   </span>
                 </div>
 
@@ -139,7 +141,7 @@ export default function ProjectHeader({
                       Language
                     </span>
                   </div>
-                  <span className="text-xs font-bold text-white">TypeScript</span>
+                  <span className="text-xs font-bold text-white">{language}</span>
                 </div>
               </div>
             </div>

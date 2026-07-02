@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation"
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,6 +15,7 @@ const navItems = [
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const router = useRouter()
 
   return (
     <>
@@ -38,11 +40,15 @@ export default function Navbar() {
           </nav>
 
           <div className="flex items-center gap-4">
-            <button className="hidden md:block text-white/60 hover:text-white text-sm">
+            <button 
+            onClick={() => router.push("/login")}
+            className="hidden md:block text-white/60 hover:text-white text-sm">
               Sign In
             </button>
 
-            <button className="hidden md:block px-4 py-2 bg-white text-black text-sm font-medium">
+            <button 
+            onClick={() => router.push("/register")}
+            className="hidden md:block px-4 py-2 bg-white text-black text-sm font-medium">
               Get Started
             </button>
 
@@ -109,7 +115,9 @@ export default function Navbar() {
                 {/* action group */}
                 <div className="rounded-xl border border-white/10 bg-white/5 p-3 flex flex-col gap-2">
                   {/* Sign In */}
-                  <button className="w-full h-10 flex items-center justify-center text-sm text-white bg-[#050505] border border-white/10 rounded-md hover:bg-white/5 hover:border-white/20 transition-all shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
+                  <button
+                    onClick={() => router.push("/login")}
+                  className="w-full h-10 flex items-center justify-center text-sm text-white bg-[#050505] border border-white/10 rounded-md hover:bg-white/5 hover:border-white/20 transition-all shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
                     Sign In
                   </button>
 
@@ -117,7 +125,9 @@ export default function Navbar() {
                   <div className="h-px bg-white/5" />
 
                   {/* Get Started */}
-                  <button className="w-full px-3 py-2 bg-white text-black text-sm font-medium rounded-md hover:bg-zinc-200 transition-colors">
+                  <button 
+                    onClick={() => router.push("/register")}
+                  className="w-full px-3 py-2 bg-white text-black text-sm font-medium rounded-md hover:bg-zinc-200 transition-colors">
                     Get Started
                   </button>
                 </div>

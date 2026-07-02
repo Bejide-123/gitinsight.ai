@@ -1,4 +1,6 @@
 // src/types/github.ts
+import { FileTreeNode } from "@/utils/Filetreenode"
+
 
 export interface GitHubRepo {
   id: number;
@@ -42,4 +44,6 @@ export interface GitHubRepoData {
   fileTree: FileTreeItem[];
   readme: string | null;
   packageJson: any | null; // Paths of files selected for analysis
+  fileTreeStructure?: FileTreeNode[];
+  selectedFilesCount?: number;
 }

@@ -57,6 +57,41 @@ export interface CategoryScore {
 // COMPLETE ANALYSIS RESULT
 // ============================================================================
 
+export interface AIInsightsData {
+  executiveSummary: string;
+  recommendations: {
+    title: string;
+    description: string;
+    impact: "High Impact" | "Medium Impact" | "Low Impact";
+    impactScore: number;
+    difficulty: number;
+    priority: 1 | 2 | 3;
+  }[];
+  productionVerdict: string;
+  roadmapPhases: {
+    number: number;
+    title: string;
+    description: string;
+    status: "completed" | "active" | "upcoming" | "future";
+    tags?: string[];
+  }[];
+  architecturalStrengths: string[];
+  criticalWeaknesses: string[];
+  longTermOutlook: string;
+  sentimentScore: number;
+  techStack?: string[];
+  capabilities?: {
+    name: string;
+    status: "pass" | "missing" | "incomplete";
+  }[];
+  productionCategories?: {
+    title: string;
+    items: {
+      label: string;
+      status: "pass" | "warn" | "fail";
+    }[];
+  }[];
+}
 export interface Analysis {
   // ===== Identification =====
   repoUrl: string;
@@ -71,6 +106,9 @@ export interface Analysis {
   level: string; // "Portfolio Project", "MVP - Feature Complete", etc.
   isProductionReady: boolean;
 
+  // ===== Tech Stack =====
+  techStack: string[];
+
   // ===== Category Scores =====
   categoryScores: {
     security?: CategoryScore;
@@ -82,6 +120,9 @@ export interface Analysis {
     devops?: CategoryScore;
     codeQuality?: CategoryScore;
     functionality?: CategoryScore;
+    completeness?: CategoryScore;
+    readiness?: CategoryScore;
+    maintainability?: CategoryScore;
   };
 
   // ===== Issues (Separated by Type) =====
@@ -90,11 +131,13 @@ export interface Analysis {
 
   // ===== Strengths =====
   strengths: string[];
+  fileTreeStructure?: any[];
+  selectedFilesCount?: number;
 
   // ===== Recommendations =====
   criticalBlockers: string[]; // Must fix before production
   nextSteps: string[]; // Suggested improvements
-  aiInsights?: string; // AI-generated recommendations (from Claude API)
+  aiInsights?: AIInsightsData | null // AI-generated recommendations (from Claude API)
 }
 
 // ============================================================================
