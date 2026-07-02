@@ -5,6 +5,11 @@ import { IssueSchema } from "./Issue";
 import { AIInsightsDataSchema } from "./AIInsightsData";
 
 const ReportSchema = new Schema({
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
   repoUrl: { type: String, required: true },
   repoName: { type: String, required: true },
   analyzedAt: { type: Date, default: Date.now },

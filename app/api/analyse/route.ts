@@ -5,6 +5,7 @@ import { ZodError } from "zod";
 import dbConnect from "@/lib/db";
 import Report from "@/models/Report";
 import Chat from "@/models/Chat";
+import { headers } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
@@ -14,10 +15,20 @@ export async function POST(request: Request) {
 
     await dbConnect();
 
-    const report = new Report(analysisResult);
+    const headersList = headers();
+    const userPayload = headersList.get('x-user');
+
+    if (!userPayload) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = JSON.parse(userPayload);
+
+    const report = new Report({ ...analysisResult, userId: user.id });
     await report.save();
 
     const chat = new Chat({
+      userId: user.id,
       report: report._id,
       messages: [
         {

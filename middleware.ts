@@ -6,5 +6,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: "/api/chat/:path*",
+  matcher: ["/api/chat/:path*", "/api/analyse"],
 };

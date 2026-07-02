@@ -27,13 +27,18 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    
     try {
       const loginData: LoginData = { email, password };
       await login(loginData);
+      
+      // Token is automatically saved in cookies by the auth service
+      // Redirect to chat page
       router.push("/chat");
     } catch (err) {
-      setError("Invalid email or password. Please try again.");
-      console.log(err)
+      const error = err as Error;
+      setError(error.message || "Invalid email or password. Please try again.");
+      console.log(err);
     } finally {
       setLoading(false);
     }
@@ -262,10 +267,11 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <p style={{ color: "red", fontSize: "12px", textAlign: "center" }}>
+            <p style={{ color: "red", fontSize: "12px", textAlign: "center", marginBottom: "16px" }}>
               {error}
             </p>
           )}
+          
           {/* Login Button */}
           <button
             type="submit"
@@ -289,10 +295,10 @@ export default function LoginPage() {
               justifyContent: "center",
               gap: "10px",
               cursor: loading ? "not-allowed" : "pointer",
-              boxShadow: loginHovered
+              boxShadow: loginHovered && !loading
                 ? "0 0 30px rgba(96, 165, 250, 0.3)"
                 : "0 0 16px rgba(96, 165, 250, 0.15)",
-              transform: loginHovered ? "translateY(-1px)" : "translateY(0)",
+              transform: loginHovered && !loading ? "translateY(-1px)" : "translateY(0)",
               transition: "all 0.25s ease",
               opacity: loading ? 0.6 : 1,
             }}
