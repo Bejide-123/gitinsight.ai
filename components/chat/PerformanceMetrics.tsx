@@ -1,105 +1,103 @@
-'use client';
+// PerformanceMetrics.tsx - Redesigned with minimal dark theme
+"use client";
 
-import type { CategoryScore } from '@/types/analysis';
-import { useState, useEffect } from 'react';
+import type { CategoryScore } from "@/types/analysis";
+import { motion } from "framer-motion";
+import { BarChart3, TrendingUp, Activity, Shield, Zap, TestTube2, FileText } from "lucide-react";
 
 interface PerformanceMetricsProps {
   categoryScores: Record<string, CategoryScore>;
 }
 
-export default function PerformanceMetrics({ categoryScores }: PerformanceMetricsProps) {
-  const [mounted, setMounted] = useState(false);
-  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+const categoryIcons: Record<string, any> = {
+  "Code Quality": TrendingUp,
+  "Security": Shield,
+  "Performance": Zap,
+  "Testing": TestTube2,
+  "Documentation": FileText,
+  "Maintainability": Activity,
+};
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+export default function PerformanceMetrics({ categoryScores }: PerformanceMetricsProps) {
+  const categories = Object.entries(categoryScores);
 
   return (
-    <div className="col-span-12 rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 via-white/[0.03] to-transparent backdrop-blur-xl md:col-span-8 overflow-hidden group">
-      {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-      {/* Glow orb */}
-      <div className="absolute -top-32 -right-32 w-64 h-64 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full blur-3xl opacity-10 group-hover:opacity-15 transition-opacity duration-500"></div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.1 }}
+      className="col-span-12 md:col-span-8 overflow-hidden rounded-3xl border border-white/10 bg-[#0a0a0a] backdrop-blur-xl group relative"
+    >
+      <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl group-hover:opacity-100 transition-opacity duration-700 opacity-0" />
 
       <div className="relative p-8">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <h3 className="text-2xl font-bold text-white">
-            Performance Metrics
-          </h3>
-          <div className="h-1 w-12 bg-gradient-to-r from-purple-500 to-transparent rounded-full"></div>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-purple-500/5 border border-purple-500/10">
+              <BarChart3 className="w-5 h-5 text-purple-400" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-white">Performance Metrics</h3>
+              <p className="text-xs text-zinc-500 mt-0.5">Category breakdown</p>
+            </div>
+          </div>
+          <div className="h-8 w-px bg-white/5" />
+          <div className="flex items-center gap-2 text-xs text-zinc-500">
+            <span className="w-2 h-2 rounded-full bg-purple-400" />
+            <span>Overview</span>
+          </div>
         </div>
 
         {/* Metrics Grid */}
-        <div className="grid grid-cols-2 gap-x-8 gap-y-6">
-          {Object.entries(categoryScores).map(([category, scoreData], idx) => {
-            const isHovered = hoveredCategory === category;
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {categories.map(([category, data], idx) => {
+            const Icon = categoryIcons[category] || BarChart3;
+            const score = Math.round(data.score);
 
             return (
-              <div
+              <motion.div
                 key={category}
-                onMouseEnter={() => setHoveredCategory(category)}
-                onMouseLeave={() => setHoveredCategory(null)}
-                className={`space-y-3 p-4 rounded-2xl transition-all duration-300 cursor-pointer border ${
-                  isHovered ? 'border-purple-500/40 bg-purple-500/10' : 'border-white/5 hover:border-white/10'
-                }`}
-                style={{
-                  animation: mounted ? `fadeInUp 0.5s ease-out ${idx * 100}ms forwards` : 'none',
-                  opacity: mounted ? 1 : 0,
-                }}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: idx * 0.08 }}
+                className="group/item relative p-4 rounded-2xl border border-white/5 hover:border-white/15 bg-white/5 hover:bg-white/10 transition-all duration-300 cursor-pointer"
               >
-                {/* Category name and score */}
-                <div className="flex justify-between items-center">
-                  <span className="text-xs uppercase tracking-widest font-semibold text-zinc-400 transition-colors duration-300">
-                    {category}
-                  </span>
-                  <span className={`text-lg font-bold text-purple-300 transition-all duration-300 ${
-                    isHovered ? 'scale-110' : 'scale-100'
-                  }`}>
-                    {Math.round(scoreData.score)}%
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 rounded-lg bg-white/5">
+                      <Icon className="w-4 h-4 text-zinc-400 group-hover/item:text-purple-400 transition-colors" />
+                    </div>
+                    <span className="text-sm font-medium text-zinc-300 group-hover/item:text-white transition-colors">
+                      {category}
+                    </span>
+                  </div>
+                  <span className="text-sm font-bold text-white">
+                    {score}%
                   </span>
                 </div>
 
-                {/* Progress bar */}
-                <div className="relative h-2 overflow-hidden rounded-full bg-white/5 border border-white/10">
-                  {/* Glow effect on hover */}
-                  <div
-                    className={`absolute inset-y-0 left-0 transition-opacity duration-300 ${
-                      isHovered ? 'opacity-100' : 'opacity-0'
-                    } blur-lg bg-purple-500/50`}
-                    style={{
-                      width: `${scoreData.score}%`,
-                    }}
-                  />
-
-                  {/* Main progress bar */}
-                  <div
-                    style={{
-                      width: mounted ? `${scoreData.score}%` : '0%',
-                    }}
-                    className="h-full bg-gradient-to-r from-purple-500 to-purple-400 transition-all duration-700 ease-out rounded-full"
+                <div className="relative h-1.5 overflow-hidden rounded-full bg-white/5">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${score}%` }}
+                    transition={{ duration: 1, delay: 0.2 + idx * 0.1 }}
+                    className="h-full rounded-full bg-purple-400"
                   />
                 </div>
-              </div>
+
+                {data.issues && data.issues.length > 0 && (
+                  <div className="mt-2 flex items-center gap-1.5">
+                    <span className="text-[10px] text-zinc-500">
+                      {data.issues.length} issue{data.issues.length > 1 ? 's' : ''}
+                    </span>
+                  </div>
+                )}
+              </motion.div>
             );
           })}
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
-    </div>
+    </motion.div>
   );
 }

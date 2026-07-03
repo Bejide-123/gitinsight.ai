@@ -32,7 +32,7 @@ export default function ChatLayout({
         <Sidebar />
 
         {/* MAIN AREA */}
-        <div className="flex flex-col flex-1 ml-[260px] h-full overflow-hidden">
+        <div className="flex flex-col flex-1 ml-[320px] h-full overflow-hidden">
           {/* HEADER */}
           <ChatHeader />
 

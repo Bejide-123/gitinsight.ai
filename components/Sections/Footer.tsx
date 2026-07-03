@@ -2,6 +2,16 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { Sparkles } from "lucide-react";
+import { 
+  FaGithub, 
+  FaTwitter, 
+  FaLinkedinIn, 
+  FaYoutube,
+  FaTerminal,
+  FaShareAlt,
+  FaHubspot
+} from "react-icons/fa";
 
 const container = {
   hidden: { opacity: 0 },
@@ -20,7 +30,7 @@ const item = {
 
 export default function Footer() {
   return (
-    <footer className="bg-[#050505] border-t border-white/10 w-screen shadow-[0_-20px_60px_rgba(0,0,0,0.8)]">
+    <footer className="bg-gradient-to-b from-[#050505] to-[#020202] border-t border-white/5 w-screen">
       <div className="max-w-[1280px] mx-auto px-8 pt-24 pb-6">
 
         {/* TOP GRID */}
@@ -34,17 +44,54 @@ export default function Footer() {
 
           {/* BRAND */}
           <motion.div variants={item} className="lg:col-span-2">
-            <h2 className="text-2xl tracking-[0.3em] text-white mb-6">
-              GITINSIGHT AI
-            </h2>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white/60" />
+              </div>
+              <h2 className="text-2xl tracking-[0.1em] text-white font-light">
+                GITINSIGHT<span className="font-bold">AI</span>
+              </h2>
+            </div>
 
-            <p className="text-white/60 max-w-xs leading-relaxed mb-8">
+            <p className="text-white/40 max-w-xs leading-relaxed mb-8 text-sm">
               Engineering intelligence for the modern stack. Autonomous analysis for high-performance teams.
             </p>
 
+            {/* Social Icons */}
+            <div className="flex gap-4 mb-8">
+              <motion.a
+                href="#"
+                whileHover={{ y: -2, scale: 1.05 }}
+                className="w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-white/40 hover:text-white hover:border-white/30 transition-all duration-300"
+              >
+                <FaGithub className="w-4 h-4" />
+              </motion.a>
+              <motion.a
+                href="#"
+                whileHover={{ y: -2, scale: 1.05 }}
+                className="w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-white/40 hover:text-white hover:border-white/30 transition-all duration-300"
+              >
+                <FaTwitter className="w-4 h-4" />
+              </motion.a>
+              <motion.a
+                href="#"
+                whileHover={{ y: -2, scale: 1.05 }}
+                className="w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-white/40 hover:text-white hover:border-white/30 transition-all duration-300"
+              >
+                <FaLinkedinIn className="w-4 h-4" />
+              </motion.a>
+              <motion.a
+                href="#"
+                whileHover={{ y: -2, scale: 1.05 }}
+                className="w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-white/40 hover:text-white hover:border-white/30 transition-all duration-300"
+              >
+                <FaYoutube className="w-4 h-4" />
+              </motion.a>
+            </div>
+
             {/* NEWSLETTER */}
             <div className="space-y-4">
-              <p className="text-[10px] tracking-widest text-white/40 uppercase">
+              <p className="text-[10px] tracking-[0.2em] text-white/40 uppercase font-medium">
                 Subscribe to updates
               </p>
 
@@ -52,9 +99,9 @@ export default function Footer() {
                 <input
                   type="email"
                   placeholder="Email address"
-                  className="bg-white/5 border border-white/10 text-white px-4 py-2 w-full focus:outline-none focus:border-cyan-500/50 placeholder:text-white/20 rounded-l"
+                  className="bg-white/5 border border-white/10 text-white px-4 py-2.5 w-full focus:outline-none focus:border-white/30 focus:bg-white/10 placeholder:text-white/20 rounded-l-lg transition-all duration-300"
                 />
-                <button className="bg-white text-black text-[10px] px-4 py-2 hover:bg-cyan-400 transition-all rounded-r uppercase tracking-widest">
+                <button className="bg-white text-black text-[10px] px-5 py-2.5 hover:bg-white/90 transition-all rounded-r-lg uppercase tracking-widest font-medium">
                   Join
                 </button>
               </div>
@@ -81,16 +128,16 @@ export default function Footer() {
             },
           ].map((group, i) => (
             <motion.div key={i} variants={item}>
-              <h4 className="text-xs mb-6 tracking-widest uppercase text-white">
+              <h4 className="text-xs mb-6 tracking-[0.2em] uppercase text-white/60 font-medium">
                 {group.title}
               </h4>
 
-              <ul className="space-y-4">
+              <ul className="space-y-3.5">
                 {group.links.map((link, idx) => (
                   <li key={idx}>
                     <Link
                       href="#"
-                      className="text-white/60 hover:text-cyan-300 transition-colors duration-300"
+                      className="text-white/40 hover:text-white transition-colors duration-300 text-sm"
                     >
                       {link}
                     </Link>
@@ -102,33 +149,45 @@ export default function Footer() {
         </motion.div>
 
         {/* BOTTOM BAR */}
-        <div className="flex flex-col md:flex-row justify-between items-center pt-8 pb-0 border-t border-white/5 gap-8">
+        <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-white/5 gap-6">
 
-          {/* ICONS */}
-          <div className="flex items-center gap-6 text-white/40">
-            {["terminal", "share", "hub"].map((icon, i) => (
-              <motion.span
-                key={i}
-                whileHover={{ scale: 1.2, color: "#22d3ee" }}
-                className="material-symbols-outlined cursor-pointer transition-colors"
-              >
-                {icon}
-              </motion.span>
-            ))}
+          {/* ICONS - Using react-icons/fa */}
+          <div className="flex items-center gap-6 text-white/30">
+            <motion.div
+              whileHover={{ scale: 1.2, color: "#22d3ee" }}
+              className="cursor-pointer transition-all duration-300"
+            >
+              <FaTerminal className="w-5 h-5" />
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.2, color: "#22d3ee" }}
+              className="cursor-pointer transition-all duration-300"
+            >
+              <FaShareAlt className="w-5 h-5" />
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.2, color: "#22d3ee" }}
+              className="cursor-pointer transition-all duration-300"
+            >
+              <FaHubspot className="w-5 h-5" />
+            </motion.div>
           </div>
 
           {/* STATUS + COPYRIGHT */}
           <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
 
             <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-              <span className="text-[10px] tracking-widest text-white/40 uppercase">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+              <span className="text-[10px] tracking-[0.2em] text-white/40 uppercase font-medium">
                 All Systems Operational
               </span>
             </div>
 
-            <div className="text-[10px] tracking-widest uppercase text-white/20">
-              © {new Date().getFullYear()} GITINSIGHT AI. PRECISION ENGINEERING FOR THE MODERN STACK.
+            <div className="text-[10px] tracking-[0.2em] uppercase text-white/20">
+              © {new Date().getFullYear()} GITINSIGHT AI. Precision Engineering for the Modern Stack.
             </div>
 
           </div>
