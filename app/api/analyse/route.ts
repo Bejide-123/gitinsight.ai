@@ -63,6 +63,7 @@ export async function POST(request: Request) {
       data: analysisResult,
       reportId: report._id,
       chatId: chat._id,
+      userId: user.id,
     });
   } catch (error: unknown) {
     console.error("Analysis API Error:", error);

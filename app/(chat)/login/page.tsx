@@ -8,6 +8,7 @@ import { FiLogIn } from "react-icons/fi";
 import { login } from "@/services/auth-service";
 import { LoginData } from "@/types/auth";
 import { AccessGrantedModal, PerimeterAlertModal } from "@/components/modals/Modals";
+import { useAuth } from "@/app/context/AuthContext";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -21,6 +22,7 @@ export default function LoginPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const router = useRouter();
+  const { login: setAuthUser } = useAuth();
 
   const handleGitHubLogin = () => {
     // Wire to your GitHub OAuth provider
@@ -34,8 +36,9 @@ export default function LoginPage() {
     
     try {
       const loginData: LoginData = { email, password };
-      await login(loginData);
-      
+      const { user } = await login(loginData);
+      setAuthUser(user);
+
       // Token is automatically saved in cookies by the auth service
       // Show success modal first
       setShowSuccessModal(true);

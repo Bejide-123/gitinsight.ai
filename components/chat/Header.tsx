@@ -14,12 +14,15 @@ import {
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/context/AuthContext";
+import { logout as logoutUser } from "@/services/auth-service";
 
 export default function ChatHeader() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { user, logout: clearAuthUser } = useAuth();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -31,10 +34,20 @@ export default function ChatHeader() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
-    // Handle logout logic
-    router.push("/login");
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      clearAuthUser();
+      setDropdownOpen(false);
+      router.push("/login");
+    }
   };
+
+  const displayName = user?.name || "User";
+  const displayEmail = user?.email || "No email available";
 
   return (
     <header className="w-full h-16 border-b border-white/10 bg-[#050505]/80 backdrop-blur-md flex items-center justify-between px-8 shadow-[0_4px_30px_rgba(0,0,0,0.3)] z-50 relative">
@@ -145,8 +158,8 @@ export default function ChatHeader() {
                       />
                     </div>
                     <div>
-                      <p className="text-white font-medium text-sm">Alexandra Chen</p>
-                      <p className="text-zinc-400 text-xs">alex@gitinsight.ai</p>
+                      <p className="text-white font-medium text-sm">{displayName}</p>
+                      <p className="text-zinc-400 text-xs">{displayEmail}</p>
                       <div className="flex items-center gap-1.5 mt-1">
                         <Shield className="w-3 h-3 text-emerald-400" />
                         <span className="text-[10px] text-emerald-400/70 font-mono">Pro Plan</span>

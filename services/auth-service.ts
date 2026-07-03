@@ -29,13 +29,13 @@ const handleError = (error: unknown): never => {
 export const login = async (loginData: LoginData): Promise<{ token: string; user: any }> => {
   try {
     const response = await apiClient.post('/login', loginData);
-    const { token, ...userData } = response.data;
-    
+    const { token, user } = response.data;
+
     // Save a client-side fallback cookie so protected routes can still authenticate
     // if the server-set HTTP-only cookie is not available in the browser for any reason.
     setAuthToken(token);
-    
-    return { token, user: userData };
+
+    return { token, user };
   } catch (error) {
     throw handleError(error);
   }
