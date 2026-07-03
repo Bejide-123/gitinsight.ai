@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { getAuthToken } from "@/services/auth-service";
 import type { Analysis } from "@/types/analysis";
 
 interface AnalyzeRepoInput {
@@ -21,45 +20,34 @@ export function useRepositoryAnalysis(repoUrl: AnalyzeRepoInput | null) {
       if (!repoUrl) {
         throw new Error("Repository URL is required");
       }
-      const token = getAuthToken();
+      
+      console.log(`[ANALYSE HOOK] Starting analysis for: ${repoUrl}`);
+      console.log(`[ANALYSE HOOK] Checking for auth token in cookies`);
+      const authCookies = document.cookie.split(';').map(c => c.trim());
+      const hasTokenCookie = authCookies.some(c => c.startsWith('token=') || c.startsWith('auth_token='));
+      console.log(`[ANALYSE HOOK] Auth cookie found: ${hasTokenCookie}`);
+      
       const response = await fetch("/api/analyse", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ repoUrl }),
       });
+      
+      console.log(`[ANALYSE HOOK] Response status: ${response.status}`);
 
       if (!response.ok) {
-        let errorMessage = "Failed to analyze repository";
-        try {
-          const error = await response.json();
-          errorMessage = error?.error || error?.message || errorMessage;
-        } catch (jsonError) {
-          const text = await response.text();
-          errorMessage = text?.trim().slice(0, 200) || errorMessage;
+        if (response.status === 401) {
+          console.error(`[ANALYSE HOOK] Received 401 Unauthorized`);
+          // Redirect to login page
+          window.location.href = "/login";
+          throw new Error("Unauthorized");
         }
-        throw new Error(errorMessage);
-        try {
-          const error = await response.json();
-          errorMessage = error?.error || error?.message || errorMessage;
-        } catch (jsonError) {
-          const text = await response.text();
-          errorMessage = text?.trim().slice(0, 200) || errorMessage;
-        }
-        throw new Error(errorMessage);
+        const error = await response.json();
+        throw new Error(error.error || "Failed to analyze repository");
       }
 
-      try {
-        return await response.json();
-      } catch (jsonError) {
-        const text = await response.text();
-        throw new Error(
-          text?.trim().slice(0, 200) || "Invalid JSON response from analysis API"
-        );
-      }
+      console.log(`[ANALYSE HOOK] Analysis completed successfully`);
+      return response.json();
     },
     enabled: !!repoUrl, // The query will not run until the repoUrl is available
   });
