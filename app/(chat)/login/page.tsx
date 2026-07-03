@@ -7,6 +7,7 @@ import { FaGithub } from "react-icons/fa";
 import { FiLogIn } from "react-icons/fi";
 import { login } from "@/services/auth-service";
 import { LoginData } from "@/types/auth";
+import { AccessGrantedModal, PerimeterAlertModal } from "@/components/modals/Modals";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -17,6 +18,8 @@ export default function LoginPage() {
   const [loginHovered, setLoginHovered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
   const router = useRouter();
 
   const handleGitHubLogin = () => {
@@ -27,17 +30,25 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setShowErrorModal(false);
     
     try {
       const loginData: LoginData = { email, password };
       await login(loginData);
       
       // Token is automatically saved in cookies by the auth service
-      // Redirect to chat page
-      router.push("/chat");
+      // Show success modal first
+      setShowSuccessModal(true);
+      
+      // Redirect to chat page after 2 seconds
+      setTimeout(() => {
+        router.push("/chat");
+      }, 2000);
     } catch (err) {
       const error = err as Error;
-      setError(error.message || "Invalid email or password. Please try again.");
+      const errorMessage = error.message || "Invalid email or password. Please try again.";
+      setError(errorMessage);
+      setShowErrorModal(true);
       console.log(err);
     } finally {
       setLoading(false);
@@ -360,6 +371,56 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      {/* Success Modal Overlay */}
+      {showSuccessModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "rgba(0, 0, 0, 0.7)",
+            backdropFilter: "blur(4px)",
+            zIndex: 50,
+          }}
+        >
+          <div style={{ maxWidth: "500px", width: "90%" }}>
+            <AccessGrantedModal 
+              onDashboardClick={() => {
+                setShowSuccessModal(false);
+                router.push("/chat");
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Error Modal Overlay */}
+      {showErrorModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "rgba(0, 0, 0, 0.7)",
+            backdropFilter: "blur(4px)",
+            zIndex: 50,
+          }}
+        >
+          <div style={{ maxWidth: "500px", width: "90%" }}>
+            <PerimeterAlertModal 
+              onRetry={() => {
+                setShowErrorModal(false);
+                setError(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
