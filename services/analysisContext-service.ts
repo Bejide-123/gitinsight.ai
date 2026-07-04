@@ -10,11 +10,15 @@ export function buildAnalysisContext(
 
   return {
     repo: repoData,
-
+    codeFiles: {},
     selectedFiles: selectFilesToAnalyze(repoData.fileTree),
-
+    projectContext: {
+      intent: "portfolio",
+      confidence: 0,
+      signals: [],
+      expectedFeatures: [],
+      notRequiredFeatures: [],
+    },
     warnings: [],
-
-    architecturePatterns: [],
   };
 }

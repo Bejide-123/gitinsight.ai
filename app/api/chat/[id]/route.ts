@@ -1,15 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Chat from "@/models/Chat";
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await dbConnect();
 
-    const chat = await Chat.findById(params.id).populate("report");
+    const { id } = await params;
+    const chat = await Chat.findById(id).populate("report");
 
     if (!chat) {
       return NextResponse.json(

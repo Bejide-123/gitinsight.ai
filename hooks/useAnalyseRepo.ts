@@ -1,10 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Analysis } from "@/types/analysis";
 
-interface AnalyzeRepoInput {
-  repoUrl: string;
-}
-
 interface AnalyzeRepoResponse {
   success: boolean;
   data?: Analysis;
@@ -13,7 +9,7 @@ interface AnalyzeRepoResponse {
   error?: string;
 }
 
-export function useRepositoryAnalysis(repoUrl: AnalyzeRepoInput | null) {
+export function useRepositoryAnalysis(repoUrl: string | null) {
   return useQuery({
     queryKey: ["repoAnalysis", repoUrl],
     queryFn: async (): Promise<AnalyzeRepoResponse> => {
