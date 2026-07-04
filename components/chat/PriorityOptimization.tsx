@@ -1,168 +1,93 @@
-'use client';
+// PriorityOptimization.tsx - Redesigned with minimal dark theme
+"use client";
 
-import {
-  Zap,
-  ChevronRight,
-  Shield,
-  Building2,
-  TestTube2,
-  AlertCircle,
-  CheckCircle,
-  Lightbulb,
-} from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Zap, ChevronRight, Sparkles, Rocket, Target, Lightbulb, CheckCircle } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface PriorityOptimizationProps {
   nextSteps: string[];
 }
 
-const getIconForStep = (step: string) => {
-  const lowerStep = step.toLowerCase();
-
-  if (lowerStep.includes('security') || lowerStep.includes('🔒')) return <Shield size={20} />;
-  if (lowerStep.includes('architecture') || lowerStep.includes('🏗')) return <Building2 size={20} />;
-  if (lowerStep.includes('testing') || lowerStep.includes('🧪')) return <TestTube2 size={20} />;
-  if (lowerStep.includes('critical') || lowerStep.includes('⚠')) return <AlertCircle size={20} />;
-  if (lowerStep.includes('improve') || lowerStep.includes('📈')) return <Lightbulb size={20} />;
-  if (lowerStep.includes('fix')) return <CheckCircle size={20} />;
-
-  return <Zap size={20} />;
-};
-
-const getPriorityColor = (step: string): { bg: string; border: string; icon: string; text: string } => {
-  const lowerStep = step.toLowerCase();
-
-  if (lowerStep.includes('critical') || lowerStep.startsWith('🔒')) {
-    return {
-      bg: 'bg-red-500/5 hover:bg-red-500/10',
-      border: 'border-red-500/20 hover:border-red-500/40',
-      icon: 'text-red-400',
-      text: 'text-red-300',
-    };
-  }
-
-  if (lowerStep.includes('security') || lowerStep.includes('⚠')) {
-    return {
-      bg: 'bg-orange-500/5 hover:bg-orange-500/10',
-      border: 'border-orange-500/20 hover:border-orange-500/40',
-      icon: 'text-orange-400',
-      text: 'text-orange-300',
-    };
-  }
-
-  if (lowerStep.includes('architecture') || lowerStep.includes('🏗')) {
-    return {
-      bg: 'bg-cyan-500/5 hover:bg-cyan-500/10',
-      border: 'border-cyan-500/20 hover:border-cyan-500/40',
-      icon: 'text-cyan-400',
-      text: 'text-cyan-300',
-    };
-  }
-
-  if (lowerStep.includes('testing') || lowerStep.includes('🧪')) {
-    return {
-      bg: 'bg-purple-500/5 hover:bg-purple-500/10',
-      border: 'border-purple-500/20 hover:border-purple-500/40',
-      icon: 'text-purple-400',
-      text: 'text-purple-300',
-    };
-  }
-
-  return {
-    bg: 'bg-blue-500/5 hover:bg-blue-500/10',
-    border: 'border-blue-500/20 hover:border-blue-500/40',
-    icon: 'text-blue-400',
-    text: 'text-blue-300',
-  };
-};
+const stepIcons = [Sparkles, Rocket, Target, Lightbulb, Zap];
 
 export default function PriorityOptimization({ nextSteps }: PriorityOptimizationProps) {
-  const [mounted, setMounted] = useState(false);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   return (
-    <div className="col-span-12 rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 via-white/[0.03] to-transparent backdrop-blur-xl md:col-span-6 overflow-hidden">
-      {/* Animated gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-purple-500/5 opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.3 }}
+      className="col-span-12 md:col-span-6 rounded-3xl border border-white/10 bg-[#0a0a0a] backdrop-blur-xl overflow-hidden group relative"
+    >
+      <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl group-hover:opacity-100 transition-opacity duration-700 opacity-0" />
 
       <div className="relative p-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h3 className="text-2xl font-bold bg-gradient-to-r from-white via-white to-zinc-400 bg-clip-text text-transparent">
-            Priority Optimization
-          </h3>
-          <div className="h-1 w-12 bg-gradient-to-r from-purple-500 to-transparent rounded-full"></div>
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 rounded-xl bg-purple-500/5 border border-purple-500/10">
+            <Rocket className="w-5 h-5 text-purple-400" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-white">Priority Optimization</h3>
+            <p className="text-xs text-zinc-500 mt-0.5">Recommended next steps</p>
+          </div>
         </div>
 
+        {/* Steps */}
         <div className="space-y-3">
           {nextSteps.length === 0 ? (
-            <div className="py-8 text-center">
-              <p className="text-sm text-zinc-400">
-                No priority optimizations identified. Your project is in excellent shape! 🎉
-              </p>
+            <div className="py-12 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-500/10 border border-purple-500/20 mb-4">
+                <CheckCircle className="w-8 h-8 text-purple-400" />
+              </div>
+              <p className="text-sm text-zinc-400">No optimizations needed</p>
+              <p className="text-xs text-zinc-500 mt-1">Your project is in excellent shape</p>
             </div>
           ) : (
-            nextSteps.map((step, index) => {
-              const colors = getPriorityColor(step);
-              const isHovered = hoveredIndex === index;
-              const icon = getIconForStep(step);
+            nextSteps.map((step, idx) => {
+              const Icon = stepIcons[idx % stepIcons.length];
 
               return (
-                <button
-                  key={index}
-                  onMouseEnter={() => setHoveredIndex(index)}
-                  onMouseLeave={() => setHoveredIndex(null)}
-                  className={`group relative w-full flex items-center justify-between rounded-2xl border transition-all duration-300 overflow-hidden
-                    ${colors.bg} ${colors.border}
-                    ${isHovered ? 'translate-x-1' : 'translate-x-0'}
-                  `}
-                  style={{
-                    animation: mounted ? `slideInLeft 0.5s ease-out ${index * 80}ms forwards` : 'none',
-                    opacity: mounted ? 1 : 0,
-                  }}
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: idx * 0.08 }}
+                  whileHover={{ x: 4 }}
+                  className="group/item relative p-4 rounded-2xl border border-white/5 hover:border-white/15 bg-white/5 hover:bg-white/10 transition-all duration-300 cursor-pointer"
                 >
-                  {/* Background gradient */}
-                  <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 ${isHovered ? 'opacity-100' : ''} transition-opacity duration-300`}></div>
-
-                  {/* Content */}
-                  <div className="relative flex items-center gap-4 flex-1 p-4">
-                    <div className={`flex-shrink-0 ${colors.icon} transition-all duration-300 ${isHovered ? 'scale-110 -translate-y-0.5' : 'scale-100'}`}>
-                      {icon}
+                  <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0 p-2 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                      <Icon className="w-4 h-4 text-purple-400" />
                     </div>
 
-                    <span className={`text-sm font-medium text-left leading-relaxed ${colors.text} transition-colors duration-300`}>
-                      {step}
-                    </span>
-                  </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-zinc-300 group-hover/item:text-white transition-colors">
+                        {step}
+                      </p>
+                    </div>
 
-                  <div className="relative flex-shrink-0 pr-4">
-                    <ChevronRight
-                      size={20}
-                      className={`text-zinc-600 transition-all duration-300 ${isHovered ? 'translate-x-1 text-white' : 'translate-x-0'}`}
-                    />
+                    <div className="flex-shrink-0 text-zinc-600 group-hover/item:text-zinc-400 transition-colors">
+                      <ChevronRight className="w-5 h-5" />
+                    </div>
                   </div>
-                </button>
+                </motion.div>
               );
             })
           )}
         </div>
-      </div>
 
-      <style jsx>{`
-        @keyframes slideInLeft {
-          from {
-            opacity: 0;
-            transform: translateX(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-      `}</style>
-    </div>
+        {/* Priority indicator */}
+        {nextSteps.length > 0 && (
+          <div className="mt-6 flex items-center gap-4 text-[10px] text-zinc-500">
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+              <span>Prioritized by impact</span>
+            </div>
+            <span className="w-px h-3 bg-white/10" />
+            <span>Higher priority first</span>
+          </div>
+        )}
+      </div>
+    </motion.div>
   );
 }
