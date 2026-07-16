@@ -1,5 +1,5 @@
 "use client"
-import { CheckCircle2, Zap, ChevronRight } from "lucide-react";
+import { CheckCircle2, Zap, ChevronRight, Sparkles, Clock, ArrowRight } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 
 type PhaseStatus = "completed" | "active" | "upcoming" | "future";
@@ -10,6 +10,7 @@ interface RoadmapPhase {
   description: string;
   status: PhaseStatus;
   tags?: string[];
+  estimatedDate?: string;
 }
 
 interface EvolutionRoadmapProps {
@@ -22,47 +23,62 @@ const PHASE_CONFIG: Record<
     borderColor: string;
     badgeBg: string;
     badgeText: string;
+    badgeBorder: string;
     opacity: string;
     grayscale: string;
     accentIcon: React.ElementType;
     accentColor: string;
+    dotColor: string;
+    glow: string;
   }
 > = {
   completed: {
-    borderColor: "border-t-emerald-500/50",
+    borderColor: "border-emerald-500/30",
     badgeBg: "bg-emerald-500/10",
     badgeText: "text-emerald-400",
+    badgeBorder: "border-emerald-500/20",
     opacity: "opacity-100",
     grayscale: "",
     accentIcon: CheckCircle2,
     accentColor: "text-emerald-400",
+    dotColor: "bg-emerald-400",
+    glow: "rgba(52,211,153,0.15)",
   },
   active: {
-    borderColor: "border-t-blue-500/50",
-    badgeBg: "bg-blue-500/10",
-    badgeText: "text-blue-400",
+    borderColor: "border-purple-500/30",
+    badgeBg: "bg-purple-500/10",
+    badgeText: "text-purple-400",
+    badgeBorder: "border-purple-500/20",
     opacity: "opacity-100",
     grayscale: "",
     accentIcon: Zap,
-    accentColor: "text-blue-400",
+    accentColor: "text-purple-400",
+    dotColor: "bg-purple-400",
+    glow: "rgba(168,85,247,0.15)",
   },
   upcoming: {
-    borderColor: "border-t-amber-500/30",
+    borderColor: "border-amber-500/30",
     badgeBg: "bg-amber-500/10",
     badgeText: "text-amber-400",
+    badgeBorder: "border-amber-500/20",
     opacity: "opacity-100",
-    grayscale: "hover:opacity-100 transition-all",
+    grayscale: "",
     accentIcon: ChevronRight,
     accentColor: "text-amber-400",
+    dotColor: "bg-amber-400",
+    glow: "rgba(245,158,11,0.1)",
   },
   future: {
-    borderColor: "border-t-zinc-700",
+    borderColor: "border-white/10",
     badgeBg: "bg-white/5",
     badgeText: "text-zinc-500",
+    badgeBorder: "border-white/5",
     opacity: "opacity-60",
     grayscale: "grayscale",
     accentIcon: ChevronRight,
     accentColor: "text-zinc-500",
+    dotColor: "bg-zinc-600",
+    glow: "rgba(255,255,255,0.02)",
   },
 };
 
@@ -70,15 +86,12 @@ export default function EvolutionRoadmap({ phases }: EvolutionRoadmapProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftGradient, setShowLeftGradient] = useState(false);
   const [showRightGradient, setShowRightGradient] = useState(true);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    // requestAnimationFrame loop that continuously nudges scrollLeft
-    // while the cursor sits near an edge. Storing the speed in a ref-like
-    // mutable variable (not state) avoids re-running this effect on every
-    // mouse move — state updates here would be both slow and unnecessary.
     let scrollSpeed = 0;
     let rafId: number;
 
@@ -90,8 +103,8 @@ export default function EvolutionRoadmap({ phases }: EvolutionRoadmapProps) {
     };
     rafId = requestAnimationFrame(tick);
 
-    const EDGE_ZONE = 100; // px from each edge that triggers auto-scroll
-    const MAX_SPEED = 12; // px per frame at the very edge
+    const EDGE_ZONE = 100;
+    const MAX_SPEED = 12;
 
     const handleMouseMove = (e: MouseEvent) => {
       const rect = container.getBoundingClientRect();
@@ -99,7 +112,6 @@ export default function EvolutionRoadmap({ phases }: EvolutionRoadmapProps) {
       const width = rect.width;
 
       if (x < EDGE_ZONE) {
-        // Closer to the edge = faster scroll, eases in rather than snapping
         const intensity = (EDGE_ZONE - x) / EDGE_ZONE;
         scrollSpeed = -MAX_SPEED * intensity;
       } else if (x > width - EDGE_ZONE) {
@@ -136,92 +148,150 @@ export default function EvolutionRoadmap({ phases }: EvolutionRoadmapProps) {
   }, []);
 
   return (
-    <div className="space-y-5">
-      <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight">
-        Evolution Roadmap
-      </h2>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl border border-purple-500/20 bg-purple-500/10 flex items-center justify-center">
+            <Sparkles size={18} className="text-purple-400" />
+          </div>
+          <div>
+            <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+              Evolution Roadmap
+            </h2>
+            <p className="text-[10px] text-zinc-500 font-medium">
+              {phases.length} phases planned
+            </p>
+          </div>
+        </div>
 
+        {/* Status legend */}
+        <div className="hidden md:flex items-center gap-3 text-[9px] text-zinc-500">
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span>Completed</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+            <span>Active</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+            <span>Upcoming</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
+            <span>Future</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Scrollable container */}
       <div className="relative group">
         {/* Left gradient fade */}
         {showLeftGradient && (
-          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-zinc-950 to-transparent z-10 pointer-events-none" />
+          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#0a0a0a] to-transparent z-10 pointer-events-none" />
         )}
 
         {/* Right gradient fade */}
         {showRightGradient && (
-          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-zinc-950 to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#0a0a0a] to-transparent z-10 pointer-events-none" />
         )}
 
-        {/* Scrollable container — overflow-x-auto is what actually allows
-            scrollLeft manipulation to take effect; overflow-x-hidden
-            (the previous value) silently blocked all scrolling. */}
         <div
           ref={scrollContainerRef}
-          className="flex items-center gap-4 overflow-x-auto pb-2 cursor-grab active:cursor-grabbing [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+          className="flex items-stretch gap-4 overflow-x-auto pb-4 cursor-grab active:cursor-grabbing [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
         >
-          {phases.map((phase) => {
+          {phases.map((phase, index) => {
             const config = PHASE_CONFIG[phase.status];
             const AccentIcon = config.accentIcon;
+            const isHovered = hoveredIndex === index;
 
             return (
               <div
                 key={phase.number}
-                className={`flex-shrink-0 w-72 relative overflow-hidden rounded-3xl border-t-2 ${config.borderColor} border-b border-b-white/10 border-x border-x-white/10 bg-gradient-to-br from-white/[0.05] via-white/[0.02] to-transparent p-6 md:p-7 backdrop-blur-md transition-all duration-500 hover:border-b-white/20 hover:border-x-white/20 hover:bg-gradient-to-br hover:from-white/[0.08] ${config.opacity} ${config.grayscale} group`}
+                onMouseEnter={() => setHoveredIndex(index)}
+                onMouseLeave={() => setHoveredIndex(null)}
+                className={`flex-shrink-0 w-80 relative overflow-hidden rounded-2xl border ${config.borderColor} bg-[#0a0a0a] p-6 transition-all duration-500 hover:border-white/20 hover:shadow-[0_0_60px_${config.glow}] hover:scale-[1.02] ${config.opacity} ${config.grayscale}`}
               >
-                {/* Animated gradient on hover */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                {/* Animated gradient background */}
+                <div className={`absolute inset-0 bg-gradient-to-br from-${config.badgeBg.split('/')[0]} via-transparent to-transparent opacity-0 ${isHovered ? 'opacity-100' : ''} transition-opacity duration-500 pointer-events-none`} />
+
+                {/* Decorative glow */}
+                <div
+                  className="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-700 pointer-events-none"
+                  style={{ background: config.glow }}
+                />
 
                 <div className="relative z-10 space-y-4">
                   {/* Header */}
-                  <div className="flex items-center justify-between gap-2">
-                    <span
-                      className={`text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${config.badgeBg} ${config.badgeText} backdrop-blur-sm border border-white/10`}
-                    >
-                      Phase {phase.number}
-                    </span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[9px] font-bold uppercase tracking-[0.15em] px-2.5 py-1 rounded-full ${config.badgeBg} ${config.badgeText} border ${config.badgeBorder}`}>
+                        Phase {phase.number}
+                      </span>
+                      {phase.status === "active" && (
+                        <span className="flex items-center gap-1 text-[8px] font-bold uppercase tracking-[0.15em] text-purple-400">
+                          <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+                          Live
+                        </span>
+                      )}
+                    </div>
 
-                    {phase.status === "completed" && (
-                      <CheckCircle2 size={16} className="text-emerald-400" />
-                    )}
-                    {phase.status === "active" && (
-                      <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      {phase.status === "completed" && (
+                        <CheckCircle2 size={16} className="text-emerald-400" />
+                      )}
+                      {phase.status === "active" && (
+                        <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                      )}
+                      {phase.status === "upcoming" && (
+                        <Clock size={14} className="text-amber-400" />
+                      )}
+                    </div>
                   </div>
 
                   {/* Title */}
                   <div>
-                    <h3
-                      className={`font-bold text-base mb-2 ${
-                        phase.status === "completed" || phase.status === "active"
-                          ? "text-white"
-                          : "text-zinc-400"
-                      }`}
-                    >
+                    <h3 className={`text-lg font-bold mb-2 transition-colors duration-300 ${
+                      phase.status === "future" ? "text-zinc-500" : "text-white"
+                    }`}>
                       {phase.title}
                     </h3>
 
-                    <p
-                      className={`text-xs leading-relaxed ${
-                        phase.status === "future" ? "text-zinc-600" : "text-zinc-500"
-                      }`}
-                    >
+                    <p className={`text-xs leading-relaxed transition-colors duration-300 ${
+                      phase.status === "future" ? "text-zinc-600" : "text-zinc-400"
+                    }`}>
                       {phase.description}
                     </p>
                   </div>
 
+                  {/* Estimated date */}
+                  {phase.estimatedDate && (
+                    <div className="flex items-center gap-1.5 text-[9px] text-zinc-500">
+                      <Clock size={11} className="text-zinc-600" />
+                      <span>Estimated: {phase.estimatedDate}</span>
+                    </div>
+                  )}
+
                   {/* Tags */}
                   {phase.tags && phase.tags.length > 0 && (
-                    <div className="flex gap-2 flex-wrap pt-2 border-t border-white/10">
+                    <div className="flex gap-1.5 flex-wrap pt-3 border-t border-white/5">
                       {phase.tags.map((tag) => (
                         <span
                           key={tag}
-                          className="text-[9px] bg-white/10 px-2 py-1 rounded-full uppercase tracking-wider text-zinc-400"
+                          className="text-[8px] font-medium bg-white/5 px-2.5 py-1 rounded-full uppercase tracking-[0.1em] text-zinc-500 border border-white/5"
                         >
                           {tag}
                         </span>
                       ))}
                     </div>
                   )}
+
+                  {/* Status indicator bar */}
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-current to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                    style={{ color: config.badgeText === 'text-emerald-400' ? '#34d399' : config.badgeText === 'text-purple-400' ? '#a855f7' : config.badgeText === 'text-amber-400' ? '#f59e0b' : '#71717a' }}
+                  />
                 </div>
               </div>
             );
@@ -230,9 +300,10 @@ export default function EvolutionRoadmap({ phases }: EvolutionRoadmapProps) {
       </div>
 
       {/* Helper text */}
-      <p className="text-xs text-zinc-600 text-center mt-3">
-        Move your cursor to the edges to scroll
-      </p>
+      <div className="flex items-center justify-center gap-2 text-[10px] text-zinc-500">
+        <ArrowRight size={12} className="text-purple-400" />
+        <span>Hover over cards for details · Scroll horizontally to explore</span>
+      </div>
     </div>
   );
 }
