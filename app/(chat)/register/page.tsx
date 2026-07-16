@@ -1,10 +1,11 @@
+// RegisterPage.tsx
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
 import { FaGithub } from "react-icons/fa";
-// import { HiOutlineMail } from "react-icons/hi";
 import { FiUserPlus } from "react-icons/fi";
+import { Sparkles } from "lucide-react";
 import { register } from "@/services/auth-service";
 import { RegisterData } from "@/types/auth";
 import { useRouter } from "next/navigation";
@@ -15,7 +16,6 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-
   const [nameFocused, setNameFocused] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
@@ -39,184 +39,58 @@ export default function RegisterPage() {
       setLoading(false);
       return;
     }
+
     try {
       const RegisterData: RegisterData = { name, email, password };
       await register(RegisterData);
       router.push("/login");
     } catch (err) {
-      setError("Registration Failed, Please try again later");
+      setError("Registration failed. Please try again later.");
       console.log(err);
     } finally {
       setLoading(false);
     }
-
-    // Wire to your registration flow
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        width: "100%",
-        background: "#0a0a0a",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "16px",
-        fontFamily: "Inter, -apple-system, sans-serif",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "480px",
-          background: "rgba(15, 15, 15, 0.6)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          border: "1px solid rgba(255, 255, 255, 0.08)",
-          borderRadius: "4px",
-          padding: "48px 40px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
-        {/* Logo mark */}
-        <div
-          style={{
-            marginBottom: "24px",
-            width: "56px",
-            height: "56px",
-            borderRadius: "10px",
-            background: "#141414",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <svg width="28" height="28" viewBox="0 0 48 48" fill="none">
-            <path
-              d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z"
-              fill="white"
-            />
-          </svg>
+    <div className="min-h-screen w-full bg-[#0a0a0a] flex items-center justify-center p-4 font-['Inter',-apple-system,sans-serif]">
+      <div className="w-full max-w-[440px] bg-[#0a0a0a] border border-white/10 rounded-2xl p-10 backdrop-blur-xl shadow-2xl shadow-purple-500/5">
+        {/* Logo */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-600/5 border border-purple-500/20 flex items-center justify-center mb-4 group hover:shadow-[0_0_40px_rgba(168,85,247,0.15)] transition-all duration-500">
+            <div className="absolute inset-0 bg-purple-500/5 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <Sparkles className="w-7 h-7 text-purple-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Create Account</h1>
+          <p className="text-sm text-zinc-400 mt-1">Join GitInsight AI today</p>
         </div>
-
-        {/* Heading */}
-        <h1
-          style={{
-            margin: 0,
-            marginBottom: "8px",
-            fontSize: "28px",
-            fontWeight: 600,
-            textAlign: "center",
-            lineHeight: 1.25,
-            backgroundImage: "linear-gradient(90deg, #60a5fa, #a855f7)",
-            WebkitBackgroundClip: "text",
-            backgroundClip: "text",
-            color: "transparent",
-            fontFamily: "'Space Grotesk', Inter, sans-serif",
-          }}
-        >
-          Join GitInsight AI
-        </h1>
-        <p
-          style={{
-            margin: 0,
-            marginBottom: "32px",
-            fontSize: "13px",
-            color: "#9a9a9a",
-            textAlign: "center",
-          }}
-        >
-          Autonomous Repository Intelligence &amp; Security
-        </p>
 
         {/* GitHub button */}
         <button
           onClick={handleGitHubSignup}
           onMouseEnter={() => setGithubHovered(true)}
           onMouseLeave={() => setGithubHovered(false)}
-          style={{
-            width: "100%",
-            height: "52px",
-            background: githubHovered ? "#f0f0f0" : "#ffffff",
-            color: "#0a0a0a",
-            border: "none",
-            borderRadius: "4px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "10px",
-            fontSize: "13px",
-            fontWeight: 700,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            cursor: "pointer",
-            boxShadow: githubHovered
-              ? "0 0 30px rgba(0, 255, 255, 0.25)"
-              : "0 0 16px rgba(0, 255, 255, 0.12)",
-            transform: githubHovered ? "translateY(-1px)" : "translateY(0)",
-            transition: "all 0.25s ease",
-          }}
+          className={`w-full h-12 flex items-center justify-center gap-3 rounded-xl font-semibold text-sm transition-all duration-300 ${
+            githubHovered
+              ? "bg-white/10 text-white border border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.05)]"
+              : "bg-white/5 text-white/80 border border-white/10 hover:bg-white/10"
+          }`}
         >
-          <FaGithub size={20} />
+          <FaGithub size={18} />
           Sign up with GitHub
         </button>
 
         {/* Divider */}
-        <div
-          style={{
-            width: "100%",
-            display: "flex",
-            alignItems: "center",
-            gap: "16px",
-            margin: "28px 0",
-          }}
-        >
-          <div
-            style={{
-              flex: 1,
-              height: "1px",
-              background: "rgba(255,255,255,0.1)",
-            }}
-          />
-          <span
-            style={{
-              fontSize: "10px",
-              letterSpacing: "0.2em",
-              color: "#6b6b6b",
-              fontFamily: "'Space Grotesk', sans-serif",
-            }}
-          >
-            OR
-          </span>
-          <div
-            style={{
-              flex: 1,
-              height: "1px",
-              background: "rgba(255,255,255,0.1)",
-            }}
-          />
+        <div className="flex items-center gap-4 my-6">
+          <div className="flex-1 h-px bg-white/10" />
+          <span className="text-[10px] tracking-[0.2em] text-zinc-500 font-medium uppercase">Or</span>
+          <div className="flex-1 h-px bg-white/10" />
         </div>
 
         {/* Form */}
-        <form onSubmit={handleEmailSignup} style={{ width: "100%" }}>
-          <div style={{ marginBottom: "16px" }}>
-            <label
-              htmlFor="name"
-              style={{
-                display: "block",
-                marginBottom: "8px",
-                fontSize: "10px",
-                fontWeight: 600,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: "#8e9192",
-                fontFamily: "'Space Grotesk', sans-serif",
-              }}
-            >
+        <form onSubmit={handleEmailSignup} className="space-y-4">
+          <div>
+            <label htmlFor="name" className="block text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500 mb-1.5">
               Full Name
             </label>
             <input
@@ -227,39 +101,17 @@ export default function RegisterPage() {
               onFocus={() => setNameFocused(true)}
               onBlur={() => setNameFocused(false)}
               placeholder="Ada Lovelace"
-              style={{
-                width: "100%",
-                height: "52px",
-                background: "rgba(255, 255, 255, 0.03)",
-                border: nameFocused
-                  ? "1px solid rgba(255,255,255,0.35)"
-                  : "1px solid rgba(255, 255, 255, 0.1)",
-                borderRadius: "4px",
-                padding: "0 16px",
-                color: "#ffffff",
-                fontSize: "14px",
-                outline: "none",
-                boxSizing: "border-box",
-                transition: "border-color 0.2s ease",
-              }}
+              className={`w-full h-12 px-4 bg-white/5 border rounded-xl text-white text-sm outline-none transition-all duration-300 placeholder:text-zinc-600 ${
+                nameFocused
+                  ? "border-purple-500/50 bg-white/10 shadow-[0_0_30px_rgba(168,85,247,0.05)]"
+                  : "border-white/10 hover:border-white/20"
+              }`}
             />
           </div>
 
-          <div style={{ marginBottom: "16px" }}>
-            <label
-              htmlFor="email"
-              style={{
-                display: "block",
-                marginBottom: "8px",
-                fontSize: "10px",
-                fontWeight: 600,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: "#8e9192",
-                fontFamily: "'Space Grotesk', sans-serif",
-              }}
-            >
-              Work Email
+          <div>
+            <label htmlFor="email" className="block text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500 mb-1.5">
+              Email Address
             </label>
             <input
               id="email"
@@ -269,38 +121,16 @@ export default function RegisterPage() {
               onFocus={() => setEmailFocused(true)}
               onBlur={() => setEmailFocused(false)}
               placeholder="dev@company.ai"
-              style={{
-                width: "100%",
-                height: "52px",
-                background: "rgba(255, 255, 255, 0.03)",
-                border: emailFocused
-                  ? "1px solid rgba(255,255,255,0.35)"
-                  : "1px solid rgba(255, 255, 255, 0.1)",
-                borderRadius: "4px",
-                padding: "0 16px",
-                color: "#ffffff",
-                fontSize: "14px",
-                outline: "none",
-                boxSizing: "border-box",
-                transition: "border-color 0.2s ease",
-              }}
+              className={`w-full h-12 px-4 bg-white/5 border rounded-xl text-white text-sm outline-none transition-all duration-300 placeholder:text-zinc-600 ${
+                emailFocused
+                  ? "border-purple-500/50 bg-white/10 shadow-[0_0_30px_rgba(168,85,247,0.05)]"
+                  : "border-white/10 hover:border-white/20"
+              }`}
             />
           </div>
 
-          <div style={{ marginBottom: "16px" }}>
-            <label
-              htmlFor="password"
-              style={{
-                display: "block",
-                marginBottom: "8px",
-                fontSize: "10px",
-                fontWeight: 600,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: "#8e9192",
-                fontFamily: "'Space Grotesk', sans-serif",
-              }}
-            >
+          <div>
+            <label htmlFor="password" className="block text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500 mb-1.5">
               Password
             </label>
             <input
@@ -311,38 +141,16 @@ export default function RegisterPage() {
               onFocus={() => setPasswordFocused(true)}
               onBlur={() => setPasswordFocused(false)}
               placeholder="••••••••"
-              style={{
-                width: "100%",
-                height: "52px",
-                background: "rgba(255, 255, 255, 0.03)",
-                border: passwordFocused
-                  ? "1px solid rgba(255,255,255,0.35)"
-                  : "1px solid rgba(255, 255, 255, 0.1)",
-                borderRadius: "4px",
-                padding: "0 16px",
-                color: "#ffffff",
-                fontSize: "14px",
-                outline: "none",
-                boxSizing: "border-box",
-                transition: "border-color 0.2s ease",
-              }}
+              className={`w-full h-12 px-4 bg-white/5 border rounded-xl text-white text-sm outline-none transition-all duration-300 placeholder:text-zinc-600 ${
+                passwordFocused
+                  ? "border-purple-500/50 bg-white/10 shadow-[0_0_30px_rgba(168,85,247,0.05)]"
+                  : "border-white/10 hover:border-white/20"
+              }`}
             />
           </div>
 
-          <div style={{ marginBottom: "20px" }}>
-            <label
-              htmlFor="confirmPassword"
-              style={{
-                display: "block",
-                marginBottom: "8px",
-                fontSize: "10px",
-                fontWeight: 600,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: "#8e9192",
-                fontFamily: "'Space Grotesk', sans-serif",
-              }}
-            >
+          <div>
+            <label htmlFor="confirmPassword" className="block text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500 mb-1.5">
               Confirm Password
             </label>
             <input
@@ -353,121 +161,60 @@ export default function RegisterPage() {
               onFocus={() => setConfirmFocused(true)}
               onBlur={() => setConfirmFocused(false)}
               placeholder="••••••••"
-              style={{
-                width: "100%",
-                height: "52px",
-                background: "rgba(255, 255, 255, 0.03)",
-                border: confirmFocused
-                  ? "1px solid rgba(255,255,255,0.35)"
-                  : "1px solid rgba(255, 255, 255, 0.1)",
-                borderRadius: "4px",
-                padding: "0 16px",
-                color: "#ffffff",
-                fontSize: "14px",
-                outline: "none",
-                boxSizing: "border-box",
-                transition: "border-color 0.2s ease",
-              }}
+              className={`w-full h-12 px-4 bg-white/5 border rounded-xl text-white text-sm outline-none transition-all duration-300 placeholder:text-zinc-600 ${
+                confirmFocused
+                  ? "border-purple-500/50 bg-white/10 shadow-[0_0_30px_rgba(168,85,247,0.05)]"
+                  : "border-white/10 hover:border-white/20"
+              }`}
             />
           </div>
 
           {error && (
-            <p
-              role="alert"
-              style={{
-                margin: "0 0 16px",
-                fontSize: "12px",
-                color: "#ff8585",
-              }}
-            >
+            <p className="text-xs text-red-400 text-center bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2">
               {error}
             </p>
           )}
 
-          {/* Sign Up Button */}
           <button
             type="submit"
+            disabled={loading}
             onMouseEnter={() => setSignupHovered(true)}
             onMouseLeave={() => setSignupHovered(false)}
-            disabled={loading}
-            style={{
-              width: "100%",
-              height: "52px",
-              background: signupHovered
-                ? "linear-gradient(135deg, #60a5fa, #a855f7)"
-                : "linear-gradient(135deg, #3b82f6, #7c3aed)",
-              border: "none",
-              borderRadius: "4px",
-              color: "#ffffff",
-              fontSize: "14px",
-              fontWeight: 600,
-              letterSpacing: "0.04em",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "10px",
-              cursor: loading ? "not-allowed" : "pointer",
-              boxShadow: signupHovered
-                ? "0 0 30px rgba(96, 165, 250, 0.3)"
-                : "0 0 16px rgba(96, 165, 250, 0.15)",
-              transform: signupHovered ? "translateY(-1px)" : "translateY(0)",
-              transition: "all 0.25s ease",
-              opacity: loading ? 0.6 : 1,
-            }}
+            className={`w-full h-12 flex items-center justify-center gap-2 rounded-xl font-semibold text-sm transition-all duration-300 ${
+              signupHovered && !loading
+                ? "bg-purple-500 text-white shadow-[0_0_40px_rgba(168,85,247,0.3)] scale-[1.02]"
+                : "bg-purple-500/90 text-white hover:bg-purple-500"
+            } ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
           >
             {loading ? (
-              "Creating Account..."
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Creating Account...
+              </div>
             ) : (
               <>
                 <FiUserPlus size={18} />
-                Sign Up
+                Create Account
               </>
             )}
           </button>
         </form>
 
         {/* Footer */}
-        <div style={{ marginTop: "32px", textAlign: "center", width: "100%" }}>
-          <p style={{ margin: 0, fontSize: "12px", color: "#b0b0b0" }}>
+        <div className="mt-8 text-center">
+          <p className="text-sm text-zinc-500">
             Already have an account?{" "}
-            <Link
-              href="/login"
-              style={{
-                color: "#ffffff",
-                fontWeight: 700,
-                textDecoration: "underline",
-                textUnderlineOffset: "3px",
-              }}
-            >
-              Sign in instead
+            <Link href="/login" className="text-purple-400 hover:text-purple-300 font-medium transition-colors">
+              Sign in
             </Link>
           </p>
 
-          <div
-            style={{
-              marginTop: "20px",
-              paddingTop: "20px",
-              borderTop: "1px solid rgba(255,255,255,0.08)",
-            }}
-          >
-            <p
-              style={{
-                margin: "0 auto",
-                maxWidth: "280px",
-                fontSize: "10px",
-                lineHeight: 1.6,
-                color: "#6b6b6b",
-              }}
-            >
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <p className="text-[10px] text-zinc-600 leading-relaxed max-w-xs mx-auto">
               By continuing, you agree to GitInsight&apos;s{" "}
-              <a href="#" style={{ color: "#8e9192" }}>
-                Terms of Service
-              </a>{" "}
+              <a href="#" className="text-zinc-400 hover:text-zinc-300 transition-colors">Terms of Service</a>{" "}
               &amp;{" "}
-              <a href="#" style={{ color: "#8e9192" }}>
-                Privacy Policy
-              </a>
-              .
+              <a href="#" className="text-zinc-400 hover:text-zinc-300 transition-colors">Privacy Policy</a>.
             </p>
           </div>
         </div>

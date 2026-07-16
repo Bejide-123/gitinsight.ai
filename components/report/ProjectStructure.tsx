@@ -1,4 +1,4 @@
-import { FolderCog, FolderOpen, Folder, FileText, AlertCircle } from "lucide-react";
+import { FolderCog, FolderOpen, Folder, FileText, AlertCircle, GitBranch, Layers, Package, HardDrive } from "lucide-react";
 
 interface FileNode {
   name: string;
@@ -25,30 +25,43 @@ interface ProjectStructureProps {
   healthWarning?: HealthWarning;
 }
 
-const STATUS_BADGE: Record<string, string> = {
-  clean: "text-emerald-400 bg-emerald-500/10",
-  messy: "text-amber-400 bg-amber-500/10",
-  warning: "text-orange-400 bg-orange-500/10",
+const STATUS_BADGE: Record<string, { bg: string; text: string; border: string }> = {
+  clean: {
+    bg: "bg-emerald-500/10",
+    text: "text-emerald-400",
+    border: "border-emerald-500/20",
+  },
+  messy: {
+    bg: "bg-amber-500/10",
+    text: "text-amber-400",
+    border: "border-amber-500/20",
+  },
+  warning: {
+    bg: "bg-orange-500/10",
+    text: "text-orange-400",
+    border: "border-orange-500/20",
+  },
 };
 
 function FileTreeNode({ node, depth = 0 }: { node: FileNode; depth?: number }) {
-  const paddingLeft = depth * 14;
+  const paddingLeft = depth * 16;
   const isFolder = node.type === "folder";
   const FolderIcon = node.children?.length ? FolderOpen : Folder;
+  const statusConfig = node.status ? STATUS_BADGE[node.status] : null;
 
   return (
     <div>
       <div
-        className="flex items-center justify-between text-zinc-400 py-0.5 text-xs hover:text-zinc-300 transition-colors"
+        className="flex items-center justify-between text-zinc-400 py-1 text-xs hover:text-zinc-300 transition-colors group/file"
         style={{ paddingLeft }}
       >
-        <div className="flex items-center gap-1.5 min-w-0">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           {isFolder ? (
-            <FolderIcon size={14} className="text-zinc-500 flex-shrink-0" />
+            <FolderIcon size={14} className="text-zinc-500 flex-shrink-0 group-hover/file:text-purple-400 transition-colors" />
           ) : (
             <FileText size={14} className="text-zinc-600 flex-shrink-0" />
           )}
-          <span className={isFolder ? "text-zinc-300 font-medium" : "text-zinc-400 truncate"}>
+          <span className={isFolder ? "text-zinc-300 font-medium truncate" : "text-zinc-400 truncate"}>
             {node.name}
           </span>
           {node.comment && (
@@ -58,9 +71,9 @@ function FileTreeNode({ node, depth = 0 }: { node: FileNode; depth?: number }) {
           )}
         </div>
 
-        {node.status && node.status !== "none" && (
+        {node.status && node.status !== "none" && statusConfig && (
           <span
-            className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${STATUS_BADGE[node.status] ?? ""} flex-shrink-0 ml-2`}
+            className={`text-[8px] px-2 py-0.5 rounded-full font-bold uppercase tracking-[0.1em] ${statusConfig.bg} ${statusConfig.text} border ${statusConfig.border} flex-shrink-0 ml-2`}
           >
             {node.status}
           </span>
@@ -82,81 +95,122 @@ export default function ProjectStructure({
   return (
     <div className="grid grid-cols-12 gap-5">
       {/* Directory tree */}
-      <div className="col-span-12 lg:col-span-6 relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.05] via-white/[0.02] to-transparent p-6 md:p-7 backdrop-blur-md transition-all duration-500 hover:border-white/20 hover:bg-gradient-to-br hover:from-white/[0.08]">
-        {/* Animated gradient on hover */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="col-span-12 lg:col-span-6 relative group overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a] p-6 md:p-7 transition-all duration-500 hover:border-white/20 hover:shadow-[0_0_60px_rgba(168,85,247,0.05)]">
+        {/* Subtle gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+        
+        {/* Decorative glow */}
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/5 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
         <div className="relative z-10">
-          <h3 className="text-lg md:text-xl font-bold text-white mb-5 flex items-center gap-2">
-            <FolderCog size={18} className="text-white" />
-            Directory Architecture
-          </h3>
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-9 h-9 rounded-xl border border-purple-500/20 bg-purple-500/10 flex items-center justify-center">
+              <FolderCog size={17} className="text-purple-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white">Directory Architecture</h3>
+              <p className="text-[10px] text-zinc-500 font-medium">File tree structure</p>
+            </div>
+          </div>
 
-          <div className="font-mono text-[12px] space-y-0.5 text-zinc-400 p-4 bg-black/30 rounded-2xl border border-white/5 overflow-x-auto">
+          {/* Tree */}
+          <div className="font-mono text-[12px] space-y-0.5 text-zinc-400 p-4 bg-white/[0.03] rounded-xl border border-white/5 overflow-x-auto">
             {fileTree.map((node, index) => (
               <FileTreeNode key={`${node.name}-${index}`} node={node} />
             ))}
           </div>
+
+          {/* File count */}
+          <div className="mt-4 flex items-center gap-2 text-[10px] text-zinc-500">
+            <GitBranch size={12} className="text-zinc-600" />
+            <span>{fileTree.length} root {fileTree.length === 1 ? 'directory' : 'directories'}</span>
+          </div>
         </div>
       </div>
 
-      {/* Health warning + stats */}
+      {/* Right side - Stats + Health */}
       <div className="col-span-12 lg:col-span-6 flex flex-col gap-4">
+        {/* Health Warning */}
         {healthWarning && (
-          <div className="relative overflow-hidden rounded-3xl border border-red-500/20 bg-gradient-to-br from-red-500/10 via-red-500/5 to-transparent p-5 backdrop-blur-md">
-            <div className="absolute inset-0 bg-gradient-to-br from-red-500/[0.04] via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+          <div className="relative group overflow-hidden rounded-2xl border border-red-500/20 bg-[#0a0a0a] p-5 transition-all duration-500 hover:border-red-500/30 hover:shadow-[0_0_40px_rgba(239,68,68,0.05)]">
+            {/* Subtle gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
             
             <div className="relative z-10 flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                <AlertCircle size={16} className="text-red-400" />
+              <div className="w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
+                <AlertCircle size={17} className="text-red-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-bold text-white mb-1">
-                  Health Warning
-                </h4>
-                <p className="text-xs text-zinc-400">
-                  {healthWarning.message}
-                </p>
+                <h4 className="text-sm font-bold text-red-400 mb-0.5">Health Warning</h4>
+                <p className="text-xs text-zinc-400 leading-relaxed">{healthWarning.message}</p>
+                <p className="text-[10px] text-zinc-500 mt-1.5">Folder: <span className="text-zinc-400 font-mono">{healthWarning.folder}</span></p>
               </div>
             </div>
           </div>
         )}
 
         {/* Stats */}
-        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.05] via-white/[0.02] to-transparent p-6 md:p-7 backdrop-blur-md transition-all duration-500 hover:border-white/20 hover:bg-gradient-to-br hover:from-white/[0.08]">
-          {/* Animated gradient on hover */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        <div className="relative group overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a] p-6 transition-all duration-500 hover:border-white/20 hover:shadow-[0_0_60px_rgba(168,85,247,0.05)] flex-1">
+          {/* Subtle gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
-          <div className="relative z-10 grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <span className="block text-2xl font-bold text-white">
-                {stats.logicSeparation}%
-              </span>
-              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider">
-                Logic Separation
-              </span>
+          <div className="relative z-10 h-full flex flex-col">
+            {/* Header */}
+            <div className="flex items-center gap-2 mb-5">
+              <Layers size={15} className="text-purple-400" />
+              <h4 className="text-sm font-bold text-white">Structure Statistics</h4>
             </div>
 
-            <div className="h-10 w-px bg-white/10 mx-auto" />
+            {/* Stats Grid */}
+            <div className="grid grid-cols-3 gap-4 flex-1 items-center">
+              <div className="text-center">
+                <div className="relative inline-flex items-center justify-center">
+                  <span className="text-3xl font-bold text-white">
+                    {stats.logicSeparation}
+                  </span>
+                  <span className="text-sm text-zinc-500 ml-0.5">%</span>
+                </div>
+                <p className="text-[9px] font-medium text-zinc-500 uppercase tracking-[0.15em] mt-1">
+                  Logic Separation
+                </p>
+                <div className="mt-2 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-purple-400 rounded-full transition-all duration-1000"
+                    style={{ width: `${stats.logicSeparation}%` }}
+                  />
+                </div>
+              </div>
 
-            <div className="text-center">
-              <span className="block text-2xl font-bold text-white">
-                {stats.unusedModules}
-              </span>
-              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider">
-                Unused Modules
-              </span>
+              <div className="text-center">
+                <span className="text-3xl font-bold text-white">
+                  {stats.unusedModules}
+                </span>
+                <p className="text-[9px] font-medium text-zinc-500 uppercase tracking-[0.15em] mt-1">
+                  Unused Modules
+                </p>
+                <div className="mt-2 flex items-center justify-center gap-1">
+                  <Package size={12} className="text-zinc-600" />
+                </div>
+              </div>
+
+              <div className="text-center">
+                <span className="text-3xl font-bold text-white">
+                  {stats.bundleSize}
+                </span>
+                <p className="text-[9px] font-medium text-zinc-500 uppercase tracking-[0.15em] mt-1">
+                  Bundle Size
+                </p>
+                <div className="mt-2 flex items-center justify-center gap-1">
+                  <HardDrive size={12} className="text-zinc-600" />
+                </div>
+              </div>
             </div>
 
-            <div className="col-span-3 h-px bg-white/10 mt-2 pt-2" />
-
-            <div className="col-span-3 text-center">
-              <span className="block text-2xl font-bold text-white">
-                {stats.bundleSize}
-              </span>
-              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider">
-                Bundle Size
-              </span>
+            {/* Bottom indicator */}
+            <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-center gap-2 text-[9px] text-zinc-500">
+              <span className="w-1 h-1 rounded-full bg-purple-400" />
+              <span>Project structure analyzed</span>
             </div>
           </div>
         </div>
