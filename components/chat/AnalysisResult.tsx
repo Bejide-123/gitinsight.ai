@@ -2,7 +2,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Terminal, CheckCircle, AlertCircle } from "lucide-react";
+import { Terminal, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
+import { useState } from "react";
 import type { Analysis } from "@/types/analysis";
 import HealthScoreCard from "./HealthScoreCard";
 import PerformanceMetrics from "./PerformanceMetrics";
@@ -12,10 +13,28 @@ import PriorityOptimization from "./PriorityOptimization";
 interface AnalysisResultsProps {
   analysis: Analysis;
   reportId?: string;
+  onRefresh?: () => Promise<void>;
 }
 
-export default function AnalysisResults({ analysis, reportId }: AnalysisResultsProps) {
+export default function AnalysisResults({ 
+  analysis, 
+  reportId,
+  onRefresh 
+}: AnalysisResultsProps) {
   const isReady = analysis.isProductionReady;
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    if (!onRefresh) return;
+    setIsRefreshing(true);
+    try {
+      await onRefresh();
+    } catch (error) {
+      console.error("Refresh failed:", error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -57,6 +76,59 @@ export default function AnalysisResults({ analysis, reportId }: AnalysisResultsP
             </span>
           </div>
         </div>
+
+        {/* Enhanced Refresh Button */}
+        {onRefresh && (
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className={`
+              relative flex-shrink-0 flex items-center gap-3 px-6 py-3 rounded-2xl
+              transition-all duration-300 font-medium
+              ${isRefreshing 
+                ? "bg-purple-500/10 border-purple-500/30 text-purple-400 cursor-wait" 
+                : "bg-gradient-to-br from-purple-500/10 to-blue-500/10 border-white/10 text-zinc-300 hover:text-white hover:border-purple-500/30 hover:shadow-lg hover:shadow-purple-500/5"
+              }
+              border backdrop-blur-sm overflow-hidden group
+            `}
+          >
+            {/* Animated gradient background on hover */}
+            {!isRefreshing && (
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 via-purple-500/0 to-blue-500/0 group-hover:from-purple-500/5 group-hover:via-purple-500/5 group-hover:to-blue-500/5 transition-all duration-500" />
+            )}
+            
+            {/* Glow effect */}
+            {!isRefreshing && (
+              <div className="absolute -inset-px bg-gradient-to-br from-purple-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
+            )}
+
+            <div className="relative flex items-center gap-3">
+              {/* Icon with rotating ring */}
+              <div className="relative">
+                <RefreshCw className={`
+                  w-4 h-4 transition-all duration-500
+                  ${isRefreshing ? "animate-spin text-purple-400" : "group-hover:rotate-180 group-hover:text-purple-400"}
+                `} />
+                
+                {/* Pulsing ring around icon when refreshing */}
+                {isRefreshing && (
+                  <span className="absolute -inset-2 rounded-full border border-purple-400/30 animate-ping" />
+                )}
+              </div>
+
+              <span className="text-sm tracking-wide">
+                {isRefreshing ? "Refreshing..." : "Refresh Analysis"}
+              </span>
+
+              {/* Status indicator dot */}
+              {!isRefreshing && (
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400/50 group-hover:bg-purple-400 transition-colors duration-300" />
+              )}
+            </div>
+          </motion.button>
+        )}
       </motion.div>
 
       {/* Grid */}

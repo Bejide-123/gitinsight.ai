@@ -44,6 +44,11 @@ export default function AnalysisWrapper({
         <AnalysisResult
           analysis={analysisData.data}
           reportId={analysisData.reportId || chatId}
+          onRefresh={async () => {
+    // Your refresh logic here
+    // Update state with new data
+    console.log("Refresh triggered for reportId:", analysisData.reportId);
+  }}
         />
       </ChatContent>
     );
