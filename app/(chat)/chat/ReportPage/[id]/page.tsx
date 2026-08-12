@@ -173,7 +173,7 @@ export default async function ReportPage({ params, searchParams }: ReportPagePro
         }
       `}</style>
 
-      <section className="hide-scrollbar flex-1 overflow-y-scroll bg-zinc-950">
+      <section id="gitinsight-report-root" className="hide-scrollbar flex-1 overflow-y-scroll bg-zinc-950">
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 pb-8">
 
           {/* 1. Project Header */}
@@ -293,8 +293,10 @@ export default async function ReportPage({ params, searchParams }: ReportPagePro
 
           {/* Footer Actions */}
           <ReportActions
-            repoName={analysis.repoName}
-            analyzedAt={analysis.analyzedAt}
+            analysis={{
+              ...analysis,
+              analyzedAt: analysis.analyzedAt.toISOString(),
+            }}
           />
         </div>
       </section>

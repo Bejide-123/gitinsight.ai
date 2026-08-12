@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { getAuthToken, getCurrentUser } from "@/services/auth-service";
 
 interface User {
   id: string;
@@ -18,6 +19,24 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const restoreUser = async () => {
+      if (typeof window === "undefined") return;
+
+      const token = getAuthToken();
+      if (!token || user) return;
+
+      try {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+      } catch (error) {
+        console.warn("Unable to restore auth user:", error);
+      }
+    };
+
+    restoreUser();
+  }, [user]);
 
   const login = (user: User) => {
     setUser(user);
