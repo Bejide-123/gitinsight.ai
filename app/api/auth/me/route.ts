@@ -8,7 +8,9 @@ export async function GET(request: Request) {
   try {
     await dbConnect();
     const cookieStore = (await cookies()) as any;
-    const tokenFromCookie = cookieStore.get("token")?.value;
+    const tokenFromCookie =
+      cookieStore.get("token")?.value ||
+      cookieStore.get("auth_token")?.value;
     const authHeader = request.headers.get("authorization");
     const token = tokenFromCookie || authHeader?.replace(/^Bearer\s+/i, "");
 

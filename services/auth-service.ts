@@ -2,6 +2,22 @@ import axios, { AxiosError } from 'axios';
 import { LoginData, RegisterData } from '@/types/auth';
 
 const API_URL = '/api/auth';
+const AUTH_COOKIE_NAME = 'token';
+const LEGACY_AUTH_COOKIE_NAME = 'auth_token';
+
+const getCookieValue = (name: string): string | null => {
+  if (typeof document === 'undefined') return null;
+
+  const cookies = document.cookie.split(';');
+  for (const cookie of cookies) {
+    const [cookieName, ...rest] = cookie.trim().split('=');
+    if (cookieName === name) {
+      return decodeURIComponent(rest.join('='));
+    }
+  }
+
+  return null;
+};
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -71,16 +87,7 @@ export const logout = async (): Promise<void> => {
  * Get the current auth token from cookies
  */
 export const getAuthToken = (): string | null => {
-  if (typeof document === 'undefined') return null;
-  
-  const cookies = document.cookie.split(';');
-  for (const cookie of cookies) {
-    const [name, value] = cookie.trim().split('=');
-    if (name === 'token' || name === 'auth_token') {
-      return decodeURIComponent(value);
-    }
-  }
-  return null;
+  return getCookieValue(AUTH_COOKIE_NAME) ?? getCookieValue(LEGACY_AUTH_COOKIE_NAME);
 };
 
 /**
@@ -88,10 +95,13 @@ export const getAuthToken = (): string | null => {
  */
 export const setAuthToken = (token: string): void => {
   if (typeof document === 'undefined') return;
-  
+
   const maxAge = 7 * 24 * 60 * 60; // 7 days
   const secureFlag = process.env.NODE_ENV === 'production' ? '; Secure' : '';
-  document.cookie = `auth_token=${encodeURIComponent(token)}; path=/; max-age=${maxAge}; SameSite=Lax${secureFlag}`;
+  const cookieOptions = `path=/; max-age=${maxAge}; SameSite=Lax${secureFlag}`;
+
+  document.cookie = `${AUTH_COOKIE_NAME}=${encodeURIComponent(token)}; ${cookieOptions}`;
+  document.cookie = `${LEGACY_AUTH_COOKIE_NAME}=${encodeURIComponent(token)}; ${cookieOptions}`;
 };
 
 /**
@@ -99,9 +109,10 @@ export const setAuthToken = (token: string): void => {
  */
 export const clearAuthToken = (): void => {
   if (typeof document === 'undefined') return;
-  
-  // Set cookie to expire immediately
-  document.cookie = 'auth_token=; path=/; max-age=0';
+
+  const cookieOptions = 'path=/; max-age=0; SameSite=Lax';
+  document.cookie = `${AUTH_COOKIE_NAME}=; ${cookieOptions}`;
+  document.cookie = `${LEGACY_AUTH_COOKIE_NAME}=; ${cookieOptions}`;
 };
 
 /**
