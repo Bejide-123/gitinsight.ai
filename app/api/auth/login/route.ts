@@ -55,6 +55,14 @@ export async function POST(req: Request) {
       path: "/",
     });
 
+    response.cookies.set("auth_token", token, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 3600,
+      path: "/",
+    });
+
     return response;
   } catch (error) {
     console.error("Error logging in:", error);

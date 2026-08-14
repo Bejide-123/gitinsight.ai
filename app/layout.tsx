@@ -24,6 +24,9 @@ export const metadata: Metadata = {
     default: "GitInsight",
     template: "%s | GitInsight",
   },
+  icons: {
+    icon: "/GitInsight2.png",
+  },
   description: "Unleash the power of your GitHub data with GitInsight.",
   keywords: ["GitHub", "analytics", "developer tools", "GitInsight"],
   authors: [{ name: "GitInsight Team" }],
