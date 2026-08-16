@@ -4,6 +4,7 @@ import { NextResponse, NextRequest } from "next/server";
 import dbConnect from "@/lib/db";
 import Report from "@/models/Report";
 import Chat from "@/models/Chat";
+import { getJwtSecret } from "@/lib/env";
 import jwt from "jsonwebtoken";
 import type { Analysis } from "@/types/analysis";
 
@@ -58,7 +59,7 @@ export async function GET(
     try {
       userPayload = jwt.verify(
         token,
-        process.env.JWT_SECRET || "your-secret-key"
+        getJwtSecret()
       );
     } catch {
       return NextResponse.json(

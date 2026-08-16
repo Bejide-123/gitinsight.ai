@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useRepositoryAnalysis } from "@/hooks/useAnalyseRepo";
 import Loader from "@/components/chat/Loader";
 import ChatContent from "@/components/chat/ChatContent";
@@ -14,6 +15,7 @@ export default function AnalysisWrapper({
   repoUrl,
   chatId,
 }: AnalysisWrapperProps) {
+  const queryClient = useQueryClient();
   const {
     data: analysisData,
     isPending,
@@ -45,10 +47,11 @@ export default function AnalysisWrapper({
           analysis={analysisData.data}
           reportId={analysisData.reportId || chatId}
           onRefresh={async () => {
-    // Your refresh logic here
-    // Update state with new data
-    console.log("Refresh triggered for reportId:", analysisData.reportId);
-  }}
+            await queryClient.refetchQueries({
+              queryKey: ["repoAnalysis", repoUrl],
+              exact: true,
+            });
+          }}
         />
       </ChatContent>
     );

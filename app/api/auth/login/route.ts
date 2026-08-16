@@ -1,5 +1,6 @@
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
+import { getJwtSecret } from "@/lib/env";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -28,7 +29,7 @@ export async function POST(req: Request) {
         name: user.name,
         email: user.email,
       },
-      process.env.JWT_SECRET || "your-secret-key",
+      getJwtSecret(),
       {
         expiresIn: "1h",
       }
