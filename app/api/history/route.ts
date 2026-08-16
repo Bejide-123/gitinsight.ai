@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Report from "@/models/Report";
 import Chat from "@/models/Chat";
+import { getJwtSecret } from "@/lib/env";
 import jwt from "jsonwebtoken";
 
 export async function GET(request: Request) {
@@ -18,7 +19,7 @@ export async function GET(request: Request) {
 
     let userPayload;
     try {
-      userPayload = jwt.verify(token, process.env.JWT_SECRET || "your-secret-key");
+      userPayload = jwt.verify(token, getJwtSecret());
     } catch (err) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }

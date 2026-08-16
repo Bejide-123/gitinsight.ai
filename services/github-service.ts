@@ -2,6 +2,10 @@ import type { GitHubRepo, GitHubRepoData, FileTreeItem } from "@/types/github";
 import { octokit } from "../lib/github";
 import type { GitHubApiError } from "@/types/error";
 
+const MAX_TREE_ITEMS = 500;
+const MAX_FETCHED_FILES = 60;
+const MAX_FILE_SIZE_BYTES = 250 * 1024;
+
 // ============================================================
 // FILE TREE TYPES
 // ============================================================
@@ -94,7 +98,16 @@ export async function fetchFileTree(
       tree_sha: commitSha,
       recursive: "1",
     });
-    return data.tree as FileTreeItem[];
+
+    const tree = data.tree as FileTreeItem[];
+
+    if (tree.length > MAX_TREE_ITEMS) {
+      throw new Error(
+        `Repository is too large for automated analysis (${tree.length} items). Please choose a smaller repository.`
+      );
+    }
+
+    return tree;
   } catch (error: any) {
     if (branch === "main") {
       try {
@@ -166,6 +179,13 @@ export async function fetchFileContent(
     const { data } = await octokit.repos.getContent({ owner, repo, path });
 
     if ("content" in data) {
+      const sizeBytes = Buffer.byteLength(data.content || '', 'base64');
+
+      if (sizeBytes > MAX_FILE_SIZE_BYTES) {
+        console.warn(`Skipping large file ${path} (${sizeBytes} bytes) to protect analysis limits.`);
+        return null;
+      }
+
       return Buffer.from(data.content, "base64").toString("utf-8");
     }
 
@@ -185,10 +205,11 @@ export async function fetchMultipleFiles(
   repo: string,
   paths: string[]
 ): Promise<Record<string, string>> {
-  console.log(`Fetching ${paths.length} files...`);
+  const boundedPaths = paths.slice(0, MAX_FETCHED_FILES);
+  console.log(`Fetching ${boundedPaths.length} files (bounded from ${paths.length})...`);
 
   const results = await Promise.allSettled(
-    paths.map(async (path) => {
+    boundedPaths.map(async (path) => {
       const content = await fetchFileContent(owner, repo, path);
       return { path, content };
     })

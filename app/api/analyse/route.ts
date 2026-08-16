@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { analyzeRepository } from "@/services/analysis-service";
 import { analyzeRepoSchema } from "@/lib/validation";
+import { getJwtSecret } from "@/lib/env";
 import { ZodError } from "zod";
 import dbConnect from "@/lib/db";
 import Report from "@/models/Report";
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
     try {
       const decodedToken = jwt.verify(
         token,
-        process.env.JWT_SECRET || "your-secret-key"
+        getJwtSecret()
       );
 
       if (

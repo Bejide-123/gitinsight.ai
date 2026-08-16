@@ -1,6 +1,6 @@
 // services/ai.service.ts
 
-import { geminiModel } from "@/config/gemini";
+import { getGeminiModel } from "@/config/gemini";
 import type { ProjectContext, Issue } from "@/types/analysis";
 
 interface AIAnalysisInput {
@@ -298,6 +298,7 @@ export async function generateAIInsights(
   const prompt = buildPrompt(input);
 
   try {
+    const geminiModel = getGeminiModel();
     const result = await geminiModel.generateContent(prompt);
     const text = result.response.text();
 

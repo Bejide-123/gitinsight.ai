@@ -1,316 +1,263 @@
 # GitInsight AI
 
-> Engineering Intelligence Platform for GitHub Repositories
+> Engineering intelligence for GitHub repositories
 
-GitInsight AI goes beyond static code review. It analyzes the full engineering process around a codebase — code quality, team workflow, development velocity, contributor patterns, and project health over time — and transforms that intelligence into a structured, actionable report.
+GitInsight AI is a web app that analyzes a GitHub repository and turns raw code and commit activity into a clear engineering assessment. It evaluates project health, security posture, architecture quality, testing maturity, completeness, and production readiness in a single report.
 
-Whether you are a developer trying to understand an unfamiliar project, an engineering manager assessing team performance, a CTO evaluating technical debt, or a recruiter reviewing a candidate's work, GitInsight gives you the depth of insight that would otherwise take hours of manual review.
-
----
-
-## The Problem
-
-Understanding a software project in its entirety is hard.
-
-Reading the code tells you what was built. But it tells you nothing about:
-
-- How consistently the team ships
-- Whether the commit history reflects disciplined engineering or chaotic iterations
-- Whether pull requests are reviewed thoroughly or rubber-stamped
-- How fast the project is moving and in what direction
-- Whether the codebase is growing healthier or accumulating debt
-- Whether this project is actually ready for production or just looks like it is
-
-These are the questions that matter most to engineering managers, team leads, startup CTOs, and technical recruiters — and they are almost impossible to answer quickly without GitInsight.
+This is built for developers, engineering managers, CTOs, recruiters, and technical founders who want a faster and more honest view of a codebase than a README or a GitHub star count can provide.
 
 ---
 
-## The Solution
+## Why it exists
 
-GitInsight AI combines repository structure analysis, engineering signal extraction, workflow intelligence, and AI reasoning to generate a comprehensive engineering intelligence report for any GitHub repository.
+A repository tells you what was built, but not how well it was built.
 
-It does not just evaluate the code. It evaluates the engineering discipline behind the code.
+GitInsight helps answer questions like:
 
----
-
-## Who This Is For
-
-**Developers** who want an honest assessment of their own project's quality and a clear roadmap for what to improve next.
-
-**Engineering Managers** who need visibility into team workflow health, development velocity, and where engineering bottlenecks are forming.
-
-**Startup CTOs** who are evaluating technical debt, assessing production readiness, and making architectural decisions.
-
-**Team Leads** who want structured insight into contributor patterns, PR review quality, and branch strategy effectiveness.
-
-**Technical Recruiters** who need to evaluate a candidate's GitHub projects quickly and with real depth — not just star counts.
-
-**Open Source Contributors** who want to understand a project before committing time to it.
+- Is the project actually production-ready?
+- Are there dangerous security issues?
+- Is the architecture clear and maintainable?
+- Does the repo have weak testing coverage?
+- Does it look like a healthy engineering effort or a rushed prototype?
+- What should be improved next?
 
 ---
 
-## Core Intelligence Layers
+## What the product does
 
-GitInsight evaluates a repository across six intelligence layers.
+GitInsight analyzes a repo across multiple intelligence layers:
 
----
+- Security and risk review
+- Architecture and maintainability signals
+- Testing maturity and completeness checks
+- Technology and feature detection
+- Project intent and maturity scoring
+- AI-generated summary and recommendations
+- Saved reports and history for authenticated users
 
-### Layer 1 — Code Quality Analysis
-
-Evaluate the structural and engineering quality of the codebase itself.
-
-- Architecture patterns and separation of concerns
-- File size distribution and complexity signals
-- Component and module design
-- Type safety and defensive programming
-- Error handling patterns
-- Performance considerations
-- Security vulnerabilities and risk signals
+The output is structured as a product-style engineering report with clear verdicts, recommendations, and prioritized opportunities.
 
 ---
 
-### Layer 2 — Project Maturity Scoring
+## Main features
 
-Score the repository across weighted engineering dimensions, calibrated to the project's actual context and intent.
-
-GitInsight does not apply enterprise standards to a portfolio project. It detects what kind of project this is — portfolio, MVP, startup, production SaaS, or enterprise system — and adjusts its expectations accordingly.
-
-Scoring dimensions include:
-
-- Documentation quality
-- Project structure
-- Feature completeness
-- Security posture
-- Testing infrastructure
-- Maintainability
-- Production readiness
-- DevOps maturity
-
-Each dimension is scored individually and combined into a weighted maturity score with a plain-language verdict.
+- GitHub repository ingestion and analysis
+- Project intent detection
+- Security, architecture, testing, readiness, and completeness scoring
+- AI-generated summary and roadmap
+- Report storage in MongoDB
+- Authenticated users with saved history
+- Dockerized local deployment
+- Test coverage for main auth and API routes
 
 ---
 
-### Layer 3 — Feature & Technology Intelligence
+## Tech stack
 
-Automatically detect what has been built and what the project is capable of.
+### Frontend
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS
+- Lucide icons
+- TanStack Query
 
-**Technology detection includes:**
+### Backend
+- Next.js API routes
+- MongoDB with Mongoose
+- JWT authentication
+- Zod validation
 
-- Frontend and backend frameworks
-- Database systems and ORMs
-- Authentication implementations
-- State management solutions
-- API layers and integration patterns
-- Testing frameworks and coverage signals
-- Deployment platforms and infrastructure configuration
+### AI and integrations
+- Google Gemini API
+- GitHub REST API via Octokit
 
-**Feature detection includes:**
-
-- Authentication and authorization
-- Role-based access control
-- Payment systems
-- Real-time functionality
-- File upload and media handling
-- Admin dashboards and analytics
-- Notification systems
-- Third-party integrations
-
----
-
-### Layer 4 — Workflow & Development Process Intelligence
-
-This is where GitInsight goes beyond code review.
-
-Most tools stop at the code. GitInsight analyzes the engineering process around the code — the habits, discipline, and patterns that determine whether a team ships reliably or struggles under the weight of its own process.
-
-**Commit Quality Analysis**
-
-Evaluate the discipline and consistency of the commit history.
-
-- Commit message quality and semantic clarity
-- Commit frequency and consistency patterns
-- Commit size distribution
-- Signs of bulk or last-minute commits
-- Presence of conventional commit standards
-
-**Branch Strategy Evaluation**
-
-Understand how the team structures its development workflow.
-
-- Branch naming conventions and consistency
-- Feature branch usage and lifecycle
-- Long-lived branch detection
-- Trunk-based development signals
-- Release branch patterns
-
-**Pull Request Intelligence**
-
-Assess how code moves from development to production.
-
-- PR size distribution and review burden
-- Review turnaround time and responsiveness
-- Reviewer participation and distribution
-- PR merge patterns and velocity
-- Abandoned or stale PR detection
-- Description quality and documentation habits
-
-**Development Velocity Tracking**
-
-Measure how fast the project is actually moving and whether that pace is sustainable.
-
-- Commit and merge frequency over time
-- Sprint or cycle cadence signals
-- Release frequency and consistency
-- Active development periods versus stagnation
-- Velocity trends over the past 30, 60, and 90 days
+### Quality and tooling
+- Vitest
+- Docker
+- ESLint
 
 ---
 
-### Layer 5 — Contributor & Team Insights
+## Project structure
 
-Understand the human layer behind the codebase.
-
-- Contributor count and activity distribution
-- Code ownership concentration and bus factor risk
-- Collaboration patterns between contributors
-- Contribution consistency over time
-- Onboarding signals for new contributors
-- Documentation and commenting habits by contributor
-
----
-
-### Layer 6 — Project Health & Technical Debt Monitoring
-
-Track how the project is evolving over time and whether it is getting healthier or accumulating risk.
-
-- Technical debt signals and hotspot detection
-- Dependency health and version currency
-- Complexity growth trends
-- Dead code and unused module detection
-- Security posture evolution
-- Maturity progression over time
+```bash
+app/                 # App routes and UI pages
+components/          # Reusable app components
+config/              # runtime config and service setup
+context/             # auth context
+hooks/               # client-side data hooks
+lib/                 # shared utilities and validation
+middlewares/         # request middleware
+models/              # MongoDB models
+services/            # analysis and GitHub service logic
+__tests__/           # Vitest test suite
+Dockerfile           # container build
+docker-compose.yml   # local compose setup
+```
 
 ---
 
-## Analysis Output
+## Getting started
 
-GitInsight generates a structured engineering intelligence report with the following sections.
+### 1) Install dependencies
 
-**Executive AI Summary**
-A plain-language synthesis of what the project is, what it does well, where it struggles, and what kind of engineering discipline it reflects.
+```bash
+npm install
+```
 
-**Engineering Dimensions**
-A scored breakdown across all maturity dimensions with visual indicators and category-level context.
+### 2) Configure environment variables
 
-**Technology Stack**
-All detected frameworks, databases, services, and tools, automatically extracted from the repository.
+Create a local environment file:
 
-**Core Capabilities**
-A feature audit showing what has been implemented, what is incomplete, and what is missing entirely.
+```bash
+cp .env.example .env.local
+```
 
-**Vulnerability and Audit Findings**
-Security and engineering risk findings, separated by severity — distinguishing between dangerous issues that are production blockers and quality gaps that represent maturity improvements.
+Then fill in the required values:
 
-**Workflow Intelligence Report**
-Commit quality scores, branch strategy assessment, PR health metrics, and development velocity trends.
+```env
+NODE_ENV=development
+PORT=3000
+HOSTNAME=0.0.0.0
+JWT_SECRET=replace-with-a-long-random-secret-at-least-32-characters
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/dbname
+GITHUB_TOKEN=ghp_your_github_token_here
+GEMINI_API_KEY=your_gemini_api_key_here
+```
 
-**Contributor Insights**
-A breakdown of team activity, ownership concentration, collaboration patterns, and bus factor risk.
+Important:
+- `JWT_SECRET` must be long and random in production
+- never commit real credentials to source control
+- use a secrets manager or deployment environment variables in production
 
-**Strategic Recommendations**
-Prioritized engineering recommendations with impact and difficulty ratings, tailored to the project's specific context and maturity stage.
+### 3) Run the app locally
 
-**Production Readiness Audit**
-A detailed assessment of whether the project is actually ready for production across scalability, observability, security, and performance dimensions.
+```bash
+npm run dev
+```
 
-**Evolution Roadmap**
-A phased improvement roadmap showing the path from the project's current state toward production-grade or enterprise-grade engineering.
+Then open:
 
----
-
-## Fair, Context-Aware Evaluation
-
-GitInsight does not evaluate all projects against the same standard.
-
-A portfolio project built by a solo developer learning React should not be penalized for missing Kubernetes, distributed caching, or enterprise observability pipelines. That would produce scores that are meaningless and feedback that is actively misleading.
-
-GitInsight detects project intent first — whether a repository is a learning project, a portfolio piece, an MVP, a startup product, or an enterprise system — and calibrates its evaluation and scoring weights accordingly.
-
-The distinction between a **dangerous issue** and a **missing improvement** is always made explicit:
-
-- A hardcoded API key is dangerous. It is a production blocker.
-- Missing unit tests on a portfolio project are a maturity gap. They are not dangerous.
-
-GitInsight communicates this distinction clearly in every report.
+```bash
+http://localhost:3000
+```
 
 ---
 
-## Tech Stack
+## Docker
 
-**Frontend**
-Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui, Lucide React, TanStack Query
+### Build the image
 
-**Backend**
-Next.js API Routes
+```bash
+docker build -t gitinsight-ai .
+```
 
-**AI**
-Anthropic Claude API
+### Run the container
 
-**External APIs**
-GitHub REST API, GitHub GraphQL API
+```bash
+docker run --rm -p 3000:3000 --env-file .env.local gitinsight-ai
+```
 
-**Validation**
-Zod
+### Or with Docker Compose
 
----
+```bash
+docker compose up --build
+```
 
-## Current Development Status
+The app includes a health endpoint for container readiness checks:
 
-GitInsight AI is under active development.
-
-**Completed**
-- Product architecture and analysis system design
-- UI and design system implementation
-- GitHub repository data fetching
-- File tree analysis and smart file selection
-- Project intent detection engine
-- Security vulnerability analyzer
-- Architecture quality analyzer
-- Context-aware scoring weights system
-
-**In Progress**
-- Full analysis orchestration layer
-- Workflow and commit quality intelligence
-- AI-powered recommendations via Claude API
-- Complete report generation
-
-**Planned**
-- Pull request and branch strategy intelligence
-- Contributor and team insights
-- Technical debt trend tracking
-- Repository health monitoring over time
-- Historical analysis and maturity tracking
-- Export and sharing capabilities
+```bash
+http://localhost:3000/api/health
+```
 
 ---
 
-## Future Vision
+## Scripts
 
-GitInsight AI is being built to become a full Engineering Intelligence Platform.
+```bash
+npm run dev
+npm run build
+npm run start
+npm run lint
+npm run test
+npm run docker:build
+npm run docker:run
+```
 
-The long-term vision is a tool that any engineering manager, CTO, or senior developer can use to get a complete, honest, and nuanced picture of any software project — not just what was built, but how it was built, by whom, at what pace, and whether it can survive contact with real users and real scale.
+---
+
+## Testing
+
+The project includes a Vitest setup for API and auth coverage.
+
+Run tests with:
+
+```bash
+npm test
+```
+
+Current coverage includes:
+- auth token handling
+- validation checks
+- auth route behavior
+- analysis API behavior
+- health endpoint checks
+- history endpoint checks
+
+---
+
+## Current status
+
+GitInsight AI is in active beta-stage development and is already functional as a real product MVP.
+
+### Completed
+- landing page and product UI
+- authentication flow
+- MongoDB-backed persistence
+- GitHub repo analysis pipeline
+- project scoring engine
+- report generation and user history
+- Docker setup and health checks
+- automated testing foundation
+
+### Still recommended before public launch
+- production secret management via a secure platform
+- request rate limiting and abuse protection
+- monitoring and error tracking
+- stronger production logging and alerting
+- more end-to-end/error-path tests
+- legal/privacy pages for public launch
+
+---
+
+## Public launch recommendation
+
+This app is strong enough to be used in a private beta or controlled release, but before making it public you should complete the operational hardening work around secrets, limits, monitoring, and user protection.
+
+---
+
+## Future roadmap
+
+Planned improvements include:
+
+- richer workflow intelligence
+- deeper contributor and team analytics
+- historical trend tracking over time
+- improved product analytics and export features
+- broader AI analysis quality tuning
+- enterprise-ready deployment and scale controls
 
 ---
 
 ## Author
 
 **Bejide Mofiyinfoluwa Israel**
-Frontend Developer · Product Builder · Software Engineer
 
-Building tools that help developers understand, improve, and ship better software.
+Frontend Developer · Product Builder · Software Engineer
 
 ---
 
 ## License
 
-MIT License
+MIT

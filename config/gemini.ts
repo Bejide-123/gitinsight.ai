@@ -1,12 +1,12 @@
-// lib/gemini.ts
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { requireEnv } from "@/lib/env";
 
-if (!process.env.GEMINI_API_KEY) {
-  throw new Error("GEMINI_API_KEY is not set");
+export function getGeminiModel() {
+  const { GEMINI_API_KEY } = requireEnv(["GEMINI_API_KEY"]);
+
+  const gemini = new GoogleGenerativeAI(GEMINI_API_KEY as string);
+
+  return gemini.getGenerativeModel({
+    model: "gemini-2.5-flash",
+  });
 }
-
-export const gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-export const geminiModel = gemini.getGenerativeModel({
-  model: "gemini-2.5-flash", 
-});

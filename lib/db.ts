@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { requireEnv } from "@/lib/env";
 
 type MongooseCache = {
   conn: typeof mongoose | null;
@@ -10,15 +11,10 @@ declare global {
   var mongooseCache: MongooseCache | undefined;
 }
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI) {
-  throw new Error(
-    "Please define the MONGODB_URI environment variable inside .env.local"
-  );
-}
-
-const mongoUri: string = MONGODB_URI;
+const getMongoUri = (): string => {
+  const { MONGODB_URI } = requireEnv(["MONGODB_URI"]);
+  return MONGODB_URI as string;
+};
 
 let cached = global.mongooseCache;
 
@@ -44,6 +40,8 @@ async function dbConnect() {
     const opts = {
       bufferCommands: false,
     };
+
+    const mongoUri = getMongoUri();
 
     cache.promise = mongoose.connect(mongoUri, opts).then((mongoose) => {
       return mongoose;
