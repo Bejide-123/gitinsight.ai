@@ -8,13 +8,19 @@ import { verifyCsrfTokenPair } from '@/lib/csrf';
  * in either the x-csrf-token header or csrf_token form field.
  */
 export async function csrfProtection(request: NextRequest) {
+  const continueRequest = () => NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
+
   // Only protect state-changing methods
   const isStateChanging = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(
     request.method
   );
 
   if (!isStateChanging) {
-    return NextResponse.next();
+    return continueRequest();
   }
 
   const authToken = request.headers.get('x-auth-token') ||
@@ -67,5 +73,5 @@ export async function csrfProtection(request: NextRequest) {
     );
   }
 
-  return NextResponse.next();
+  return continueRequest();
 }
