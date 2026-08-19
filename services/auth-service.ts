@@ -42,16 +42,19 @@ const handleError = (error: unknown): never => {
 /**
  * Logs in a user - receives token in response
  */
-export const login = async (loginData: LoginData): Promise<{ token: string; user: any }> => {
+export const login = async (loginData: LoginData): Promise<{ token: string; csrfToken: string; user: any }> => {
   try {
     const response = await apiClient.post('/login', loginData);
-    const { token, user } = response.data;
+    const { token, csrfToken, user } = response.data;
 
     // Save a client-side fallback cookie so protected routes can still authenticate
     // if the server-set HTTP-only cookie is not available in the browser for any reason.
     setAuthToken(token);
+    if (csrfToken) {
+      localStorage.setItem('csrfToken', csrfToken);
+    }
 
-    return { token, user };
+    return { token, csrfToken, user };
   } catch (error) {
     throw handleError(error);
   }
@@ -74,11 +77,17 @@ export const register = async (registerData: RegisterData): Promise<any> => {
  */
 export const logout = async (): Promise<void> => {
   try {
-    await apiClient.post('/logout');
+    await apiClient.post('/logout', undefined, {
+      headers: {
+        'x-csrf-token': localStorage.getItem('csrfToken') || '',
+      },
+    });
     clearAuthToken();
+    localStorage.removeItem('csrfToken');
   } catch (error) {
     // Even if server fails, clear local token
     clearAuthToken();
+    localStorage.removeItem('csrfToken');
     throw handleError(error);
   }
 };
