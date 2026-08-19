@@ -41,6 +41,7 @@ export function useAnalyzeRepo() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-csrf-token': localStorage.getItem('csrfToken') || '',
         },
         body: JSON.stringify(input),
       });

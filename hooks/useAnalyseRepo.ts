@@ -6,6 +6,7 @@ interface AnalyzeRepoResponse {
   data?: Analysis;
   reportId?: string;
   chatId?: string;
+  csrfToken?: string; // New token from server
   error?: string;
 }
 
@@ -22,10 +23,19 @@ export function useRepositoryAnalysis(repoUrl: string | null) {
       const authCookies = document.cookie.split(';').map(c => c.trim());
       const hasTokenCookie = authCookies.some(c => c.startsWith('token=') || c.startsWith('auth_token='));
       console.log(`[ANALYSE HOOK] Auth cookie found: ${hasTokenCookie}`);
+
+      // Get CSRF token from localStorage
+      const csrfToken = localStorage.getItem('csrfToken');
+      if (!csrfToken) {
+        console.warn(`[ANALYSE HOOK] No CSRF token found in localStorage`);
+      }
       
       const response = await fetch("/api/analyse", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-csrf-token": csrfToken || '', // Include CSRF token in header
+        },
         body: JSON.stringify({ repoUrl }),
       });
       
@@ -38,12 +48,27 @@ export function useRepositoryAnalysis(repoUrl: string | null) {
           window.location.href = "/login";
           throw new Error("Unauthorized");
         }
+        if (response.status === 403) {
+          console.error(`[ANALYSE HOOK] Received 403 Forbidden (likely CSRF token issue)`);
+          // Clear invalid CSRF token and redirect to login to get a new one
+          localStorage.removeItem('csrfToken');
+          window.location.href = "/login";
+          throw new Error("Session expired. Please login again.");
+        }
         const error = await response.json();
         throw new Error(error.error || "Failed to analyze repository");
       }
 
       console.log(`[ANALYSE HOOK] Analysis completed successfully`);
-      return response.json();
+      const data = await response.json();
+
+      // Store new CSRF token from response if provided
+      if (data.csrfToken) {
+        localStorage.setItem('csrfToken', data.csrfToken);
+        console.log(`[ANALYSE HOOK] Stored new CSRF token from response`);
+      }
+
+      return data;
     },
     enabled: !!repoUrl, // The query will not run until the repoUrl is available
   });

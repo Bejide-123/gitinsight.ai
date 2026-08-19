@@ -1,6 +1,7 @@
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import { getJwtSecret } from "@/lib/env";
+import { generateCsrfToken } from "@/lib/csrf";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -35,10 +36,14 @@ export async function POST(req: Request) {
       }
     );
 
+    // Generate CSRF token for this session
+    const csrfToken = generateCsrfToken(token);
+
     const response = NextResponse.json(
       {
         message: "Logged in successfully",
         token,
+        csrfToken, // Include CSRF token in response
         user: {
           id: user._id,
           name: user.name,
@@ -60,6 +65,14 @@ export async function POST(req: Request) {
       httpOnly: false,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
+      maxAge: 3600,
+      path: "/",
+    });
+
+    response.cookies.set("csrf_token", csrfToken, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
       maxAge: 3600,
       path: "/",
     });

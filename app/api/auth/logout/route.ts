@@ -23,6 +23,14 @@ export async function POST() {
       path: "/",
     });
 
+    response.cookies.set("csrf_token", "", {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 0,
+      path: "/",
+    });
+
     return response;
   } catch (error) {
     console.error("Error logging out:", error);
