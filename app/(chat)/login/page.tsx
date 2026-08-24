@@ -9,6 +9,7 @@ import { FiLogIn } from "react-icons/fi";
 import { Sparkles } from "lucide-react";
 import { login } from "@/services/auth-service";
 import { LoginData } from "@/types/auth";
+import { signIn } from "next-auth/react";
 import { AccessGrantedModal, PerimeterAlertModal } from "@/components/modals/Modals";
 import { useAuth } from "@/app/context/AuthContext";
 
@@ -27,7 +28,9 @@ export default function LoginPage() {
   const { login: setAuthUser } = useAuth();
 
   const handleGitHubLogin = () => {
-    // Wire to your GitHub OAuth provider
+    signIn("github", {
+      callbackUrl: "/auth/github/callback",
+    });
   };
 
   const handleEmailLogin = async (e: React.FormEvent) => {
