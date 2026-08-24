@@ -25,7 +25,6 @@ export const config = {
     "/api/chat/:path*",
     "/api/analyse",
     "/api/analysis/:path*",
-    "/api/auth/logout",
     "/api/github",
     "/api/history",
   ],

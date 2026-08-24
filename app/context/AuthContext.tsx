@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { getAuthToken, getCurrentUser } from "@/services/auth-service";
+import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
+import { getAuthToken, getCurrentUser, restoreGitHubSession } from "@/services/auth-service";
 
 interface User {
   id: string;
@@ -24,27 +24,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const restoreUser = async () => {
       if (typeof window === "undefined") return;
 
-      const token = getAuthToken();
-      if (!token || user) return;
+      if (user) return;
 
       try {
-        const currentUser = await getCurrentUser();
-        setUser(currentUser);
+        const token = getAuthToken();
+        if (token) {
+          const currentUser = await getCurrentUser();
+          setUser(currentUser);
+          return;
+        }
+
+        const restoredSession = await restoreGitHubSession();
+        if (restoredSession?.user) {
+          setUser(restoredSession.user);
+        }
       } catch (error) {
         console.warn("Unable to restore auth user:", error);
+
+        const restoredSession = await restoreGitHubSession();
+        if (restoredSession?.user) {
+          setUser(restoredSession.user);
+        }
       }
     };
 
     restoreUser();
   }, [user]);
 
-  const login = (user: User) => {
+  const login = useCallback((user: User) => {
     setUser(user);
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
-  };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>

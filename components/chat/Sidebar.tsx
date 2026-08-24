@@ -13,6 +13,7 @@ import {
   Zap,
   ChevronLeft,
   ChevronRight,
+  Sparkles,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,7 +23,7 @@ import { useState, useEffect } from "react";
 import { getRepoAnalysis } from "@/services/getRepoAnalysis-service";
 import { cn } from "@/lib/utils";
 
-// SidebarItem Component
+// SidebarItem Component with enhanced design
 interface SidebarItemProps {
   icon: React.ElementType;
   label: string;
@@ -30,6 +31,9 @@ interface SidebarItemProps {
   onClick?: () => void;
   isOpen: boolean;
   className?: string;
+  variant?: "default" | "primary" | "gradient";
+  showBadge?: boolean;
+  badgeText?: string;
 }
 
 const SidebarItem = ({ 
@@ -38,46 +42,99 @@ const SidebarItem = ({
   active, 
   onClick, 
   isOpen,
-  className = "" 
-}: SidebarItemProps) => (
-  <motion.button
-    whileHover={{ x: isOpen ? 4 : 0 }}
-    whileTap={{ scale: 0.98 }}
-    onClick={onClick}
-    className={cn(
-      "w-full flex items-center rounded-lg transition-all duration-300",
-      isOpen ? "px-5 py-2.5 gap-3 justify-start" : "px-2 py-3 justify-center",
-      active
-        ? "bg-white/10 text-white shadow-[0_0_20px_rgba(255,255,255,0.05)]"
-        : "text-zinc-400 hover:text-white hover:bg-white/5",
-      className
-    )}
-  >
-    <Icon className={cn("w-5 h-5 flex-shrink-0", active ? "text-cyan-400" : "")} />
-    
-    <AnimatePresence mode="wait">
-      {isOpen && (
-        <motion.span
-          initial={{ opacity: 0, width: 0 }}
-          animate={{ opacity: 1, width: "auto" }}
-          exit={{ opacity: 0, width: 0 }}
-          transition={{ duration: 0.2 }}
-          className="text-sm font-medium whitespace-nowrap overflow-hidden"
-        >
-          {label}
-        </motion.span>
+  className = "",
+  variant = "default",
+  showBadge = false,
+  badgeText = "NEW"
+}: SidebarItemProps) => {
+  const isPrimary = variant === "primary" || variant === "gradient";
+  
+  return (
+    <motion.button
+      whileHover={{ x: isOpen ? 4 : 0 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      className={cn(
+        "w-full flex items-center rounded-lg transition-all duration-300 relative overflow-hidden group",
+        isOpen ? "px-5 py-2.5 gap-3 justify-start" : "px-2 py-3 justify-center",
+        variant === "gradient" && "bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 text-black hover:shadow-[0_0_40px_rgba(34,211,238,0.3)] border border-white/20",
+        variant === "primary" && "bg-white text-black hover:bg-white/95 shadow-lg shadow-white/20 hover:shadow-white/30 hover:scale-[1.02]",
+        variant === "default" && (active
+          ? "bg-white/10 text-white shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+          : "text-zinc-400 hover:text-white hover:bg-white/5"),
+        className
       )}
-    </AnimatePresence>
+    >
+      {/* Shine effect for gradient variant */}
+      {variant === "gradient" && (
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+      )}
+      
+      {/* Glow effect for primary variant */}
+      {variant === "primary" && (
+        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      )}
+      
+      <Icon className={cn(
+        "w-5 h-5 flex-shrink-0 relative z-10",
+        isPrimary ? "text-black" : active ? "text-cyan-400" : "",
+        variant === "gradient" && "drop-shadow-sm"
+      )} />
+      
+      <AnimatePresence mode="wait">
+        {isOpen && (
+          <motion.span
+            initial={{ opacity: 0, width: 0 }}
+            animate={{ opacity: 1, width: "auto" }}
+            exit={{ opacity: 0, width: 0 }}
+            transition={{ duration: 0.2 }}
+            className={cn(
+              "text-sm font-medium whitespace-nowrap overflow-hidden relative z-10",
+              isPrimary ? "text-black font-bold" : "",
+              variant === "gradient" && "drop-shadow-sm"
+            )}
+          >
+            {label}
+          </motion.span>
+        )}
+      </AnimatePresence>
 
-    {active && isOpen && (
-      <motion.div
-        layoutId="sidebar-indicator"
-        className="ml-auto w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.4)]"
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      />
-    )}
-  </motion.button>
-);
+      {/* Active indicator for default variant */}
+      {active && isOpen && variant === "default" && (
+        <motion.div
+          layoutId="sidebar-indicator"
+          className="ml-auto w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.4)]"
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        />
+      )}
+      
+      {/* Badge for primary/gradient variants */}
+      {showBadge && isOpen && isPrimary && (
+        <motion.div
+          className="ml-auto flex items-center gap-1.5 relative z-10"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <span className={cn(
+            "text-[9px] font-bold px-2 py-0.5 rounded-full",
+            variant === "gradient" 
+              ? "bg-white/30 text-black backdrop-blur-sm" 
+              : "bg-black/10 text-black"
+          )}>
+            {badgeText}
+          </span>
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.6)] animate-pulse" />
+        </motion.div>
+      )}
+      
+      {/* Collapsed state badge indicator */}
+      {showBadge && !isOpen && isPrimary && (
+        <div className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.6)] animate-pulse" />
+      )}
+    </motion.button>
+  );
+};
 
 // Skeleton loader for repo items while history is fetching
 function RepoSkeleton({ isOpen }: { isOpen: boolean }) {
@@ -133,27 +190,20 @@ export default function Sidebar() {
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + "/");
 
   // Handle click on a repo item
-  // In Sidebar.tsx, update the handleRepoClick function:
-
-const handleRepoClick = async (reportId: string, repoName: string, repoUrl?: string) => {
-  try {
-    setLoadingReportId(reportId);
-    const result = await getRepoAnalysis(reportId);
-    console.log("Analysis data:", result);
-    
-    // Use the stored repoUrl if available, otherwise construct it from repoName
-    // or use a default fallback
-    const urlParam = repoUrl || `https://github.com/${repoName}`;
-    
-    // Navigate with the same pattern as EmptyChatHero
-    router.push(`/chat/${reportId}?repoUrl=${encodeURIComponent(urlParam)}`);
-    
-  } catch (error) {
-    console.error("Failed to fetch analysis:", error);
-  } finally {
-    setLoadingReportId(null);
-  }
-};
+  const handleRepoClick = async (reportId: string, repoName: string, repoUrl?: string) => {
+    try {
+      setLoadingReportId(reportId);
+      const result = await getRepoAnalysis(reportId);
+      console.log("Analysis data:", result);
+      
+      const urlParam = repoUrl || `https://github.com/${repoName}`;
+      router.push(`/chat/${reportId}?repoUrl=${encodeURIComponent(urlParam)}`);
+    } catch (error) {
+      console.error("Failed to fetch analysis:", error);
+    } finally {
+      setLoadingReportId(null);
+    }
+  };
 
   // Gauge progress bar width capped at 100%
   const progressWidth = (score: number) => `${Math.min(100, Math.max(0, score))}%`;
@@ -177,8 +227,6 @@ const handleRepoClick = async (reportId: string, repoName: string, repoUrl?: str
   const handleLogoClick = () => {
     if (!isOpen) {
       setIsOpen(true);
-    } else {
-      // router.push("/");
     }
   };
 
@@ -269,13 +317,16 @@ const handleRepoClick = async (reportId: string, repoName: string, repoUrl?: str
             "space-y-1",
             isOpen ? "px-2" : "px-1"
           )}>
+            {/* Redesigned New Analysis Button - Primary Variant with White Background */}
             <SidebarItem
               icon={PlusCircle}
               label="New Analysis"
               active={isActive("/chat")}
               onClick={() => router.push("/chat")}
               isOpen={isOpen}
+              variant="primary"
             />
+            
             <SidebarItem
               icon={History}
               label="Chat History"

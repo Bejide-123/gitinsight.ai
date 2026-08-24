@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { signOut } from 'next-auth/react';
 import { LoginData, RegisterData } from '@/types/auth';
 
 const API_URL = '/api/auth';
@@ -77,16 +78,15 @@ export const register = async (registerData: RegisterData): Promise<any> => {
  */
 export const logout = async (): Promise<void> => {
   try {
-    await apiClient.post('/logout', undefined, {
-      headers: {
-        'x-csrf-token': localStorage.getItem('csrfToken') || '',
-      },
-    });
+    await apiClient.post('/logout');
+    await signOut({ redirect: false });
     clearAuthToken();
+    clearCsrfToken();
     localStorage.removeItem('csrfToken');
   } catch (error) {
     // Even if server fails, clear local token
     clearAuthToken();
+    clearCsrfToken();
     localStorage.removeItem('csrfToken');
     throw handleError(error);
   }
@@ -122,6 +122,32 @@ export const clearAuthToken = (): void => {
   const cookieOptions = 'path=/; max-age=0; SameSite=Lax';
   document.cookie = `${AUTH_COOKIE_NAME}=; ${cookieOptions}`;
   document.cookie = `${LEGACY_AUTH_COOKIE_NAME}=; ${cookieOptions}`;
+};
+
+export const clearCsrfToken = (): void => {
+  if (typeof document === 'undefined') return;
+
+  document.cookie = 'csrf_token=; path=/; max-age=0; SameSite=Strict';
+};
+
+export const restoreGitHubSession = async (): Promise<{ user: any; csrfToken?: string } | null> => {
+  try {
+    const response = await fetch('/api/auth/github/session', {
+      method: 'POST',
+      credentials: 'include',
+    });
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    if (data.csrfToken) {
+      localStorage.setItem('csrfToken', data.csrfToken);
+    }
+
+    return data.user ? { user: data.user, csrfToken: data.csrfToken } : null;
+  } catch {
+    return null;
+  }
 };
 
 /**
