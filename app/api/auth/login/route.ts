@@ -48,6 +48,8 @@ export async function POST(req: Request) {
           id: user._id,
           name: user.name,
           email: user.email,
+          githubConnected: Boolean(user.githubId),
+          githubUsername: user.githubUsername || null,
         },
       },
       { status: 200 }

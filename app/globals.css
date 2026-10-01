@@ -238,3 +238,45 @@ div::-webkit-scrollbar, section::-webkit-scrollbar, main::-webkit-scrollbar {
   background-color: #eab308;
   animation: pulse-slow 2.5s ease-in-out infinite;
 }
+
+.mesh-gradient {
+  background-color: #050505;
+  background-image:
+    radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.18) 0px, transparent 55%),
+    radial-gradient(at 100% 0%, rgba(34, 211, 238, 0.18) 0px, transparent 55%),
+    radial-gradient(at 50% 100%, rgba(59, 130, 246, 0.12) 0px, transparent 50%);
+}
+
+.glass-card {
+  background: rgba(18, 18, 18, 0.6);
+  backdrop-filter: blur(12px);
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes avatar-pulse {
+  0%, 100% { box-shadow: 0 0 35px rgba(34, 211, 238, 0.25), 0 0 70px rgba(168, 85, 247, 0.2); }
+  50%      { box-shadow: 0 0 55px rgba(34, 211, 238, 0.45), 0 0 95px rgba(168, 85, 247, 0.35); }
+}
+.avatar-glow { animation: avatar-pulse 4s ease-in-out infinite; }
+
+@keyframes subtle-dot-pulse {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50%      { opacity: 0.4;  transform: scale(0.9); }
+}
+.dot-pulse { animation: subtle-dot-pulse 2.4s ease-in-out infinite; }
+
+@keyframes pro-border {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.pro-border-animated {
+  background-size: 200% 200%;
+  animation: pro-border 6s ease infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar-glow, .dot-pulse, .pro-border-animated {
+    animation: none !important;
+  }
+}

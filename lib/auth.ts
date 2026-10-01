@@ -1,6 +1,9 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
+import type { NextAuthOptions } from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
 import dbConnect from "@/lib/db";
+import { getJwtSecret } from "@/lib/env";
 import User from "@/models/User";
 
 console.log("🔥🔥🔥 LIB/AUTH.TS LOADED");
@@ -45,6 +48,7 @@ export const authOptions: NextAuthOptions = {
         await dbConnect();
 
         const githubId = account.providerAccountId;
+        const githubUsername = (profile as { login?: string } | undefined)?.login;
         const email = user.email ||
           (profile as { email?: string } | undefined)?.email ||
           `${githubId}@users.noreply.github.com`;
@@ -52,6 +56,37 @@ export const authOptions: NextAuthOptions = {
         if (!githubId || !email) {
           console.error("GitHub account is missing ID or email");
           return false;
+        }
+
+        const cookieStore = await cookies();
+        const isConnectIntent = cookieStore.get("github_connect_intent")?.value === "1";
+
+        if (isConnectIntent) {
+          cookieStore.delete("github_connect_intent");
+          const appToken = cookieStore.get("token")?.value ?? cookieStore.get("auth_token")?.value;
+          if (!appToken) return false;
+
+          let appUserId: string;
+          try {
+            const payload = jwt.verify(appToken, getJwtSecret());
+            if (typeof payload !== "object" || !payload.id) return false;
+            appUserId = String(payload.id);
+          } catch {
+            return false;
+          }
+
+          const linkedAccount = await User.findOne({ githubId });
+          if (linkedAccount && String(linkedAccount._id) !== appUserId) return false;
+
+          const appUser = await User.findById(appUserId);
+          if (!appUser || (appUser.githubId && appUser.githubId !== githubId)) return false;
+
+          appUser.githubId = githubId;
+          appUser.githubUsername = githubUsername;
+          appUser.image = appUser.image || user.image;
+          await appUser.save();
+          user.id = String(appUser._id);
+          return true;
         }
 
         // Check if this GitHub account already exists
@@ -64,7 +99,7 @@ export const authOptions: NextAuthOptions = {
           if (existingUser) {
             // Link the GitHub account to the existing user
             existingUser.githubId = githubId;
-            existingUser.githubUsername = (profile as { login?: string } | undefined)?.login;
+            existingUser.githubUsername = githubUsername;
             existingUser.image = user.image;
 
             await existingUser.save();
@@ -77,7 +112,7 @@ export const authOptions: NextAuthOptions = {
                 "GitHub User",
               email,
               githubId,
-              githubUsername: (profile as { login?: string } | undefined)?.login,
+              githubUsername,
               image: user.image,
             });
           }

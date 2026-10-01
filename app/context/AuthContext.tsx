@@ -7,6 +7,8 @@ interface User {
   id: string;
   name: string;
   email: string;
+  githubConnected?: boolean;
+  githubUsername?: string | null;
 }
 
 interface AuthContextType {

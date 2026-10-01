@@ -11,9 +11,8 @@ import {
   GitBranch,
   TrendingUp,
   Zap,
+  LayoutDashboard,
   ChevronLeft,
-  ChevronRight,
-  Sparkles,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -317,6 +316,14 @@ export default function Sidebar() {
             "space-y-1",
             isOpen ? "px-2" : "px-1"
           )}>
+            <SidebarItem
+              icon={LayoutDashboard}
+              label="Dashboard"
+              active={isActive("/dashboard")}
+              onClick={() => router.push("/dashboard")}
+              isOpen={isOpen}
+            />
+
             {/* Redesigned New Analysis Button - Primary Variant with White Background */}
             <SidebarItem
               icon={PlusCircle}

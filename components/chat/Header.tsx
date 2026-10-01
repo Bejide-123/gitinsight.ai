@@ -11,7 +11,6 @@ import {
   Shield,
   ChevronDown,
 } from "lucide-react";
-import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
@@ -46,8 +45,14 @@ export default function ChatHeader() {
     }
   };
 
-  const displayName = user?.name || "User";
+  const displayName = user?.name || user?.email?.split("@")[0] || "User";
   const displayEmail = user?.email || "No email available";
+  const initials = displayName
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <header className="w-full h-16 border-b border-white/10 bg-[#050505]/80 backdrop-blur-md flex items-center justify-between px-8 shadow-[0_4px_30px_rgba(0,0,0,0.3)] z-50 relative">
@@ -120,15 +125,8 @@ export default function ChatHeader() {
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-lg hover:bg-white/5 transition-all duration-300 border border-transparent hover:border-white/10"
           >
-            <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-white/20 hover:border-cyan-400/50 transition-all duration-300">
-              <Image
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaVDXER3Tnc5juAuAyhfmdZwrbBjSoOl15g2EZ0bjGvYaz1GbhjryYUA-BcUJyVJD222ZLkRzjDLNkZqpvawMLv85fHHLQa5CHL3VL2RjVuvLYs5sC_7hJY2aqnhbhmZp7oswOpyqCCD4zwWthDSor6BW5cdXKKX2egRbv4fBvcmoJUjMKrODLjIk23SBbsS6BSrGojim89K-kanqTgG0gDw1QqMAVrDcelteOzjxvJVEphqgtZpgcQYWipGNBQSIJMbV5b2O3pJ-_"
-                alt="Profile"
-                className="w-full h-full object-cover"
-                width={32}
-                height={32}
-              />
-              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent" />
+            <div className="relative flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-zinc-800 text-xs font-semibold text-white transition-all duration-300 hover:border-cyan-400/50">
+              {initials}
             </div>
             <ChevronDown className={`w-3.5 h-3.5 text-zinc-400 transition-transform duration-300 ${
               dropdownOpen ? "rotate-180" : ""
@@ -148,21 +146,15 @@ export default function ChatHeader() {
                 {/* User Info */}
                 <div className="p-4 border-b border-white/5 bg-gradient-to-br from-white/5 to-transparent">
                   <div className="flex items-center gap-3">
-                    <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-white/10">
-                      <Image
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaVDXER3Tnc5juAuAyhfmdZwrbBjSoOl15g2EZ0bjGvYaz1GbhjryYUA-BcUJyVJD222ZLkRzjDLNkZqpvawMLv85fHHLQa5CHL3VL2RjVuvLYs5sC_7hJY2aqnhbhmZp7oswOpyqCCD4zwWthDSor6BW5cdXKKX2egRbv4fBvcmoJUjMKrODLjIk23SBbsS6BSrGojim89K-kanqTgG0gDw1QqMAVrDcelteOzjxvJVEphqgtZpgcQYWipGNBQSIJMbV5b2O3pJ-_"
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                        width={48}
-                        height={48}
-                      />
+                    <div className="relative flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-zinc-800 text-sm font-semibold text-white">
+                      {initials}
                     </div>
                     <div>
                       <p className="text-white font-medium text-sm">{displayName}</p>
                       <p className="text-zinc-400 text-xs">{displayEmail}</p>
                       <div className="flex items-center gap-1.5 mt-1">
                         <Shield className="w-3 h-3 text-emerald-400" />
-                        <span className="text-[10px] text-emerald-400/70 font-mono">Pro Plan</span>
+                        <span className="text-[10px] text-emerald-400/70 font-mono">Signed in</span>
                       </div>
                     </div>
                   </div>

@@ -8,7 +8,7 @@ import jwt from "jsonwebtoken";
 export async function GET(request: Request) {
   try {
     await dbConnect();
-    const cookieStore = (await cookies()) as any;
+    const cookieStore = await cookies();
     const tokenFromCookie =
       cookieStore.get("token")?.value ||
       cookieStore.get("auth_token")?.value;
@@ -20,11 +20,15 @@ export async function GET(request: Request) {
     }
 
     const secret = getJwtSecret();
-    let decoded;
+    let decoded: jwt.JwtPayload;
 
     try {
-      decoded = jwt.verify(token, secret) as { id: string; email: string; name: string };
-    } catch (error) {
+      const payload = jwt.verify(token, secret);
+      if (typeof payload === "string") {
+        return NextResponse.json({ message: "Invalid token payload" }, { status: 401 });
+      }
+      decoded = payload;
+    } catch {
       return NextResponse.json({ message: "Invalid token" }, { status: 401 });
     }
 
@@ -32,7 +36,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ message: "Invalid token payload" }, { status: 401 });
     }
 
-    const user = await User.findById(decoded.id).select("_id name email");
+    const user = await User.findById(decoded.id).select("_id name email githubId githubUsername");
     if (!user) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
@@ -41,6 +45,8 @@ export async function GET(request: Request) {
       id: user._id,
       name: user.name,
       email: user.email,
+      githubConnected: Boolean(user.githubId),
+      githubUsername: user.githubUsername || null,
     });
   } catch (error) {
     console.error("Error fetching current user:", error);
