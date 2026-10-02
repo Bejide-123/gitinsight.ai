@@ -43,6 +43,8 @@ export async function POST() {
         id: String(user._id),
         name: user.name || "GitHub User",
         email: user.email || `${user.githubId}@users.noreply.github.com`,
+        githubConnected: Boolean(user.githubId),
+        githubUsername: user.githubUsername || null,
       },
     });
 

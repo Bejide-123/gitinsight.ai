@@ -21,6 +21,7 @@ export interface HistoryReport {
   maturityScore: number;
   level: string;
   analyzedAt: string;
+  techStack?: string[];
   projectContext: {
     intent: string;
     confidence: number;

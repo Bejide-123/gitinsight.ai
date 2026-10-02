@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Activity, Cpu, Zap, Shield, GitBranch, BarChart3, Sparkles, Terminal, Rocket } from "lucide-react";
+import { Activity, Cpu, Zap, Shield, GitBranch, BarChart3, Sparkles, Rocket } from "lucide-react";
 
 export default function IntelligenceSection() {
   const features = [
@@ -9,19 +9,16 @@ export default function IntelligenceSection() {
       icon: Activity,
       title: "Maturity Score",
       desc: "Analyze architecture quality, test coverage, maintainability, and documentation standards across your repository.",
-      gradient: "from-purple-500/20 to-blue-500/20",
     },
     {
       icon: GitBranch,
-      title: "Feature Detection",
-      desc: "Automatically identifies frameworks, auth systems, API layers, dashboards, and engineering patterns.",
-      gradient: "from-purple-500/20 to-purple-600/20",
+      title: "Repository Context",
+      desc: "Identify project structure, frameworks, technology choices, and engineering patterns.",
     },
     {
       icon: BarChart3,
-      title: "Velocity Audits",
-      desc: "Track commit complexity, engineering throughput, and real development momentum beyond simple metrics.",
-      gradient: "from-blue-500/20 to-purple-500/20",
+      title: "Prioritized Findings",
+      desc: "Turn detected risks and improvement areas into an ordered, actionable engineering backlog.",
     },
   ];
 
@@ -37,33 +34,25 @@ export default function IntelligenceSection() {
       icon: Shield,
     },
     {
-      title: "Engineering Entropy",
-      desc: "Measure technical debt accumulation and long-term maintainability signals.",
+      title: "Maintainability Review",
+      desc: "Surface code quality, documentation, and long-term maintenance signals.",
       icon: Zap,
     },
   ];
 
   return (
-    <section className="relative overflow-hidden bg-[#050505] py-20 md:py-32 px-6">
-      {/* Background effects */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(168,85,247,0.06),transparent_40%)]" />
-      <div className="absolute top-32 left-1/2 -translate-x-1/2 w-[320px] sm:w-[500px] md:w-[900px] h-[250px] md:h-[500px] bg-gradient-to-r from-purple-500/5 via-purple-500/5 to-blue-500/5 blur-[120px] md:blur-[160px] rounded-full" />
-      
-      {/* Floating orbs */}
-      <div className="absolute top-20 right-20 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-20 left-20 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-700" />
-
-      <div className="relative z-10 max-w-7xl mx-auto">
+    <section id="features" className="relative overflow-hidden border-b border-white/[0.08] bg-[#07090c] px-4 py-16 sm:px-6 md:py-20 lg:px-8">
+      <div className="relative z-10 mx-auto max-w-7xl">
         {/* ================= HEADER ================= */}
         <div className="text-center mb-16 md:mb-24">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-purple-500/20 bg-purple-500/10 mb-6"
+            className="mb-5 inline-flex items-center gap-2 rounded border border-cyan-200/15 bg-cyan-200/[0.04] px-3 py-2"
           >
-            <Sparkles size={14} className="text-purple-400" />
-            <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-purple-400">
+            <Sparkles size={14} className="text-cyan-200" />
+            <span className="text-xs text-cyan-100">
               Intelligence Layer
             </span>
           </motion.div>
@@ -72,7 +61,7 @@ export default function IntelligenceSection() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-tight"
+            className="text-3xl font-semibold leading-tight text-white sm:text-4xl md:text-5xl"
           >
             Core Intelligence
           </motion.h2>
@@ -81,7 +70,7 @@ export default function IntelligenceSection() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-4 max-w-2xl mx-auto text-sm sm:text-base md:text-lg text-zinc-400 leading-relaxed"
+            className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-zinc-400 sm:text-base"
           >
             Advanced repository analysis powered by AI-driven engineering
             insights, architecture mapping, and live code intelligence.
@@ -99,33 +88,27 @@ export default function IntelligenceSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a] p-8 transition-all duration-500 hover:border-white/20 hover:shadow-[0_0_60px_rgba(168,85,247,0.05)] hover:scale-[1.02]"
+                className="group relative overflow-hidden rounded-lg border border-white/[0.08] bg-[#0d1115] p-6 transition-colors hover:border-cyan-200/20 hover:bg-[#10161a] sm:p-7"
               >
-                {/* Gradient background on hover */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
-                
-                {/* Glow effect */}
-                <div className="absolute -top-20 -right-20 w-60 h-60 bg-purple-500/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
                 <div className="relative z-10">
                   {/* Icon */}
                   <div className="mb-6">
-                    <div className="w-14 h-14 rounded-2xl border border-purple-500/20 bg-purple-500/10 flex items-center justify-center group-hover:scale-110 group-hover:border-purple-500/40 transition-all duration-500">
-                      <Icon className="w-7 h-7 text-purple-400 group-hover:text-purple-300 transition-colors" />
+                    <div className="flex h-11 w-11 items-center justify-center rounded-md border border-cyan-200/15 bg-cyan-200/[0.04] transition-colors group-hover:border-cyan-200/25">
+                      <Icon className="h-5 w-5 text-cyan-100" />
                     </div>
                   </div>
 
                   {/* Content */}
-                  <h3 className="text-xl font-bold text-white mb-3 tracking-tight group-hover:text-white/90 transition-colors">
+                  <h3 className="mb-2 text-lg font-semibold text-white">
                     {item.title}
                   </h3>
 
-                  <p className="text-sm text-zinc-400 leading-relaxed group-hover:text-zinc-300 transition-colors">
+                  <p className="text-sm leading-6 text-zinc-400">
                     {item.desc}
                   </p>
 
                   {/* Bottom accent line */}
-                  <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-gradient-to-r from-purple-400 to-transparent group-hover:w-full transition-all duration-700" />
+                  <div className="absolute bottom-0 left-0 h-px w-0 bg-cyan-200/60 transition-all duration-300 group-hover:w-full" />
                 </div>
               </motion.div>
             );
@@ -142,9 +125,9 @@ export default function IntelligenceSection() {
             viewport={{ once: true }}
             className="order-2 lg:order-1"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-purple-500/20 bg-purple-500/10 mb-6">
-              <Rocket size={14} className="text-purple-400" />
-              <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-purple-400">
+            <div className="mb-5 inline-flex items-center gap-2 rounded border border-emerald-200/15 bg-emerald-200/[0.04] px-3 py-2">
+              <Rocket size={14} className="text-emerald-200" />
+              <span className="text-xs text-emerald-100">
                 Live Intelligence
               </span>
             </div>
@@ -152,7 +135,7 @@ export default function IntelligenceSection() {
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight leading-tight">
               Real-time code
               <br />
-              <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+              <span className="text-cyan-200">
                 synthesis.
               </span>
             </h2>
@@ -175,13 +158,13 @@ export default function IntelligenceSection() {
                     className="flex gap-4 group cursor-default"
                   >
                     <div className="mt-1 flex-shrink-0">
-                      <div className="w-10 h-10 rounded-xl border border-purple-500/20 bg-purple-500/10 flex items-center justify-center group-hover:border-purple-500/40 group-hover:bg-purple-500/20 transition-all duration-300">
-                        <Icon className="w-5 h-5 text-purple-400 group-hover:text-purple-300 transition-colors" />
+                      <div className="flex h-9 w-9 items-center justify-center rounded border border-white/10 bg-white/[0.03] transition group-hover:border-cyan-200/20">
+                        <Icon className="h-4 w-4 text-cyan-100" />
                       </div>
                     </div>
 
                     <div>
-                      <h4 className="text-white text-lg font-semibold mb-1 tracking-tight group-hover:text-white/90 transition-colors">
+                      <h4 className="mb-1 text-sm font-semibold text-white">
                         {feature.title}
                       </h4>
                       <p className="text-sm text-zinc-400 leading-relaxed group-hover:text-zinc-300 transition-colors">
@@ -202,10 +185,7 @@ export default function IntelligenceSection() {
             viewport={{ once: true }}
             className="relative order-1 lg:order-2"
           >
-            {/* Glow */}
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-purple-500/5 to-blue-500/10 blur-3xl scale-105 rounded-[30px]" />
-
-            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a] shadow-[0_20px_120px_rgba(0,0,0,0.5)]">
+            <div className="relative overflow-hidden rounded-lg border border-white/[0.08] bg-[#0d1115]">
               {/* Top bar */}
               <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-white/[0.02]">
                 <div className="flex items-center gap-1.5">
@@ -214,11 +194,10 @@ export default function IntelligenceSection() {
                   <div className="w-2.5 h-2.5 rounded-full bg-green-500/70 hover:bg-green-500 transition-colors cursor-pointer" />
                 </div>
                 <div className="ml-3 text-[10px] tracking-[0.2em] uppercase text-white/30 font-medium">
-                  Analysis Terminal v4.1
+                  Example analysis steps
                 </div>
                 <div className="ml-auto flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-purple-400 animate-pulse" />
-                  <span className="text-[8px] text-purple-400/60 font-mono tracking-wider">LIVE</span>
+                  <span className="text-[10px] text-zinc-500">Illustrative</span>
                 </div>
               </div>
 
@@ -235,9 +214,9 @@ export default function IntelligenceSection() {
                   {/* Progress */}
                   <div className="space-y-4">
                     {[
-                      { label: "Scanning Source Files", width: "100%" },
-                      { label: "Neural Pattern Matching", width: "64%" },
-                      { label: "Security Entropy Scan", width: "82%" },
+                      { label: "Repository structure", width: "100%" },
+                      { label: "Engineering dimensions", width: "64%" },
+                      { label: "Prioritized findings", width: "82%" },
                     ].map((item, index) => (
                       <div key={index}>
                         <div className="flex justify-between gap-2 mb-1.5 text-white/60 text-xs">
@@ -250,7 +229,7 @@ export default function IntelligenceSection() {
                             whileInView={{ width: item.width }}
                             transition={{ duration: 1.5, delay: index * 0.2 }}
                             viewport={{ once: true }}
-                            className="h-full bg-gradient-to-r from-purple-400 to-purple-300 rounded-full"
+                            className="h-full rounded-full bg-cyan-300"
                           />
                         </div>
                       </div>
@@ -259,10 +238,10 @@ export default function IntelligenceSection() {
 
                   {/* Logs */}
                   <div className="space-y-1.5 text-zinc-500 leading-relaxed border-t border-white/5 pt-3 text-xs">
-                    <p className="text-blue-400/60">[INFO] Found 142 microservices...</p>
-                    <p className="text-yellow-400/60">[WARN] Circular dependency detected...</p>
-                    <p className="text-blue-400/60">[INFO] Detecting authentication...</p>
-                    <p className="text-blue-400/60">[INFO] Calculating entropy...</p>
+                    <p className="text-cyan-100/70">[INFO] Repository structure indexed</p>
+                    <p className="text-amber-100/70">[INFO] Reviewing security patterns</p>
+                    <p className="text-cyan-100/70">[INFO] Scoring architecture and tests</p>
+                    <p className="text-cyan-100/70">[INFO] Preparing recommendations</p>
                     <p className="text-emerald-400/80 font-medium pt-1">
                       [SUCCESS] Repository intelligence generated.
                     </p>
@@ -278,7 +257,7 @@ export default function IntelligenceSection() {
           initial={{ opacity: 0, width: 0 }}
           whileInView={{ opacity: 1, width: "100%" }}
           transition={{ duration: 1, delay: 0.5 }}
-          className="mt-20 h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent"
+          className="mt-16 h-px bg-white/[0.08]"
         />
       </div>
     </section>

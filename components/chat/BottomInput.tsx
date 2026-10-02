@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowUp, Paperclip, Star, GitFork } from "lucide-react";
+import { ArrowUpRight, GitFork, Star } from "lucide-react";
 import { useState } from "react";
 import { useAnalyzeRepo, extractRepoMetadata } from "@/hooks/useFetchRepo";
 
@@ -52,88 +52,51 @@ export default function BottomInput() {
   };
 
   return (
-    <div className="absolute inset-x-0 bottom-0 z-50">
-      {/* Gradient backdrop */}
-      <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-[#050505] via-[#050505]/95 to-transparent pointer-events-none" />
-
-      <div className="relative px-8 pb-8">
-        <div className="mx-auto max-w-4xl space-y-4">
-          {/* Action Buttons */}
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={goToReport}
-              disabled={!repoUrl.trim() || isPending}
-              className="rounded-xl bg-white px-6 py-3 text-xs font-bold uppercase tracking-widest text-black transition-all hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Full Report
-            </button>
-
-            <button className="rounded-xl border border-zinc-800 bg-zinc-900 px-6 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all hover:border-zinc-700 hover:bg-zinc-800">
-              Deep Dive Security
-            </button>
-
-            <button className="rounded-xl border border-zinc-800 bg-zinc-900 px-6 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all hover:border-zinc-700 hover:bg-zinc-800">
-              View Raw Data
-            </button>
+    <div className="absolute inset-x-0 bottom-0 z-30 border-t border-white/[0.08] bg-[#090c0f]/95 px-4 py-4 backdrop-blur sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl space-y-3">
+        {metadata && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-md border border-white/[0.08] bg-[#0d1115] px-3 py-2.5 text-xs text-zinc-400">
+            <span className="font-medium text-zinc-100">{metadata.name}</span>
+            {metadata.language !== "Unknown" && <span>{metadata.language}</span>}
+            <span className="inline-flex items-center gap-1"><Star size={13} />{metadata.stars.toLocaleString()}</span>
+            <span className="inline-flex items-center gap-1"><GitFork size={13} />{metadata.forks.toLocaleString()}</span>
+            {metadata.description && <span className="min-w-0 flex-1 truncate">{metadata.description}</span>}
           </div>
+        )}
 
-          {/* Repo Metadata Display */}
-          {metadata && (
-            <div className="rounded-xl border border-zinc-700 bg-zinc-900/50 p-4 space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold text-white">{metadata.name}</h3>
-                  {metadata.language !== "Unknown" && (
-                    <span className="inline-block px-2 py-1 text-xs rounded bg-zinc-800 text-zinc-300">
-                      {metadata.language}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="flex gap-6 text-xs text-zinc-400">
-                <div className="flex items-center gap-1">
-                  <Star size={14} />
-                  <span>{metadata.stars.toLocaleString()} stars</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <GitFork size={14} />
-                  <span>{metadata.forks.toLocaleString()} forks</span>
-                </div>
-              </div>
-              {metadata.description && (
-                <p className="text-xs text-zinc-400 line-clamp-2">{metadata.description}</p>
-              )}
-            </div>
-          )}
-
-          {/* Input */}
-          <div className="flex items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-3">
-            <button 
-              onClick={handleFetchMetadata}
-              disabled={isPending}
-              className="flex h-11 w-11 items-center justify-center text-zinc-500 transition-colors hover:text-white disabled:opacity-50"
-            >
-              <Paperclip size={20} strokeWidth={2} />
-            </button>
-
-            <input
-              type="text"
-              value={repoUrl}
-              onChange={(e) => setRepoUrl(e.target.value)}
-              onBlur={handleFetchMetadata}
-              placeholder="Paste GitHub URL to fetch repo metadata..."
-              className="flex-1 bg-transparent text-base text-white outline-none placeholder:text-zinc-600"
-            />
-
-            <button
-              onClick={goToReport}
-              disabled={!repoUrl.trim() || isPending}
-              className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-black transition-all hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ArrowUp size={20} strokeWidth={2.5} />
-            </button>
-          </div>
-        </div>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            goToReport();
+          }}
+          className="flex items-center gap-3 rounded-md border border-white/10 bg-[#0d1115] p-1.5 focus-within:border-cyan-200/30"
+        >
+          <input
+            type="url"
+            value={repoUrl}
+            onChange={(e) => setRepoUrl(e.target.value)}
+            onBlur={handleFetchMetadata}
+            placeholder="Paste a GitHub repository URL"
+            aria-label="GitHub repository URL"
+            className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-white outline-none placeholder:text-zinc-600"
+          />
+          <button
+            type="button"
+            onClick={handleFetchMetadata}
+            disabled={!repoUrl.trim() || isPending}
+            className="hidden h-9 items-center gap-2 rounded border border-white/10 px-3 text-xs text-zinc-300 transition hover:bg-white/[0.04] disabled:opacity-40 sm:inline-flex"
+          >
+            {isPending ? "Checking..." : "Preview"}
+          </button>
+          <button
+            type="submit"
+            disabled={!repoUrl.trim() || isPending}
+            className="inline-flex h-9 items-center gap-2 rounded bg-cyan-300 px-3.5 text-xs font-semibold text-[#071013] transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Full report
+            <ArrowUpRight className="h-3.5 w-3.5" />
+          </button>
+        </form>
       </div>
     </div>
   );

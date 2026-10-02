@@ -79,25 +79,8 @@ export default function PricingSection() {
   ];
 
   return (
-    <section className="relative overflow-hidden bg-[#050505] py-24 px-6">
-
-      {/* BACKGROUND */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(168,85,247,0.06),transparent_40%)]" />
-      <div className="absolute top-40 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-gradient-to-r from-purple-500/5 via-purple-500/5 to-blue-500/5 blur-[180px] rounded-full" />
-      
-      {/* Floating orbs */}
-      <motion.div
-        animate={{ y: [0, -20, 0], x: [0, 15, 0] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-20 right-20 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl"
-      />
-      <motion.div
-        animate={{ y: [0, 20, 0], x: [0, -15, 0] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-20 left-20 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl"
-      />
-
-      <div className="relative z-10 max-w-7xl mx-auto">
+    <section id="pricing" className="relative overflow-hidden border-b border-white/[0.08] bg-[#07090c] px-4 py-16 sm:px-6 md:py-20 lg:px-8">
+      <div className="relative z-10 mx-auto max-w-7xl">
 
         {/* HEADER */}
         <div className="text-center mb-16">
@@ -106,18 +89,18 @@ export default function PricingSection() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-purple-500/20 bg-purple-500/10 mb-6">
-              <Sparkles size={14} className="text-purple-400" />
-              <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-purple-400">
+            <div className="mb-5 inline-flex items-center gap-2 rounded border border-cyan-200/15 bg-cyan-200/[0.04] px-3 py-2">
+              <Sparkles size={14} className="text-cyan-200" />
+              <span className="text-xs text-cyan-100">
                 Pricing
               </span>
             </div>
 
-            <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-              Simple, Transparent Pricing
+            <h2 className="text-3xl font-semibold text-white sm:text-4xl">
+              Plans for your workflow
             </h2>
 
-            <p className="mt-4 text-zinc-400 text-lg max-w-xl mx-auto">
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-zinc-400 sm:text-base">
               Choose a plan that fits your engineering workflow.
             </p>
           </motion.div>
@@ -136,13 +119,17 @@ export default function PricingSection() {
             </span>
 
             <button
+              type="button"
+              role="switch"
+              aria-checked={isAnnual}
+              aria-label="Toggle annual pricing"
               onClick={() => setIsAnnual(!isAnnual)}
-              className="relative w-14 h-8 bg-white/10 rounded-full p-1 transition-colors duration-300 hover:bg-white/15"
+              className="relative h-7 w-12 rounded-full border border-white/10 bg-[#151a1e] p-1 transition-colors hover:bg-white/[0.08]"
             >
               <motion.div
-                animate={{ x: isAnnual ? 24 : 0 }}
+                animate={{ x: isAnnual ? 18 : 0 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="w-6 h-6 bg-gradient-to-r from-purple-400 to-purple-500 rounded-full shadow-lg shadow-purple-500/20"
+                className="h-[18px] w-[18px] rounded-full bg-cyan-200"
               />
             </button>
 
@@ -152,7 +139,7 @@ export default function PricingSection() {
               Annual
             </span>
 
-            <span className="text-[10px] font-bold uppercase px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+            <span className="rounded border border-emerald-200/15 bg-emerald-200/[0.04] px-2.5 py-1 text-[10px] font-medium text-emerald-100">
               Save 20%
             </span>
           </motion.div>
@@ -169,18 +156,17 @@ export default function PricingSection() {
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                whileHover={{ y: -6 }}
-                className={`relative overflow-hidden rounded-2xl border p-8 transition-all duration-300 bg-[#0a0a0a]
+                whileHover={{ y: -2 }}
+                className={`relative overflow-hidden rounded-lg border bg-[#0d1115] p-6 transition-colors duration-200 sm:p-7
                 ${plan.featured
-                  ? "border-purple-500/30 shadow-[0_0_80px_rgba(168,85,247,0.08)] hover:shadow-[0_0_100px_rgba(168,85,247,0.15)]"
-                  : "border-white/10 hover:border-white/20"
+                  ? "border-cyan-200/25"
+                  : "border-white/[0.08] hover:border-white/20"
                 }`}
               >
                 {plan.featured && (
                   <>
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent" />
-                    <div className="absolute -top-px left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
-                    <div className="absolute top-5 right-5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[10px] font-bold uppercase tracking-widest">
+                    <div className="absolute inset-x-0 top-0 h-px bg-cyan-200/40" />
+                    <div className="absolute right-4 top-4 rounded border border-cyan-200/15 bg-cyan-200/[0.04] px-2 py-1 text-[10px] font-medium text-cyan-100">
                       Popular
                     </div>
                   </>
@@ -188,15 +174,15 @@ export default function PricingSection() {
 
                 <div className="relative z-10">
                   {/* Icon */}
-                  <div className={`w-12 h-12 rounded-xl border flex items-center justify-center mb-4 ${
+                  <div className={`mb-4 flex h-10 w-10 items-center justify-center rounded-md border ${
                     plan.featured 
-                      ? "border-purple-500/30 bg-purple-500/10" 
+                      ? "border-cyan-200/15 bg-cyan-200/[0.04]" 
                       : "border-white/10 bg-white/5"
                   }`}>
-                    <Icon className={`w-6 h-6 ${plan.featured ? "text-purple-400" : "text-white/40"}`} />
+                    <Icon className={`h-5 w-5 ${plan.featured ? "text-cyan-100" : "text-zinc-400"}`} />
                   </div>
 
-                  <h3 className="text-2xl font-bold text-white mb-1 tracking-tight">
+                  <h3 className="mb-1 text-xl font-semibold text-white">
                     {plan.name}
                   </h3>
 
@@ -205,7 +191,7 @@ export default function PricingSection() {
                   </p>
 
                   <div className="mb-8">
-                    <span className="text-4xl font-bold text-white tracking-tight">
+                    <span className="text-3xl font-semibold text-white">
                       {plan.price}
                     </span>
                     {plan.price !== "Custom" && (
@@ -216,12 +202,12 @@ export default function PricingSection() {
                   <div className="space-y-3.5 mb-8">
                     {plan.features.map((f, i) => (
                       <div key={i} className="flex items-center gap-3 group">
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
+                        <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded transition-colors ${
                           plan.featured 
-                            ? "bg-purple-500/10 group-hover:bg-purple-500/20" 
+                            ? "bg-cyan-200/[0.06] group-hover:bg-cyan-200/[0.1]" 
                             : "bg-white/5 group-hover:bg-white/10"
                         }`}>
-                          <Check className={`w-3 h-3 ${plan.featured ? "text-purple-400" : "text-white/40"}`} />
+                          <Check className={`h-3 w-3 ${plan.featured ? "text-cyan-100" : "text-zinc-400"}`} />
                         </div>
                         <span className={`text-sm ${plan.featured ? "text-zinc-300" : "text-zinc-400"} group-hover:text-white transition-colors`}>
                           {f}
@@ -231,10 +217,10 @@ export default function PricingSection() {
                   </div>
 
                   <button
-                    className={`w-full py-3.5 rounded-xl text-sm font-medium tracking-[0.1em] transition-all duration-300 flex items-center justify-center gap-2
+                    className={`flex w-full items-center justify-center gap-2 rounded py-3 text-sm font-medium transition
                     ${plan.featured
-                      ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:scale-[1.02]"
-                      : "border border-white/10 text-white hover:bg-white hover:text-black"
+                      ? "bg-cyan-300 text-[#071013] hover:bg-cyan-200"
+                      : "border border-white/10 text-zinc-200 hover:bg-white/[0.05] hover:text-white"
                     } ${plan.name === "Free" ? "opacity-60 cursor-not-allowed" : ""}`}
                   >
                     {plan.button}
@@ -247,21 +233,21 @@ export default function PricingSection() {
         </div>
 
         {/* FAQ */}
-        <section className="max-w-3xl mx-auto mb-24">
+        <section className="mx-auto mb-16 max-w-3xl">
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-12"
+            className="mb-8 text-center"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 mb-4">
-              <Sparkles size={12} className="text-white/40" />
-              <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-white/40">
+            <div className="mb-4 inline-flex items-center gap-2 rounded border border-white/10 bg-white/[0.03] px-3 py-2">
+              <Sparkles size={12} className="text-cyan-100" />
+              <span className="text-xs text-zinc-300">
                 FAQ
               </span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
+            <h2 className="text-2xl font-semibold text-white sm:text-3xl">
               Frequently Asked Questions
             </h2>
           </motion.div>
@@ -277,17 +263,19 @@ export default function PricingSection() {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: index * 0.05 }}
                   viewport={{ once: true }}
-                  className="rounded-xl border border-white/10 bg-[#0a0a0a] overflow-hidden hover:border-white/20 transition-all duration-300"
+                  className="overflow-hidden rounded-lg border border-white/[0.08] bg-[#0d1115] transition-colors hover:border-white/20"
                 >
                   <button
+                    type="button"
                     onClick={() => setOpenFaq(isOpen ? null : index)}
-                    className="w-full flex justify-between items-center px-5 py-4 hover:bg-white/[0.02] transition-colors duration-300 group"
+                    aria-expanded={isOpen}
+                    className="group flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition-colors hover:bg-white/[0.03] sm:px-5"
                   >
-                    <span className="text-white text-sm font-medium group-hover:text-white/90 transition-colors">
+                    <span className="text-sm font-medium text-white">
                       {faq.question}
                     </span>
 
-                    <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-white/10 transition-colors">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded border border-white/10 bg-white/[0.03]">
                       <AnimatePresence mode="wait">
                         {!isOpen ? (
                           <motion.div
@@ -305,7 +293,7 @@ export default function PricingSection() {
                             animate={{ rotate: 0, opacity: 1 }}
                             exit={{ rotate: -90, opacity: 0 }}
                           >
-                            <Minus className="w-3.5 h-3.5 text-purple-400" />
+                            <Minus className="h-3.5 w-3.5 text-cyan-200" />
                           </motion.div>
                         )}
                       </AnimatePresence>
@@ -319,7 +307,7 @@ export default function PricingSection() {
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="px-5 pb-5 text-sm text-zinc-400 leading-relaxed"
+                        className="px-4 pb-5 text-sm leading-6 text-zinc-400 sm:px-5"
                       >
                         {faq.answer}
                       </motion.div>
@@ -336,29 +324,25 @@ export default function PricingSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="relative overflow-hidden rounded-2xl border border-purple-500/20 bg-[#0a0a0a] py-14 px-8 text-center hover:border-purple-500/30 transition-all duration-500"
+          className="relative overflow-hidden rounded-lg border border-white/[0.08] bg-[#0d1115] px-6 py-10 text-center transition-colors hover:border-cyan-200/20 sm:px-8 sm:py-12"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent" />
-          <div className="absolute -top-20 -right-20 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl" />
-          <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl" />
-
           <div className="relative z-10">
-            <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mx-auto mb-4">
-              <Sparkles className="w-7 h-7 text-purple-400" />
+            <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-md border border-cyan-200/15 bg-cyan-200/[0.04]">
+              <Sparkles className="h-5 w-5 text-cyan-100" />
             </div>
 
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3 tracking-tight">
+            <h2 className="mb-2 text-2xl font-semibold text-white sm:text-3xl">
               Still have questions?
             </h2>
 
-            <p className="text-zinc-400 max-w-xl mx-auto mb-8 leading-relaxed">
+            <p className="mx-auto mb-6 max-w-xl text-sm leading-6 text-zinc-400">
               Our engineering experts are here to help you choose the perfect setup for your team.
             </p>
 
-            <button className="group inline-flex items-center gap-2 text-white border-b border-white/20 uppercase tracking-[0.15em] text-sm hover:text-purple-400 hover:border-purple-400 transition-all duration-300 font-medium">
+            <a href="mailto:hello@gitinsight.ai" className="group inline-flex items-center gap-2 rounded bg-cyan-300 px-4 py-2.5 text-sm font-medium text-[#071013] transition hover:bg-cyan-200">
               Contact our team
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </a>
           </div>
         </motion.section>
 
