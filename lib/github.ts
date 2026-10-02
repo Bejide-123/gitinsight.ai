@@ -1,8 +1,9 @@
 import { Octokit } from '@octokit/rest';
-import { requireEnv } from '@/lib/env';
 
-const { GITHUB_TOKEN } = requireEnv(['GITHUB_TOKEN']);
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
-export const octokit = new Octokit({
-  auth: GITHUB_TOKEN,
-});
+export const octokit = new Octokit(GITHUB_TOKEN ? { auth: GITHUB_TOKEN } : {});
+
+export function createGitHubClient(accessToken?: string) {
+  return accessToken ? new Octokit({ auth: accessToken }) : octokit;
+}

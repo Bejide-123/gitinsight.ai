@@ -11,21 +11,19 @@ interface Message {
 
 interface ChatContentProps {
   children?: React.ReactNode;
-  chatId: string;
   isLoading?: boolean;
   initialMessages?: Message[];
 }
 
 export default function ChatContent({
   children,
-  chatId,
   isLoading,
   initialMessages = [],
 }: ChatContentProps) {
   return (
     <>
-      <div className="flex-1 overflow-y-auto px-8 py-8 pb-48 hide-scrollbar">
-        <div className="mx-auto flex max-w-6xl flex-col gap-8">
+      <div className="hide-scrollbar flex-1 overflow-y-auto bg-[#07090c] px-4 py-6 pb-56 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-4xl flex-col gap-6">
           {initialMessages.map((message, index) => (
             <MessageBubble
               key={index}

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { ChatAppShell } from "@/components/chat/ChatAppShell";
+import { GitHubRepositories } from "./GitHubRepositories";
 import type { HistoryReport } from "@/services/history-service";
 import { DashboardHero } from "./DashboardHero";
 import { StatsBar } from "./StatsBar";
@@ -47,26 +48,29 @@ export function DashboardLayout() {
           </div>
         )}
 
-        {!error && (
-          <section className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-6 px-4 py-7 sm:px-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,0.85fr)] lg:gap-8 lg:px-8 lg:py-9">
-            <RepoList
-              reports={reports}
-              isLoading={isLoading}
-              onOpenReport={openReport}
-              onNewAnalysis={() => router.push("/chat")}
-            />
-
-            <aside className="flex min-w-0 flex-col gap-5">
-              <AchievementsCard
-                totalAnalyses={stats.totalAnalyses}
-                averageScore={stats.averageScore}
-                trackedRepositories={stats.trackedRepositories}
+        <section className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-6 px-4 py-7 sm:px-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,0.85fr)] lg:gap-8 lg:px-8 lg:py-9">
+          <div className="flex min-w-0 flex-col gap-8">
+            {!error && (
+              <RepoList
+                reports={reports}
+                isLoading={isLoading}
+                onOpenReport={openReport}
+                onNewAnalysis={() => router.push("/chat")}
               />
-              <EngineeringStack technologies={technologies} />
-              <QuickActionsCard />
-            </aside>
-          </section>
-        )}
+            )}
+            <GitHubRepositories connected={user.githubConnected} />
+          </div>
+
+          <aside className="flex min-w-0 flex-col gap-5">
+            <AchievementsCard
+              totalAnalyses={stats.totalAnalyses}
+              averageScore={stats.averageScore}
+              trackedRepositories={stats.trackedRepositories}
+            />
+            <EngineeringStack technologies={technologies} />
+            <QuickActionsCard />
+          </aside>
+        </section>
 
         <DashboardFooter />
       </div>

@@ -18,11 +18,11 @@ export function ChatAppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="flex h-[100dvh] w-full overflow-hidden bg-[#050505] text-white">
+    <div className="flex h-dvh w-full overflow-hidden bg-[#07090c] text-white">
       <Sidebar />
       <div
         className={`flex min-w-0 flex-1 flex-col overflow-hidden transition-[margin] duration-300 ease-in-out ${
-          isSidebarOpen ? "ml-[320px]" : "ml-[72px]"
+          isSidebarOpen ? "ml-[280px]" : "ml-[72px]"
         }`}
       >
         <ChatHeader />

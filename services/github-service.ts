@@ -44,10 +44,11 @@ export function parseGitHubUrl(url: string): { owner: string; repo: string } {
 
 export async function fetchRepository(
   owner: string,
-  repo: string
+  repo: string,
+  client: typeof octokit = octokit
 ): Promise<GitHubRepo> {
   try {
-    const { data } = await octokit.repos.get({ owner, repo });
+    const { data } = await client.repos.get({ owner, repo });
     return data as GitHubRepo;
   } catch (error: unknown) {
     const err = error as GitHubApiError;
@@ -64,23 +65,24 @@ export async function fetchRepository(
 export async function fetchFileTree(
   owner: string,
   repo: string,
-  branch: string = "main"
+  branch: string = "main",
+  client: typeof octokit = octokit
 ): Promise<FileTreeItem[]> {
   try {
     // First, get the commit SHA for the branch
     let commitSha: string;
     try {
-      const { data: branchData } = await octokit.repos.getBranch({
+      const { data: branchData } = await client.repos.getBranch({
         owner,
         repo,
         branch,
       });
       commitSha = branchData.commit.sha;
-    } catch (error: any) {
+    } catch (error: unknown) {
       // If branch doesn't exist, try alternative
       if (branch === "main") {
         console.warn("Main branch not found, trying master...");
-        const { data: branchData } = await octokit.repos.getBranch({
+        const { data: branchData } = await client.repos.getBranch({
           owner,
           repo,
           branch: "master",
@@ -92,7 +94,7 @@ export async function fetchFileTree(
     }
 
     // Now fetch the tree recursively using the commit SHA
-    const { data } = await octokit.git.getTree({
+    const { data } = await client.git.getTree({
       owner,
       repo,
       tree_sha: commitSha,
@@ -108,15 +110,16 @@ export async function fetchFileTree(
     }
 
     return tree;
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (branch === "main") {
       try {
-        return await fetchFileTree(owner, repo, "master");
+        return await fetchFileTree(owner, repo, "master", client);
       } catch {
         throw new Error("Could not fetch file tree");
       }
     }
-    throw new Error(`Failed to fetch file tree: ${error.message}`);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    throw new Error(`Failed to fetch file tree: ${message}`);
   }
 }
 
@@ -126,10 +129,11 @@ export async function fetchFileTree(
 
 export async function fetchReadme(
   owner: string,
-  repo: string
+  repo: string,
+  client: typeof octokit = octokit
 ): Promise<string | null> {
   try {
-    const { data } = await octokit.repos.getReadme({ owner, repo });
+    const { data } = await client.repos.getReadme({ owner, repo });
     const readmeContent = Buffer.from(data.content, "base64").toString("utf-8");
     console.log("Fetched README content:", readmeContent);
     return readmeContent;
@@ -145,10 +149,11 @@ export async function fetchReadme(
 
 export async function fetchPackageJson(
   owner: string,
-  repo: string
+  repo: string,
+  client: typeof octokit = octokit
 ): Promise<Record<string, unknown> | null> {
   try {
-    const { data } = await octokit.repos.getContent({
+    const { data } = await client.repos.getContent({
       owner,
       repo,
       path: "package.json",
@@ -173,10 +178,11 @@ export async function fetchPackageJson(
 export async function fetchFileContent(
   owner: string,
   repo: string,
-  path: string
+  path: string,
+  client: typeof octokit = octokit
 ): Promise<string | null> {
   try {
-    const { data } = await octokit.repos.getContent({ owner, repo, path });
+    const { data } = await client.repos.getContent({ owner, repo, path });
 
     if ("content" in data) {
       const sizeBytes = Buffer.byteLength(data.content || '', 'base64');
@@ -203,14 +209,15 @@ export async function fetchFileContent(
 export async function fetchMultipleFiles(
   owner: string,
   repo: string,
-  paths: string[]
+  paths: string[],
+  client: typeof octokit = octokit
 ): Promise<Record<string, string>> {
   const boundedPaths = paths.slice(0, MAX_FETCHED_FILES);
   console.log(`Fetching ${boundedPaths.length} files (bounded from ${paths.length})...`);
 
   const results = await Promise.allSettled(
     boundedPaths.map(async (path) => {
-      const content = await fetchFileContent(owner, repo, path);
+      const content = await fetchFileContent(owner, repo, path, client);
       return { path, content };
     })
   );
@@ -526,15 +533,16 @@ export function annotateFileTree(
 // ============================================================
 
 export async function fetchRepositoryData(
-  repoUrl: string
+  repoUrl: string,
+  client: typeof octokit = octokit
 ): Promise<GitHubRepoData> {
   const { owner, repo } = parseGitHubUrl(repoUrl);
 
   const [metadata, fileTree, readme, packageJson] = await Promise.all([
-    fetchRepository(owner, repo),
-    fetchFileTree(owner, repo, "main"),
-    fetchReadme(owner, repo),
-    fetchPackageJson(owner, repo),
+    fetchRepository(owner, repo, client),
+    fetchFileTree(owner, repo, "main", client),
+    fetchReadme(owner, repo, client),
+    fetchPackageJson(owner, repo, client),
   ]);
 
   return { metadata, fileTree, readme, packageJson };
@@ -551,10 +559,11 @@ export interface FullRepositoryData extends GitHubRepoData {
 }
 
 export async function fetchRepositoryWithCode(
-  repoUrl: string
+  repoUrl: string,
+  client: typeof octokit = octokit
 ): Promise<FullRepositoryData> {
   // 1. Fetch base data
-  const repoData = await fetchRepositoryData(repoUrl);
+  const repoData = await fetchRepositoryData(repoUrl, client);
 
   // 2. Build visual tree from full flat list
   const fileTreeStructure = buildFileTree(repoData.fileTree);
@@ -567,7 +576,7 @@ export async function fetchRepositoryWithCode(
 
   // 4. Fetch actual code content
   const { owner, repo } = parseGitHubUrl(repoUrl);
-  const codeFiles = await fetchMultipleFiles(owner, repo, selectedFiles);
+  const codeFiles = await fetchMultipleFiles(owner, repo, selectedFiles, client);
 
   console.log(`✅ Successfully fetched: ${Object.keys(codeFiles).length} files`);
 

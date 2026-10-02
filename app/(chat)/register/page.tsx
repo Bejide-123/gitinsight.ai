@@ -4,11 +4,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { FaGithub } from "react-icons/fa";
-import { FiUserPlus } from "react-icons/fi";
-import { Sparkles } from "lucide-react";
+import { ArrowRight, CircleAlert, Eye, EyeOff, Terminal } from "lucide-react";
 import { register } from "@/services/auth-service";
-import { RegisterData } from "@/types/auth";
-import { useRouter } from "next/navigation";
+import type { RegisterData } from "@/types/auth";
+import { signIn } from "next-auth/react";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -16,17 +15,12 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [nameFocused, setNameFocused] = useState(false);
-  const [emailFocused, setEmailFocused] = useState(false);
-  const [passwordFocused, setPasswordFocused] = useState(false);
-  const [confirmFocused, setConfirmFocused] = useState(false);
-  const [githubHovered, setGithubHovered] = useState(false);
-  const [signupHovered, setSignupHovered] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const handleGitHubSignup = () => {
-    // Wire to your GitHub OAuth provider
+    void signIn("github", { callbackUrl: "/dashboard" });
   };
 
   const handleEmailSignup = async (e: React.FormEvent) => {
@@ -43,38 +37,34 @@ export default function RegisterPage() {
     try {
       const RegisterData: RegisterData = { name, email, password };
       await register(RegisterData);
-      router.push("/login");
+      window.location.assign("/login?registered=1");
     } catch (err) {
-      setError("Registration failed. Please try again later.");
-      console.log(err);
+      setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#0a0a0a] flex items-center justify-center p-4 font-['Inter',-apple-system,sans-serif]">
-      <div className="w-full max-w-[440px] bg-[#0a0a0a] border border-white/10 rounded-2xl p-10 backdrop-blur-xl shadow-2xl shadow-purple-500/5">
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-600/5 border border-purple-500/20 flex items-center justify-center mb-4 group hover:shadow-[0_0_40px_rgba(168,85,247,0.15)] transition-all duration-500">
-            <div className="absolute inset-0 bg-purple-500/5 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <Sparkles className="w-7 h-7 text-purple-400" />
-          </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Create Account</h1>
-          <p className="text-sm text-zinc-400 mt-1">Join GitInsight AI today</p>
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#07090c] px-4 py-24 sm:px-6">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(34,211,238,0.06),transparent_55%)]" />
+      <section className="relative w-full max-w-md rounded-lg border border-white/[0.09] bg-[#0d1115] p-5 shadow-2xl shadow-black/30 sm:p-7">
+        <Link href="/" className="mb-7 inline-flex items-center gap-2.5">
+          <span className="flex h-9 w-9 items-center justify-center rounded border border-cyan-200/15 bg-cyan-200/[0.05]">
+            <Terminal className="h-4 w-4 text-cyan-100" />
+          </span>
+          <span className="text-sm font-semibold text-white">GitInsight</span>
+        </Link>
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold text-white">Create your account</h1>
+          <p className="mt-1.5 text-sm leading-6 text-zinc-400">Start reviewing repository health in your workspace.</p>
         </div>
 
         {/* GitHub button */}
         <button
+          type="button"
           onClick={handleGitHubSignup}
-          onMouseEnter={() => setGithubHovered(true)}
-          onMouseLeave={() => setGithubHovered(false)}
-          className={`w-full h-12 flex items-center justify-center gap-3 rounded-xl font-semibold text-sm transition-all duration-300 ${
-            githubHovered
-              ? "bg-white/10 text-white border border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.05)]"
-              : "bg-white/5 text-white/80 border border-white/10 hover:bg-white/10"
-          }`}
+          className="flex h-11 w-full items-center justify-center gap-2.5 rounded border border-white/10 text-sm font-medium text-zinc-200 transition hover:border-white/20 hover:bg-white/[0.04] hover:text-white"
         >
           <FaGithub size={18} />
           Sign up with GitHub
@@ -82,15 +72,15 @@ export default function RegisterPage() {
 
         {/* Divider */}
         <div className="flex items-center gap-4 my-6">
-          <div className="flex-1 h-px bg-white/10" />
-          <span className="text-[10px] tracking-[0.2em] text-zinc-500 font-medium uppercase">Or</span>
-          <div className="flex-1 h-px bg-white/10" />
+          <div className="h-px flex-1 bg-white/10" />
+          <span className="text-[10px] text-zinc-500">or with email</span>
+          <div className="h-px flex-1 bg-white/10" />
         </div>
 
         {/* Form */}
         <form onSubmit={handleEmailSignup} className="space-y-4">
           <div>
-            <label htmlFor="name" className="block text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500 mb-1.5">
+            <label htmlFor="name" className="mb-1.5 block text-xs font-medium text-zinc-300">
               Full Name
             </label>
             <input
@@ -98,19 +88,15 @@ export default function RegisterPage() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              onFocus={() => setNameFocused(true)}
-              onBlur={() => setNameFocused(false)}
               placeholder="Ada Lovelace"
-              className={`w-full h-12 px-4 bg-white/5 border rounded-xl text-white text-sm outline-none transition-all duration-300 placeholder:text-zinc-600 ${
-                nameFocused
-                  ? "border-purple-500/50 bg-white/10 shadow-[0_0_30px_rgba(168,85,247,0.05)]"
-                  : "border-white/10 hover:border-white/20"
-              }`}
+              autoComplete="name"
+              required
+              className="h-11 w-full rounded border border-white/10 bg-[#090c0f] px-3 text-sm text-white outline-none transition focus:border-cyan-200/30 placeholder:text-zinc-600"
             />
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500 mb-1.5">
+            <label htmlFor="email" className="mb-1.5 block text-xs font-medium text-zinc-300">
               Email Address
             </label>
             <input
@@ -118,59 +104,59 @@ export default function RegisterPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              onFocus={() => setEmailFocused(true)}
-              onBlur={() => setEmailFocused(false)}
               placeholder="dev@company.ai"
-              className={`w-full h-12 px-4 bg-white/5 border rounded-xl text-white text-sm outline-none transition-all duration-300 placeholder:text-zinc-600 ${
-                emailFocused
-                  ? "border-purple-500/50 bg-white/10 shadow-[0_0_30px_rgba(168,85,247,0.05)]"
-                  : "border-white/10 hover:border-white/20"
-              }`}
+              autoComplete="email"
+              required
+              className="h-11 w-full rounded border border-white/10 bg-[#090c0f] px-3 text-sm text-white outline-none transition focus:border-cyan-200/30 placeholder:text-zinc-600"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500 mb-1.5">
+            <label htmlFor="password" className="mb-1.5 block text-xs font-medium text-zinc-300">
               Password
             </label>
+            <div className="relative">
             <input
               id="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              onFocus={() => setPasswordFocused(true)}
-              onBlur={() => setPasswordFocused(false)}
-              placeholder="••••••••"
-              className={`w-full h-12 px-4 bg-white/5 border rounded-xl text-white text-sm outline-none transition-all duration-300 placeholder:text-zinc-600 ${
-                passwordFocused
-                  ? "border-purple-500/50 bg-white/10 shadow-[0_0_30px_rgba(168,85,247,0.05)]"
-                  : "border-white/10 hover:border-white/20"
-              }`}
+              placeholder="Create a password"
+              autoComplete="new-password"
+              minLength={8}
+              required
+              className="h-11 w-full rounded border border-white/10 bg-[#090c0f] px-3 pr-11 text-sm text-white outline-none transition focus:border-cyan-200/30 placeholder:text-zinc-600"
             />
+            <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Hide password" : "Show password"} className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-zinc-500 hover:text-white">
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+            </div>
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500 mb-1.5">
+            <label htmlFor="confirmPassword" className="mb-1.5 block text-xs font-medium text-zinc-300">
               Confirm Password
             </label>
+            <div className="relative">
             <input
               id="confirmPassword"
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              onFocus={() => setConfirmFocused(true)}
-              onBlur={() => setConfirmFocused(false)}
-              placeholder="••••••••"
-              className={`w-full h-12 px-4 bg-white/5 border rounded-xl text-white text-sm outline-none transition-all duration-300 placeholder:text-zinc-600 ${
-                confirmFocused
-                  ? "border-purple-500/50 bg-white/10 shadow-[0_0_30px_rgba(168,85,247,0.05)]"
-                  : "border-white/10 hover:border-white/20"
-              }`}
+              placeholder="Re-enter your password"
+              autoComplete="new-password"
+              required
+              className="h-11 w-full rounded border border-white/10 bg-[#090c0f] px-3 pr-11 text-sm text-white outline-none transition focus:border-cyan-200/30 placeholder:text-zinc-600"
             />
+            <button type="button" onClick={() => setShowConfirmPassword((visible) => !visible)} aria-label={showConfirmPassword ? "Hide confirmation password" : "Show confirmation password"} className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-zinc-500 hover:text-white">
+              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+            </div>
           </div>
 
           {error && (
-            <p className="text-xs text-red-400 text-center bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2">
+            <p role="alert" className="flex items-start gap-2 rounded border border-rose-200/15 bg-rose-200/[0.04] px-3 py-2.5 text-sm text-rose-100">
+              <CircleAlert className="mt-0.5 h-4 w-4 shrink-0 text-rose-200" />
               {error}
             </p>
           )}
@@ -178,13 +164,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            onMouseEnter={() => setSignupHovered(true)}
-            onMouseLeave={() => setSignupHovered(false)}
-            className={`w-full h-12 flex items-center justify-center gap-2 rounded-xl font-semibold text-sm transition-all duration-300 ${
-              signupHovered && !loading
-                ? "bg-purple-500 text-white shadow-[0_0_40px_rgba(168,85,247,0.3)] scale-[1.02]"
-                : "bg-purple-500/90 text-white hover:bg-purple-500"
-            } ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
+            className="flex h-11 w-full items-center justify-center gap-2 rounded bg-cyan-300 text-sm font-semibold text-[#071013] transition hover:bg-cyan-200 disabled:cursor-wait disabled:opacity-60"
           >
             {loading ? (
               <div className="flex items-center gap-2">
@@ -193,32 +173,24 @@ export default function RegisterPage() {
               </div>
             ) : (
               <>
-                <FiUserPlus size={18} />
                 Create Account
+                <ArrowRight className="h-4 w-4" />
               </>
             )}
           </button>
         </form>
 
         {/* Footer */}
-        <div className="mt-8 text-center">
-          <p className="text-sm text-zinc-500">
+        <div className="mt-6 border-t border-white/[0.08] pt-5 text-center">
+          <p className="text-sm text-zinc-400">
             Already have an account?{" "}
-            <Link href="/login" className="text-purple-400 hover:text-purple-300 font-medium transition-colors">
+            <Link href="/login" className="font-medium text-cyan-100 transition-colors hover:text-cyan-200">
               Sign in
             </Link>
           </p>
 
-          <div className="mt-4 pt-4 border-t border-white/10">
-            <p className="text-[10px] text-zinc-600 leading-relaxed max-w-xs mx-auto">
-              By continuing, you agree to GitInsight&apos;s{" "}
-              <a href="#" className="text-zinc-400 hover:text-zinc-300 transition-colors">Terms of Service</a>{" "}
-              &amp;{" "}
-              <a href="#" className="text-zinc-400 hover:text-zinc-300 transition-colors">Privacy Policy</a>.
-            </p>
-          </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

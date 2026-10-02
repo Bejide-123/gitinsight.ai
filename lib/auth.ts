@@ -14,6 +14,11 @@ export const authOptions: NextAuthOptions = {
     GitHubProvider({
       clientId: process.env.AUTH_GITHUB_ID!,
       clientSecret: process.env.AUTH_GITHUB_SECRET!,
+      authorization: {
+        params: {
+          scope: "read:user user:email repo",
+        },
+      },
     }),
   ],
 
@@ -21,6 +26,9 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, account, user }) {
       if (account?.provider === "github") {
         token.githubId = account.providerAccountId;
+        if (account.access_token) {
+          token.githubAccessToken = account.access_token;
+        }
       }
 
       if (user?.id) {

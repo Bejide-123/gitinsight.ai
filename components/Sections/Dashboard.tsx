@@ -3,7 +3,7 @@
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { useRef, useState } from "react";
 import Image from "next/image";
-import { Maximize2, Play, Square } from "lucide-react";
+import { Maximize2 } from "lucide-react";
 
 export default function DashboardShowcase() {
   const ref = useRef<HTMLDivElement>(null);
@@ -38,11 +38,10 @@ export default function DashboardShowcase() {
   };
 
   return (
-    <section className="relative py-20 md:py-32 px-4 flex justify-center overflow-hidden">
-
-      {/* glow background */}
-      <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
-        <div className="w-[120vw] max-w-[1100px] h-[420px] bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 blur-[160px] rounded-full" />
+    <section id="product-preview" className="relative flex flex-col items-center overflow-hidden border-b border-white/[0.08] bg-[#07090c] px-4 py-16 sm:px-6 md:py-20">
+      <div className="mb-8 max-w-2xl text-center">
+        <p className="mb-2 text-xs text-cyan-200">Product preview</p>
+        <h2 className="text-2xl font-semibold text-white sm:text-3xl">One report. A clearer engineering picture.</h2>
       </div>
 
       {/* laptop container */}
@@ -63,14 +62,14 @@ export default function DashboardShowcase() {
         whileInView={{ opacity: 1, y: 0, scale: 1 }}
         viewport={{ once: true, amount: 0.3 }}
         transition={{ duration: 0.9 }}
-        className="relative w-[75vw] perspective-[1200px]"
+        className="relative w-full max-w-[1100px] perspective-[1200px]"
       >
 
         {/* L A P T O P   F R A M E */}
         <div className="relative">
 
           {/* screen outer shell */}
-          <div className="bg-gradient-to-b from-[#0a0a0a] to-[#050505] border border-white/10 rounded-2xl p-3 shadow-2xl shadow-black/50">
+          <div className="rounded-lg border border-white/10 bg-[#0d1115] p-2 shadow-2xl shadow-black/30 sm:p-3">
 
             {/* top bezel with camera */}
             <div className="flex items-center justify-between px-3 py-2">
@@ -81,7 +80,7 @@ export default function DashboardShowcase() {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-white/10 border border-white/5" />
-                <span className="text-[8px] tracking-[0.2em] uppercase text-white/20">GitInsight AI</span>
+                <span className="text-[10px] text-zinc-500">GitInsight report</span>
               </div>
               <div className="flex items-center gap-2">
                 <Maximize2 className="w-3 h-3 text-white/20 hover:text-white/40 transition-colors cursor-pointer" />
@@ -89,7 +88,7 @@ export default function DashboardShowcase() {
             </div>
 
             {/* screen */}
-            <div className="bg-[#0e0e0e] border border-white/5 rounded-xl overflow-hidden relative">
+            <div className="relative overflow-hidden rounded-md border border-white/[0.08] bg-[#07090c]">
               <Image
                 src='/real-analysis.png'
                 alt="dashboard-screenshot"
@@ -100,18 +99,15 @@ export default function DashboardShowcase() {
                 className="w-full h-auto"
               />
               {/* Screen glare overlay */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
+              <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/[0.04]" />
             </div>
           </div>
 
           {/* laptop base - improved */}
-          <div className="relative mx-auto w-[85%] h-6 bg-gradient-to-b from-[#0a0a0a] to-[#080808] border-x border-b border-white/10 rounded-b-2xl shadow-2xl shadow-black/80" />
+          <div className="relative mx-auto h-4 w-[85%] rounded-b-lg border-x border-b border-white/10 bg-[#101418]" />
           
           {/* Keyboard indicator */}
-          <div className="relative mx-auto w-[65%] h-0.5 bg-white/5 rounded-full mt-0.5" />
-
-          {/* reflection glow */}
-          <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-[70%] h-[80px] bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 blur-3xl rounded-full" />
+          <div className="relative mx-auto mt-1 h-0.5 w-[65%] rounded-full bg-white/[0.06]" />
         </div>
       </motion.div>
     </section>

@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { signIn } from "next-auth/react";
 import { FaGithub } from "react-icons/fa";
 import { useState } from "react";
 import { ArrowRight, Check, LayoutDashboard, LoaderCircle, Plus } from "lucide-react";
+import { startGitHubConnection } from "@/services/github-auth";
 import type { DashboardUser } from "@/types/dashboard";
 
 interface DashboardHeroProps {
@@ -25,13 +25,10 @@ export function DashboardHero({ user }: DashboardHeroProps) {
   const handleConnectGitHub = async () => {
     setIsConnecting(true);
     setConnectError(null);
-    const secure = window.location.protocol === "https:" ? "; Secure" : "";
-    document.cookie = `github_connect_intent=1; path=/; max-age=300; SameSite=Lax${secure}`;
 
     try {
-      await signIn("github", { callbackUrl: "/dashboard?github=connected" });
+      await startGitHubConnection();
     } catch {
-      document.cookie = `github_connect_intent=; path=/; max-age=0; SameSite=Lax${secure}`;
       setConnectError("Could not start GitHub connection. Please try again.");
       setIsConnecting(false);
     }

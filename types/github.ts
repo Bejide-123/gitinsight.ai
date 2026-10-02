@@ -43,7 +43,22 @@ export interface GitHubRepoData {
   metadata: GitHubRepo;
   fileTree: FileTreeItem[];
   readme: string | null;
-  packageJson: any | null; // Paths of files selected for analysis
+  packageJson: Record<string, unknown> | null;
   fileTreeStructure?: FileTreeNode[];
   selectedFilesCount?: number;
+}
+
+export interface DashboardGitHubRepository {
+  id: number;
+  name: string;
+  fullName: string;
+  owner: string;
+  htmlUrl: string;
+  description: string | null;
+  isPrivate: boolean;
+  language: string | null;
+  updatedAt: string;
+  stars: number;
+  forks: number;
+  defaultBranch: string;
 }

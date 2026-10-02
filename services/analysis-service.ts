@@ -1,4 +1,5 @@
 import { fetchRepositoryWithCode } from "./github-service";
+import { createGitHubClient } from "@/lib/github";
 import { detectProjectIntent } from "./projectIntent-service";
 import { analyzeSecurityIssues } from "./securityAnalyser-service";
 import {
@@ -202,13 +203,23 @@ function extractTechStack(packageJson: Record<string, unknown> | null): string[]
 // MAIN ANALYSIS ORCHESTRATOR
 // ============================================================
 
-export async function analyzeRepository(repoUrl: string): Promise<Analysis> {
+export async function analyzeRepository(
+  repoUrl: string,
+  githubAccessToken?: string,
+): Promise<Analysis> {
   console.log("Starting analyzeRepository for URL:", repoUrl);
 
   try {
     // ── STEP 1: Fetch repository data ──────────────────────────
     console.log("📥 Fetching repository data...");
-    const repoData = await fetchRepositoryWithCode(repoUrl);
+    const fetchedRepoData = await fetchRepositoryWithCode(
+      repoUrl,
+      createGitHubClient(githubAccessToken),
+    );
+    const repoData = {
+      ...fetchedRepoData,
+      packageJson: fetchedRepoData.packageJson ?? {},
+    };
     console.log("✅ Fetched:", repoData.metadata?.full_name);
     console.log("✅ Code files:", Object.keys(repoData.codeFiles).length);
 
@@ -232,7 +243,10 @@ export async function analyzeRepository(repoUrl: string): Promise<Analysis> {
       maintainabilityResult,
       readinessResult,
     ] = await Promise.all([
-      Promise.resolve(analyzeSecurityIssues(repoData.codeFiles, repoData.packageJson)),
+      Promise.resolve(analyzeSecurityIssues(repoData.codeFiles, {
+        ...((repoData.packageJson.dependencies as Record<string, string>) ?? {}),
+        ...((repoData.packageJson.devDependencies as Record<string, string>) ?? {}),
+      })),
       Promise.resolve(analyzeArchitectureIssues(repoData.codeFiles, repoData.fileTree)),
       Promise.resolve(analyzeTesting(repoData.fileTree)),
       Promise.resolve(analyzeCompleteness(repoData.codeFiles, repoData.fileTree, repoData.packageJson)),

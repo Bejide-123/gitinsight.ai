@@ -29,7 +29,7 @@ export default function AnalysisWrapper({
 
   if (isError) {
     return (
-      <ChatContent chatId={chatId} isLoading={isPending}>
+      <ChatContent isLoading={isPending}>
         <div className="flex items-center justify-center h-full text-red-500">
           Error: {error?.message || "Failed to analyze repository."}
         </div>
@@ -40,7 +40,6 @@ export default function AnalysisWrapper({
   if (analysisData?.data) {
     return (
       <ChatContent
-        chatId={analysisData.chatId || chatId}
         isLoading={isPending}
       >
         <AnalysisResult

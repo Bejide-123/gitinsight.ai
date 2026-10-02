@@ -40,7 +40,7 @@ export default async function ChatPage({
   return (
     <section className="hide-scrollbar relative flex h-full flex-col overflow-hidden">
       <p className="hidden text-sm text-zinc-500">Chat ID: {id}</p>
-      <ChatContent chatId={id} initialMessages={chat.messages} />
+      <ChatContent initialMessages={chat.messages} />
     </section>
   );
 }

@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 import { analyzeRepository } from "@/services/analysis-service";
 import { analyzeRepoSchema } from "@/lib/validation";
 import { getJwtSecret } from "@/lib/env";
@@ -49,8 +50,20 @@ export async function POST(request: Request) {
       );
     }
 
-    // Run the analysis
-    const analysisResult = await analyzeRepository(validated.repoUrl);
+    const nextAuthToken = request instanceof NextRequest
+      ? await getToken({
+          req: request,
+          secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+        })
+      : null;
+    const githubAccessToken =
+      nextAuthToken && String(nextAuthToken.userId) === userId &&
+      typeof nextAuthToken.githubAccessToken === "string"
+        ? nextAuthToken.githubAccessToken
+        : undefined;
+
+    // Use the connected user's GitHub permissions for private repositories.
+    const analysisResult = await analyzeRepository(validated.repoUrl, githubAccessToken);
 
     await dbConnect();
 

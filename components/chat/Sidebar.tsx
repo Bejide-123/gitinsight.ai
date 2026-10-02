@@ -30,7 +30,7 @@ interface SidebarItemProps {
   onClick?: () => void;
   isOpen: boolean;
   className?: string;
-  variant?: "default" | "primary" | "gradient";
+  variant?: "default" | "primary";
   showBadge?: boolean;
   badgeText?: string;
 }
@@ -46,7 +46,7 @@ const SidebarItem = ({
   showBadge = false,
   badgeText = "NEW"
 }: SidebarItemProps) => {
-  const isPrimary = variant === "primary" || variant === "gradient";
+  const isPrimary = variant === "primary";
   
   return (
     <motion.button
@@ -54,30 +54,18 @@ const SidebarItem = ({
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
       className={cn(
-        "w-full flex items-center rounded-lg transition-all duration-300 relative overflow-hidden group",
-        isOpen ? "px-5 py-2.5 gap-3 justify-start" : "px-2 py-3 justify-center",
-        variant === "gradient" && "bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 text-black hover:shadow-[0_0_40px_rgba(34,211,238,0.3)] border border-white/20",
-        variant === "primary" && "bg-white text-black hover:bg-white/95 shadow-lg shadow-white/20 hover:shadow-white/30 hover:scale-[1.02]",
+        "group relative flex w-full items-center overflow-hidden rounded-md transition-colors duration-150",
+        isOpen ? "justify-start gap-3 px-3 py-2.5" : "justify-center px-2 py-3",
+        variant === "primary" && "bg-cyan-300 text-[#071013] hover:bg-cyan-200",
         variant === "default" && (active
-          ? "bg-white/10 text-white shadow-[0_0_20px_rgba(255,255,255,0.05)]"
-          : "text-zinc-400 hover:text-white hover:bg-white/5"),
+          ? "bg-white/[0.07] text-white"
+          : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"),
         className
       )}
     >
-      {/* Shine effect for gradient variant */}
-      {variant === "gradient" && (
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-      )}
-      
-      {/* Glow effect for primary variant */}
-      {variant === "primary" && (
-        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      )}
-      
       <Icon className={cn(
-        "w-5 h-5 flex-shrink-0 relative z-10",
+        "relative z-10 h-4 w-4 shrink-0",
         isPrimary ? "text-black" : active ? "text-cyan-400" : "",
-        variant === "gradient" && "drop-shadow-sm"
       )} />
       
       <AnimatePresence mode="wait">
@@ -88,9 +76,8 @@ const SidebarItem = ({
             exit={{ opacity: 0, width: 0 }}
             transition={{ duration: 0.2 }}
             className={cn(
-              "text-sm font-medium whitespace-nowrap overflow-hidden relative z-10",
+              "relative z-10 overflow-hidden whitespace-nowrap text-sm font-medium",
               isPrimary ? "text-black font-bold" : "",
-              variant === "gradient" && "drop-shadow-sm"
             )}
           >
             {label}
@@ -102,12 +89,12 @@ const SidebarItem = ({
       {active && isOpen && variant === "default" && (
         <motion.div
           layoutId="sidebar-indicator"
-          className="ml-auto w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.4)]"
+          className="ml-auto h-1.5 w-1.5 rounded-full bg-cyan-300"
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
         />
       )}
       
-      {/* Badge for primary/gradient variants */}
+      {/* Badge for primary items */}
       {showBadge && isOpen && isPrimary && (
         <motion.div
           className="ml-auto flex items-center gap-1.5 relative z-10"
@@ -117,9 +104,7 @@ const SidebarItem = ({
         >
           <span className={cn(
             "text-[9px] font-bold px-2 py-0.5 rounded-full",
-            variant === "gradient" 
-              ? "bg-white/30 text-black backdrop-blur-sm" 
-              : "bg-black/10 text-black"
+            "bg-black/10 text-black"
           )}>
             {badgeText}
           </span>
@@ -209,17 +194,17 @@ export default function Sidebar() {
 
   // Score color — mirrors your maturity level logic
   const scoreColor = (score: number) => {
-    if (score >= 80) return "text-emerald-400 bg-emerald-400/10";
-    if (score >= 60) return "text-cyan-400 bg-cyan-400/10";
-    if (score >= 40) return "text-amber-400 bg-amber-400/10";
-    return "text-red-400 bg-red-400/10";
+    if (score >= 80) return "text-emerald-200 border-emerald-200/15 bg-emerald-200/[0.05]";
+    if (score >= 60) return "text-cyan-100 border-cyan-100/15 bg-cyan-100/[0.05]";
+    if (score >= 40) return "text-amber-100 border-amber-100/15 bg-amber-100/[0.05]";
+    return "text-rose-200 border-rose-200/15 bg-rose-200/[0.05]";
   };
 
   const barColor = (score: number) => {
-    if (score >= 80) return "from-emerald-400 to-green-400";
-    if (score >= 60) return "from-cyan-400 to-blue-400";
-    if (score >= 40) return "from-amber-400 to-orange-400";
-    return "from-red-400 to-red-500";
+    if (score >= 80) return "bg-emerald-300";
+    if (score >= 60) return "bg-cyan-300";
+    if (score >= 40) return "bg-amber-300";
+    return "bg-rose-300";
   };
 
   // Handle logo click - toggle sidebar when collapsed, navigate home when expanded
@@ -248,18 +233,18 @@ export default function Sidebar() {
       {/* Sidebar */}
       <motion.aside
         animate={{
-          width: isOpen ? 320 : 72,
+          width: isOpen ? 280 : 72,
         }}
         transition={{
           duration: 0.3,
           ease: "easeInOut",
         }}
-        className="fixed inset-y-0 left-0 overflow-hidden bg-gradient-to-b from-[#050505] to-[#0a0a0a] border-r border-white/10 flex flex-col text-white shadow-2xl shadow-black/50 z-50"
+        className="fixed inset-y-0 left-0 z-50 flex flex-col overflow-hidden border-r border-white/[0.08] bg-[#090c0f] text-white shadow-xl shadow-black/20"
       >
         {/* LOGO - Clickable to toggle/collapse */}
         <motion.div
           className={cn(
-            "flex items-center h-16 mb-4 cursor-pointer flex-shrink-0",
+            "mb-3 flex h-16 shrink-0 cursor-pointer items-center border-b border-white/[0.08]",
             isOpen ? "px-4 justify-between" : "px-2 justify-center"
           )}
           onClick={handleLogoClick}
@@ -267,10 +252,9 @@ export default function Sidebar() {
           whileTap={{ scale: 0.98 }}
         >
           <div className="flex items-center gap-3">
-            <div className="relative flex-shrink-0">
-              <div className="absolute inset-0 bg-cyan-400/20 blur-xl rounded-lg group-hover:bg-cyan-400/30 transition-all duration-500" />
-              <div className="relative w-10 h-10 bg-gradient-to-br from-white to-white/90 rounded-xl flex items-center justify-center shadow-lg shadow-white/10 group-hover:shadow-white/20 transition-all duration-300">
-                <Terminal className="w-5 h-5 text-black" />
+            <div className="relative shrink-0">
+              <div className="relative flex h-9 w-9 items-center justify-center rounded border border-cyan-200/15 bg-cyan-200/[0.06]">
+                <Terminal className="h-4 w-4 text-cyan-100" />
               </div>
             </div>
             
@@ -283,11 +267,11 @@ export default function Sidebar() {
                   transition={{ duration: 0.2 }}
                   className="overflow-hidden"
                 >
-                  <h1 className="text-lg font-bold tracking-tight bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent whitespace-nowrap">
+                  <h1 className="whitespace-nowrap text-sm font-semibold text-white">
                     GitInsight
                   </h1>
-                  <p className="text-[9px] text-zinc-500 uppercase tracking-[0.2em] font-semibold whitespace-nowrap">
-                    Intelligence Platform
+                  <p className="whitespace-nowrap text-[10px] text-zinc-500">
+                    Engineering workspace
                   </p>
                 </motion.div>
               )}
@@ -303,7 +287,8 @@ export default function Sidebar() {
                 e.stopPropagation();
                 setIsOpen(false);
               }}
-              className="p-1.5 rounded-lg hover:bg-white/5 text-zinc-400 hover:text-white transition-all duration-300 flex-shrink-0"
+              aria-label="Collapse sidebar"
+              className="shrink-0 rounded-md p-1.5 text-zinc-500 transition hover:bg-white/[0.05] hover:text-white"
             >
               <ChevronLeft className="w-4 h-4" />
             </motion.button>
@@ -314,7 +299,7 @@ export default function Sidebar() {
         <div className="flex-1 flex flex-col overflow-y-auto min-h-0">
           <div className={cn(
             "space-y-1",
-            isOpen ? "px-2" : "px-1"
+            isOpen ? "px-3" : "px-2"
           )}>
             <SidebarItem
               icon={LayoutDashboard}
@@ -354,12 +339,12 @@ export default function Sidebar() {
                 className="mt-8 overflow-hidden flex-shrink-0"
               >
                 <div className="flex items-center justify-between px-2 pb-3">
-                  <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] font-semibold">
+                  <p className="text-[10px] font-medium text-zinc-500">
                     Recent Repositories
                   </p>
                   <button
                     onClick={() => router.push("/history")}
-                    className="text-[9px] text-zinc-600 hover:text-zinc-400 cursor-pointer transition-colors"
+                    className="cursor-pointer text-[10px] text-zinc-500 transition-colors hover:text-zinc-200"
                   >
                     View All
                   </button>
@@ -373,11 +358,11 @@ export default function Sidebar() {
                     </>
                   ) : recentRepos.length === 0 ? (
                     <div className="px-5 py-4 text-center">
-                      <p className="text-[11px] text-zinc-600 leading-relaxed">
+                      <p className="text-[11px] leading-relaxed text-zinc-500">
                         No analyses yet.{" "}
                         <button
                           onClick={() => router.push("/chat")}
-                          className="text-cyan-500 hover:text-cyan-400 transition-colors"
+                          className="text-cyan-200 transition-colors hover:text-cyan-100"
                         >
                           Start your first one.
                         </button>
@@ -398,26 +383,26 @@ export default function Sidebar() {
                           onClick={() => handleRepoClick(repo._id, repo.repoName, repo.repoUrl)}
                           disabled={isLoadingItem}
                           className={cn(
-                            "w-full text-left px-5 py-3 rounded-lg transition-all duration-300",
+                            "w-full rounded-md border border-transparent px-3 py-2.5 text-left transition",
                             isFirst
-                              ? "bg-gradient-to-r from-cyan-500/10 to-transparent border-l-2 border-cyan-400 hover:bg-white/5"
-                              : "hover:bg-white/5",
-                            isLoadingItem ? "opacity-50 cursor-wait" : ""
+                              ? "border-white/[0.08] bg-white/[0.03] hover:border-cyan-200/20"
+                              : "hover:bg-white/[0.04]",
+                            isLoadingItem ? "cursor-wait opacity-50" : ""
                           )}
                         >
                           <div className="flex items-center justify-between mb-1.5">
                             <span className={cn(
-                              "text-xs font-mono flex items-center gap-2 truncate",
-                              isFirst ? "text-white/90" : "text-white/70"
+                              "flex items-center gap-2 truncate text-xs",
+                              isFirst ? "text-white" : "text-zinc-300"
                             )}>
                               <GitBranch className={cn(
-                                "w-3 h-3 flex-shrink-0",
-                                isFirst ? "text-cyan-400" : "text-zinc-500"
+                                "h-3 w-3 shrink-0",
+                                isFirst ? "text-cyan-200" : "text-zinc-500"
                               )} />
                               <span className="truncate">{repo.repoName}</span>
                             </span>
                             <span className={cn(
-                              "text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ml-2",
+                              "ml-2 shrink-0 rounded border border-white/10 px-1.5 py-0.5 text-[10px] font-medium",
                               color
                             )}>
                               {repo.maturityScore}/100
@@ -430,10 +415,7 @@ export default function Sidebar() {
                                 initial={{ width: 0 }}
                                 animate={{ width: progressWidth(repo.maturityScore) }}
                                 transition={{ duration: 1, delay: index * 0.1 }}
-                                className={cn(
-                                  "h-full bg-gradient-to-r rounded-full",
-                                  bar
-                                )}
+                                className={cn("h-full rounded-full", bar)}
                               />
                             </div>
                             {isFirst && !isLoadingItem && <TrendingUp className="w-3 h-3 text-emerald-400 flex-shrink-0" />}
@@ -484,7 +466,7 @@ export default function Sidebar() {
         </div>
 
         {/* FOOTER - Always visible with consistent positioning */}
-        <div className="flex-shrink-0 pt-6 border-t border-white/5">
+        <div className="shrink-0 border-t border-white/[0.08] pt-4">
           {isOpen ? (
             <motion.div
               initial={{ opacity: 0 }}
@@ -493,25 +475,22 @@ export default function Sidebar() {
               transition={{ duration: 0.2 }}
               className="space-y-4"
             >
-              <div className="px-4">
-                <div className="relative p-4 bg-gradient-to-br from-zinc-900/50 to-black/50 border border-white/10 rounded-xl overflow-hidden group cursor-pointer">
-                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <div className="relative">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Zap className="w-4 h-4 text-amber-400" />
-                      <span className="text-xs font-semibold text-white/90">Unlock Full Potential</span>
-                    </div>
-                    <p className="text-[11px] text-zinc-400 mb-3 leading-relaxed">
-                      Unlimited private repo scans &amp; advanced AI insights
-                    </p>
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full py-2.5 bg-gradient-to-r from-white to-white/90 text-black text-xs font-bold rounded-lg shadow-lg hover:shadow-white/20 transition-all duration-300"
-                    >
-                      Upgrade to Pro
-                    </motion.button>
+              <div className="px-3">
+                <div className="rounded-md border border-white/[0.08] bg-white/[0.025] p-3">
+                  <div className="mb-2 flex items-center gap-2">
+                    <Zap className="h-3.5 w-3.5 text-cyan-200" />
+                    <span className="text-xs font-medium text-zinc-200">Repository insights</span>
                   </div>
+                  <p className="mb-3 text-[11px] leading-4 text-zinc-500">
+                    Review your latest engineering reports.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => router.push("/dashboard")}
+                    className="w-full rounded border border-white/10 px-2.5 py-2 text-xs font-medium text-zinc-200 transition hover:border-cyan-200/20 hover:bg-white/[0.04]"
+                  >
+                    Open dashboard
+                  </button>
                 </div>
               </div>
 
@@ -526,7 +505,7 @@ export default function Sidebar() {
                     whileHover={{ y: -2, scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => router.push(item.path)}
-                    className="text-zinc-500 hover:text-white transition-all duration-300 p-2 rounded-lg hover:bg-white/5"
+                    className="rounded-md p-2 text-zinc-500 transition hover:bg-white/[0.04] hover:text-white"
                     title={item.label}
                   >
                     <item.icon className="w-5 h-5" />
@@ -552,7 +531,7 @@ export default function Sidebar() {
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => router.push(item.path)}
-                  className="text-zinc-500 hover:text-white transition-all duration-300 p-2 rounded-lg hover:bg-white/5"
+                  className="rounded-md p-2 text-zinc-500 transition hover:bg-white/[0.04] hover:text-white"
                   title={item.label}
                 >
                   <item.icon className="w-5 h-5" />

@@ -292,6 +292,37 @@ Rules:
 // MAIN FUNCTION
 // ============================================================
 
+const MAX_GEMINI_ATTEMPTS = 3;
+const RETRYABLE_GEMINI_STATUSES = new Set([429, 500, 502, 503, 504]);
+
+function isRetryableGeminiError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+
+  const status = "status" in error ? Number(error.status) : undefined;
+  if (status !== undefined && RETRYABLE_GEMINI_STATUSES.has(status)) return true;
+
+  return "name" in error && error.name === "TypeError";
+}
+
+async function generateWithRetry<T>(generate: () => Promise<T>): Promise<T> {
+  for (let attempt = 0; attempt < MAX_GEMINI_ATTEMPTS; attempt++) {
+    try {
+      return await generate();
+    } catch (error) {
+      const isLastAttempt = attempt === MAX_GEMINI_ATTEMPTS - 1;
+      if (isLastAttempt || !isRetryableGeminiError(error)) throw error;
+
+      const delayMs = 500 * 2 ** attempt + Math.floor(Math.random() * 250);
+      console.warn(
+        `Gemini request temporarily failed; retrying (${attempt + 2}/${MAX_GEMINI_ATTEMPTS}) in ${delayMs}ms.`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+
+  throw new Error("Gemini request did not complete.");
+}
+
 export async function generateAIInsights(
   input: AIAnalysisInput
 ): Promise<AIAnalysisOutput> {
@@ -299,7 +330,7 @@ export async function generateAIInsights(
 
   try {
     const geminiModel = getGeminiModel();
-    const result = await geminiModel.generateContent(prompt);
+    const result = await generateWithRetry(() => geminiModel.generateContent(prompt));
     const text = result.response.text();
 
     // Strip markdown code fences if present
@@ -316,8 +347,7 @@ export async function generateAIInsights(
       return buildFallback(input);
     }
   } catch (error) {
-    console.error("Gemini AI error:", error);
-    // Return safe fallback so analysis doesn't break
+    console.warn("Gemini AI unavailable after retries; using fallback insights.", error);
     return buildFallback(input);
   }
 }
