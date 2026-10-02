@@ -12,13 +12,11 @@ import {
 } from "lucide-react";
 
 // Base Components
-interface GlassPanelProps {
-  children: React.ReactNode;
-  className?: string;
-}
+type GlassPanelProps = React.HTMLAttributes<HTMLDivElement>;
 
-const GlassPanel: React.FC<GlassPanelProps> = ({ children, className = "" }) => (
+const GlassPanel: React.FC<GlassPanelProps> = ({ children, className = "", ...props }) => (
   <div
+    {...props}
     className={`relative w-full overflow-hidden rounded-lg border border-white/[0.1] bg-[#0d1115] p-6 shadow-2xl shadow-black/40 ${className}`}
   >
     {children}
