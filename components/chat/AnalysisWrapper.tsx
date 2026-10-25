@@ -38,9 +38,13 @@ export default function AnalysisWrapper({
   }
 
   if (analysisData?.data) {
+    const activeChatId = analysisData.chatId || analysisData.reportId || chatId;
+
     return (
       <ChatContent
         isLoading={isPending}
+        chatId={activeChatId}
+        suggestedQuestions={analysisData.suggestedQuestions}
       >
         <AnalysisResult
           analysis={analysisData.data}
@@ -58,5 +62,3 @@ export default function AnalysisWrapper({
 
   return null;
 }
-
-

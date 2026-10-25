@@ -18,7 +18,7 @@ interface AnalysisResultsProps {
 
 export default function AnalysisResults({ 
   analysis, 
-  reportId,
+  reportId, 
   onRefresh 
 }: AnalysisResultsProps) {
   const isReady = analysis.isProductionReady;
@@ -134,7 +134,11 @@ export default function AnalysisResults({
       {/* Grid */}
       <div className="grid grid-cols-12 gap-4">
         <HealthScoreCard score={analysis.maturityScore} level={analysis.level} />
-        <PerformanceMetrics categoryScores={analysis.categoryScores} />
+        <PerformanceMetrics
+          categoryScores={analysis.categoryScores}
+          dangerousIssues={analysis.dangerousIssues}
+          missingImprovements={analysis.missingImprovements}
+        />
         <IdentifiedGaps
           dangerousIssues={analysis.dangerousIssues}
           missingImprovements={analysis.missingImprovements}

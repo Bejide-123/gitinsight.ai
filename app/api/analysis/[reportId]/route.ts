@@ -100,7 +100,7 @@ export async function GET(
       report: reportId,
       userId: user.id,
     })
-      .select("_id messages")
+      .select("_id messages suggestedQuestions")
       .lean();
 
     const analysis = transformToAnalysis(report);
@@ -112,6 +112,7 @@ export async function GET(
         ? {
             _id: (chat as any)._id.toString(),
             messages: (chat as any).messages || [],
+            suggestedQuestions: (chat as any).suggestedQuestions || [],
           }
         : null,
     });

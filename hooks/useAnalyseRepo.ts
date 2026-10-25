@@ -6,6 +6,7 @@ interface AnalyzeRepoResponse {
   data?: Analysis;
   reportId?: string;
   chatId?: string;
+  suggestedQuestions?: string[];
   csrfToken?: string; // New token from server
   error?: string;
 }
@@ -73,4 +74,3 @@ export function useRepositoryAnalysis(repoUrl: string | null) {
     enabled: !!repoUrl, // The query will not run until the repoUrl is available
   });
 }
-
