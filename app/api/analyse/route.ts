@@ -8,6 +8,7 @@ import dbConnect from "@/lib/db";
 import Report from "@/models/Report";
 import Chat from "@/models/Chat";
 import jwt from "jsonwebtoken";
+import { generateInitialRecommendedQuestions } from "@/services/chat-service";
 
 export async function POST(request: Request) {
   try {
@@ -92,6 +93,8 @@ export async function POST(request: Request) {
 
     // ── Upsert chat ────────────────────────────────────────────
     // Same logic — one chat per user + report, not a new one every run.
+    const initialSuggestions = generateInitialRecommendedQuestions(analysisResult);
+
     const chat = await Chat.findOneAndUpdate(
       {
         userId,
@@ -101,6 +104,10 @@ export async function POST(request: Request) {
         $set: {
           userId,
           report: report._id,
+          repositoryFullName: analysisResult.repoName,
+          title: `Discussion for ${analysisResult.repoName}`,
+          suggestedQuestions: initialSuggestions,
+          updatedAt: new Date(),
         },
         // Only push the assistant message if the chat is brand new —
         // $setOnInsert runs only on the insert path, not on updates.
@@ -108,7 +115,8 @@ export async function POST(request: Request) {
           messages: [
             {
               role: "assistant",
-              content: "Analysis complete. Here is your report.",
+              content: "Analysis complete. Here is your report. You can ask questions about findings, code architecture, or remediation steps below.",
+              suggestedFollowUps: initialSuggestions,
             },
           ],
         },
@@ -129,6 +137,7 @@ export async function POST(request: Request) {
       data: analysisResult,
       reportId: report._id,
       chatId: chat._id,
+      suggestedQuestions: initialSuggestions,
       userId,
     });
   } catch (error: unknown) {

@@ -16,6 +16,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { FaGithub } from "react-icons/fa";
+import { GitHubRepositories } from "../dashboard/GitHubRepositories"
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 
 type ExampleCard = {
   title: string;
@@ -48,6 +50,7 @@ const examples: ExampleCard[] = [
 ];
 
 export default function EmptyChatHero() {
+  const { user } = useDashboardStats();
   const [repoUrl, setRepoUrl] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [inputError, setInputError] = useState<string | null>(null);
@@ -180,6 +183,7 @@ export default function EmptyChatHero() {
         {inputError && <p role="alert" className="mt-2 text-sm text-rose-300">{inputError}</p>}
       </motion.div>
 
+      <GitHubRepositories connected={user.githubConnected} />
       {/* EXAMPLE CARDS */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
