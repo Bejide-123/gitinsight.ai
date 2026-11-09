@@ -46,6 +46,11 @@ export interface GitHubRepoData {
   packageJson: Record<string, unknown> | null;
   fileTreeStructure?: FileTreeNode[];
   selectedFilesCount?: number;
+  commitSha?: string;
+  commitMessage?: string;
+  branch?: string;
+  commitAuthor?: string;
+  commitDate?: string;
 }
 
 export interface DashboardGitHubRepository {

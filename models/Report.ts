@@ -4,6 +4,31 @@ import { CategoryScoreSchema } from "./CategoryScore";
 import { IssueSchema } from "./Issue";
 import { AIInsightsDataSchema } from "./AIInsightsData";
 
+const AnalysisRunSchema = new Schema(
+  {
+    runId: { type: String, required: true },
+    commitSha: { type: String },
+    commitMessage: { type: String },
+    branch: { type: String },
+    commitAuthor: { type: String },
+    commitDate: { type: Date },
+    analyzedAt: { type: Date, default: Date.now },
+    maturityScore: { type: Number, required: true },
+    level: { type: String, required: true },
+    isProductionReady: { type: Boolean, required: true },
+    techStack: [{ type: String }],
+    categoryScores: { type: Schema.Types.Mixed },
+    dangerousIssues: [IssueSchema],
+    missingImprovements: [IssueSchema],
+    criticalBlockers: [{ type: String }],
+    nextSteps: [{ type: String }],
+    strengths: [{ type: String }],
+    selectedFilesCount: { type: Number },
+    projectContext: ProjectContextSchema,
+  },
+  { _id: false }
+);
+
 const ReportSchema = new Schema({
   userId: {
     type: Schema.Types.ObjectId,
@@ -12,6 +37,11 @@ const ReportSchema = new Schema({
   },
   repoUrl: { type: String, required: true },
   repoName: { type: String, required: true },
+  commitSha: { type: String },
+  commitMessage: { type: String },
+  branch: { type: String },
+  commitAuthor: { type: String },
+  commitDate: { type: Date },
   analyzedAt: { type: Date, default: Date.now },
   projectContext: ProjectContextSchema,
   maturityScore: { type: Number, required: true },
@@ -40,6 +70,7 @@ const ReportSchema = new Schema({
   criticalBlockers: [{ type: String }],
   nextSteps: [{ type: String }],
   aiInsights: AIInsightsDataSchema,
+  runs: [AnalysisRunSchema],
 });
 
 const Report = models.Report || model("Report", ReportSchema);

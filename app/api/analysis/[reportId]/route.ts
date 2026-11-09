@@ -13,6 +13,12 @@ function transformToAnalysis(report: any): Analysis {
     repoUrl: report.repoUrl || "",
     repoName: report.repoName || "",
     analyzedAt: report.analyzedAt || report.createdAt || new Date(),
+    commitSha: report.commitSha,
+    commitMessage: report.commitMessage,
+    branch: report.branch,
+    commitAuthor: report.commitAuthor,
+    commitDate: report.commitDate,
+    runs: report.runs || [],
     projectContext: report.projectContext || {
       intent: "portfolio" as const,
       confidence: 0,

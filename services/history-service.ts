@@ -21,6 +21,12 @@ export interface HistoryReport {
   maturityScore: number;
   level: string;
   analyzedAt: string;
+  commitSha?: string;
+  commitMessage?: string;
+  branch?: string;
+  commitAuthor?: string;
+  commitDate?: string;
+  runs?: any[];
   techStack?: string[];
   projectContext: {
     intent: string;

@@ -24,6 +24,7 @@ import ProductionReadiness from "@/components/report/ProductionReadiness";
 import EvolutionRoadmap from "@/components/report/EvolutionRoadmap";
 import AIInsights from "@/components/report/AiInsights";
 import ReportActions from "@/components/report/Reportactions";
+import ComparisonDeltaBanner from "@/components/analysis/ComparisonDeltaBanner";
 import type { Analysis } from "@/types/analysis";
 
 // ---------------------------------------------------------------------------
@@ -182,6 +183,16 @@ export default async function ReportPage({ params, searchParams }: ReportPagePro
             stars={stars ? parseInt(stars) : undefined}
             forks={forks ? parseInt(forks) : undefined}
             language={language}
+          />
+
+          {/* Historical Comparison & Commit Banner */}
+          <ComparisonDeltaBanner
+            reportId={id}
+            commitSha={analysis.commitSha}
+            commitMessage={analysis.commitMessage}
+            branch={analysis.branch}
+            analyzedAt={analysis.analyzedAt}
+            maturityScore={analysis.maturityScore}
           />
 
           {/* Repo metadata bar */}

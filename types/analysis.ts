@@ -97,6 +97,12 @@ export interface Analysis {
   repoUrl: string;
   repoName: string;
   analyzedAt: Date;
+  commitSha?: string;
+  commitMessage?: string;
+  branch?: string;
+  commitAuthor?: string;
+  commitDate?: Date | string;
+  runs?: any[];
 
   // ===== Project Context =====
   projectContext: ProjectContext;

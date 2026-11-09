@@ -62,6 +62,95 @@ export async function fetchRepository(
 // FETCH FILE TREE
 // ============================================================
 
+export interface CommitInfo {
+  sha: string;
+  shortSha: string;
+  message?: string;
+  author?: string;
+  date?: string;
+  branch?: string;
+}
+
+export async function fetchFileTreeWithCommit(
+  owner: string,
+  repo: string,
+  branch: string = "main",
+  client: typeof octokit = octokit
+): Promise<{ tree: FileTreeItem[]; commitInfo: CommitInfo }> {
+  try {
+    let commitSha: string;
+    let branchName = branch;
+    let commitMessage: string | undefined;
+    let commitAuthor: string | undefined;
+    let commitDate: string | undefined;
+
+    try {
+      const { data: branchData } = await client.repos.getBranch({
+        owner,
+        repo,
+        branch,
+      });
+      commitSha = branchData.commit.sha;
+      branchName = branchData.name || branch;
+      commitMessage = branchData.commit.commit.message;
+      commitAuthor = branchData.commit.commit.author?.name;
+      commitDate = branchData.commit.commit.author?.date;
+    } catch (error: unknown) {
+      if (branch === "main") {
+        console.warn("Main branch not found, trying master...");
+        const { data: branchData } = await client.repos.getBranch({
+          owner,
+          repo,
+          branch: "master",
+        });
+        commitSha = branchData.commit.sha;
+        branchName = "master";
+        commitMessage = branchData.commit.commit.message;
+        commitAuthor = branchData.commit.commit.author?.name;
+        commitDate = branchData.commit.commit.author?.date;
+      } else {
+        throw error;
+      }
+    }
+
+    const { data } = await client.git.getTree({
+      owner,
+      repo,
+      tree_sha: commitSha,
+      recursive: "1",
+    });
+
+    const tree = data.tree as FileTreeItem[];
+
+    if (tree.length > MAX_TREE_ITEMS) {
+      throw new Error(
+        `Repository is too large for automated analysis (${tree.length} items). Please choose a smaller repository.`
+      );
+    }
+
+    const commitInfo: CommitInfo = {
+      sha: commitSha,
+      shortSha: commitSha.slice(0, 7),
+      message: commitMessage,
+      author: commitAuthor,
+      date: commitDate,
+      branch: branchName,
+    };
+
+    return { tree, commitInfo };
+  } catch (error: unknown) {
+    if (branch === "main") {
+      try {
+        return await fetchFileTreeWithCommit(owner, repo, "master", client);
+      } catch {
+        throw new Error("Could not fetch file tree");
+      }
+    }
+    const message = error instanceof Error ? error.message : "Unknown error";
+    throw new Error(`Failed to fetch file tree: ${message}`);
+  }
+}
+
 export async function fetchFileTree(
   owner: string,
   repo: string,
@@ -538,14 +627,24 @@ export async function fetchRepositoryData(
 ): Promise<GitHubRepoData> {
   const { owner, repo } = parseGitHubUrl(repoUrl);
 
-  const [metadata, fileTree, readme, packageJson] = await Promise.all([
+  const [metadata, fileTreeResult, readme, packageJson] = await Promise.all([
     fetchRepository(owner, repo, client),
-    fetchFileTree(owner, repo, "main", client),
+    fetchFileTreeWithCommit(owner, repo, "main", client),
     fetchReadme(owner, repo, client),
     fetchPackageJson(owner, repo, client),
   ]);
 
-  return { metadata, fileTree, readme, packageJson };
+  return {
+    metadata,
+    fileTree: fileTreeResult.tree,
+    commitSha: fileTreeResult.commitInfo.sha,
+    commitMessage: fileTreeResult.commitInfo.message,
+    branch: fileTreeResult.commitInfo.branch,
+    commitAuthor: fileTreeResult.commitInfo.author,
+    commitDate: fileTreeResult.commitInfo.date,
+    readme,
+    packageJson,
+  };
 }
 
 // ============================================================

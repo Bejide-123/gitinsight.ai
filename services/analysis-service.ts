@@ -370,6 +370,7 @@ export async function analyzeRepository(
     try {
       const aiOutput = await generateAIInsights({
         repoName: repoData.metadata.full_name,
+
         readme: repoData.readme,
         projectContext,
         categoryScores: {
@@ -413,6 +414,12 @@ export async function analyzeRepository(
     const analysis: Analysis = {
       repoUrl,
       repoName: repoData.metadata.full_name,
+
+      commitSha: repoData.commitSha,
+      commitMessage: repoData.commitMessage,
+      branch: repoData.branch,
+      commitAuthor: repoData.commitAuthor,
+      commitDate: repoData.commitDate ? new Date(repoData.commitDate) : undefined,
       maturityScore: Math.round(maturityScore),
       level,
       isProductionReady: production && dangerousIssues.length === 0,
