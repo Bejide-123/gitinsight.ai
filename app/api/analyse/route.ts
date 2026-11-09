@@ -8,6 +8,7 @@ import dbConnect from "@/lib/db";
 import Report from "@/models/Report";
 import Chat from "@/models/Chat";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 import { generateInitialRecommendedQuestions } from "@/services/chat-service";
 
 export async function POST(request: Request) {
@@ -64,7 +65,9 @@ export async function POST(request: Request) {
         : undefined;
 
     // Use the connected user's GitHub permissions for private repositories.
-    const analysisResult = await analyzeRepository(validated.repoUrl, githubAccessToken);
+    const analysisResult = githubAccessToken
+      ? await analyzeRepository(validated.repoUrl, githubAccessToken)
+      : await analyzeRepository(validated.repoUrl);
 
     await dbConnect();
 
@@ -72,6 +75,29 @@ export async function POST(request: Request) {
     // Instead of always creating a new document, find an existing report
     // for this user + repoUrl and update it in place. If none exists,
     // create one. This prevents duplicate reports for the same repo.
+    const runTimestamp = analysisResult.analyzedAt || new Date();
+    const currentRun = {
+      runId: new mongoose.Types.ObjectId().toString(),
+      commitSha: analysisResult.commitSha,
+      commitMessage: analysisResult.commitMessage,
+      branch: analysisResult.branch,
+      commitAuthor: analysisResult.commitAuthor,
+      commitDate: analysisResult.commitDate,
+      analyzedAt: runTimestamp,
+      maturityScore: analysisResult.maturityScore,
+      level: analysisResult.level,
+      isProductionReady: analysisResult.isProductionReady,
+      techStack: analysisResult.techStack,
+      categoryScores: analysisResult.categoryScores,
+      dangerousIssues: analysisResult.dangerousIssues,
+      missingImprovements: analysisResult.missingImprovements,
+      criticalBlockers: analysisResult.criticalBlockers,
+      nextSteps: analysisResult.nextSteps,
+      strengths: analysisResult.strengths,
+      selectedFilesCount: analysisResult.selectedFilesCount,
+      projectContext: analysisResult.projectContext,
+    };
+
     const report = await Report.findOneAndUpdate(
       {
         userId,
@@ -81,7 +107,13 @@ export async function POST(request: Request) {
         $set: {
           ...analysisResult,
           userId,
-          analyzedAt: new Date(), // always refresh the timestamp
+          analyzedAt: runTimestamp,
+        },
+        $push: {
+          runs: {
+            $each: [currentRun],
+            $slice: -25,
+          },
         },
       },
       {

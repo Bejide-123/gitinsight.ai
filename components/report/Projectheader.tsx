@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Link2, Star, GitFork, TrendingUp, Sparkles, Shield, CheckCircle } from "lucide-react";
+import { Link2, Star, GitFork, GitCommit, GitBranch, CheckCircle, Sparkles } from "lucide-react";
 import type { Analysis } from "@/types/analysis";
 
 interface ProjectHeaderProps {
@@ -21,6 +21,8 @@ export default function ProjectHeader({
     level,
     isProductionReady,
     projectContext,
+    commitSha,
+    branch,
   } = analysis;
 
   const circumference = 314;
@@ -28,9 +30,9 @@ export default function ProjectHeader({
   const owner = repoName?.split("/")[0];
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return { color: "#10b981", glow: "rgba(16,185,129,0.3)", border: "border-emerald-500/20" };
-    if (score >= 60) return { color: "#f59e0b", glow: "rgba(245,158,11,0.3)", border: "border-amber-500/20" };
-    return { color: "#ef4444", glow: "rgba(239,68,68,0.3)", border: "border-red-500/20" };
+    if (score >= 80) return { color: "#10b981", glow: "rgba(16,185,129,0.25)", border: "border-emerald-500/20" };
+    if (score >= 60) return { color: "#f59e0b", glow: "rgba(245,158,11,0.25)", border: "border-amber-500/20" };
+    return { color: "#f43f5e", glow: "rgba(244,63,94,0.25)", border: "border-rose-500/20" };
   };
 
   const scoreColor = getScoreColor(maturityScore);
@@ -42,14 +44,12 @@ export default function ProjectHeader({
         <div className="flex flex-col sm:flex-row sm:gap-6 gap-4">
           {/* Avatar */}
           <div className="relative shrink-0 pt-1">
-            <div className="absolute -inset-3 rounded-3xl bg-purple-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            
             <Image
               src={owner ? `https://github.com/${owner}.png` : "/placeholder-avatar.png"}
               alt={`${owner} avatar`}
               width={72}
               height={72}
-              className="relative w-18 h-18 rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] object-cover shadow-xl"
+              className="relative w-18 h-18 rounded-2xl border border-white/10 bg-[#0c1015] object-cover shadow-xl"
             />
           </div>
 
@@ -72,12 +72,26 @@ export default function ProjectHeader({
                     Ready
                   </span>
                 )}
+
+                {commitSha && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg border border-white/10 bg-white/[0.04] font-mono text-[10px] text-zinc-300">
+                    <GitCommit size={12} className="text-zinc-400" />
+                    {commitSha.slice(0, 7)}
+                  </span>
+                )}
+
+                {branch && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg border border-white/10 bg-white/[0.04] text-[10px] text-zinc-400">
+                    <GitBranch size={12} className="text-zinc-500" />
+                    {branch}
+                  </span>
+                )}
               </div>
 
               <p className="text-xs sm:text-sm text-zinc-400 leading-snug">
-                <span className="text-white/80 font-medium">
+                <span className="text-zinc-300 font-medium">
                   Detected as{" "}
-                  <span className="text-purple-400 font-semibold">
+                  <span className="text-white font-semibold capitalize">
                     {projectContext.intent.replace(/-/g, " ")}
                   </span>
                 </span>{" "}
@@ -87,9 +101,9 @@ export default function ProjectHeader({
 
             {/* Confidence Badge */}
             <div className="mb-3 flex items-center gap-2">
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-purple-500/20 bg-purple-500/10 backdrop-blur-sm">
-                <Sparkles size={12} className="text-purple-400" />
-                <span className="text-[10px] font-semibold text-purple-400">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-white/10 bg-white/[0.04] backdrop-blur-sm">
+                <Sparkles size={12} className="text-zinc-400" />
+                <span className="text-[10px] font-semibold text-zinc-300">
                   {projectContext.confidence}% confidence
                 </span>
               </div>
@@ -104,7 +118,7 @@ export default function ProjectHeader({
                 rel="noopener noreferrer"
                 className="group inline-flex items-center gap-2.5 px-3 py-2 rounded-lg border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/20 transition-all duration-300 cursor-pointer"
               >
-                <Link2 size={14} className="text-zinc-500 group-hover:text-purple-400 transition-colors" />
+                <Link2 size={14} className="text-zinc-500 group-hover:text-zinc-300 transition-colors" />
                 <span className="text-[11px] sm:text-xs font-medium text-zinc-400 group-hover:text-white transition-colors">
                   github.com/{repoName}
                 </span>
@@ -114,7 +128,7 @@ export default function ProjectHeader({
               <div className="grid grid-cols-3 gap-2">
                 <div className="flex flex-col gap-1 px-3 py-2 rounded-lg border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
                   <div className="flex items-center gap-1.5">
-                    <Star size={13} className="text-amber-400/70" />
+                    <Star size={13} className="text-amber-400/80" />
                     <span className="text-[9px] uppercase tracking-wider font-medium text-zinc-500">Stars</span>
                   </div>
                   <span className="text-sm font-bold text-white">{stars.toLocaleString()}</span>
@@ -122,7 +136,7 @@ export default function ProjectHeader({
 
                 <div className="flex flex-col gap-1 px-3 py-2 rounded-lg border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
                   <div className="flex items-center gap-1.5">
-                    <GitFork size={13} className="text-blue-400/70" />
+                    <GitFork size={13} className="text-zinc-400" />
                     <span className="text-[9px] uppercase tracking-wider font-medium text-zinc-500">Forks</span>
                   </div>
                   <span className="text-sm font-bold text-white">{forks.toLocaleString()}</span>
@@ -130,7 +144,7 @@ export default function ProjectHeader({
 
                 <div className="flex flex-col gap-1 px-3 py-2 rounded-lg border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
                   <div className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-purple-400" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-400" />
                     <span className="text-[9px] uppercase tracking-wider font-medium text-zinc-500">Language</span>
                   </div>
                   <span className="text-sm font-bold text-white">{language}</span>
@@ -143,13 +157,7 @@ export default function ProjectHeader({
 
       {/* RIGHT SIDE - Score Card */}
       <div className="col-span-12 lg:col-span-4">
-        <div className={`relative group overflow-hidden rounded-2xl border ${scoreColor.border} bg-gradient-to-br from-white/[0.04] via-white/[0.02] to-transparent p-5 backdrop-blur-md transition-all duration-500 hover:border-white/20 hover:bg-gradient-to-br hover:from-white/[0.06]`}>
-          {/* Animated gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          
-          {/* Decorative corner glow */}
-          <div className={`absolute -top-40 -right-40 w-80 h-80 bg-purple-500/10 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
-
+        <div className={`relative group overflow-hidden rounded-2xl border ${scoreColor.border} bg-[#0c1015] p-5 backdrop-blur-md transition-all duration-300 hover:border-white/20`}>
           {/* Content */}
           <div className="relative z-10 flex flex-col items-center justify-center gap-4">
             {/* Status Badge */}
@@ -167,7 +175,7 @@ export default function ProjectHeader({
             <div className="relative w-28 h-28 flex items-center justify-center">
               {/* Dynamic glow */}
               <div 
-                className="absolute inset-0 rounded-full blur-2xl transition-all duration-700"
+                className="absolute inset-0 rounded-full blur-xl transition-all duration-500"
                 style={{ background: scoreColor.glow }}
               />
 
@@ -187,13 +195,12 @@ export default function ProjectHeader({
                   strokeDasharray={circumference}
                   strokeDashoffset={offset}
                   className="transition-all duration-1000 ease-out"
-                  style={{ filter: `drop-shadow(0 0 12px ${scoreColor.glow})` }}
                 />
               </svg>
 
               {/* Score Text */}
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-3xl font-bold tracking-tighter text-white leading-none">
+                <span className="text-3xl font-bold tracking-tighter text-white leading-none font-mono">
                   {maturityScore}
                 </span>
                 <span className="text-[8px] uppercase tracking-[0.2em] text-zinc-500 mt-1 font-semibold">Score</span>
@@ -201,16 +208,13 @@ export default function ProjectHeader({
             </div>
 
             {/* Description */}
-            <p className="text-center text-[10px] text-zinc-400 leading-relaxed px-2 max-w-[140px]">
+            <p className="text-center text-[10px] text-zinc-400 leading-relaxed px-2 max-w-[160px]">
               {maturityScore >= 80 
-                ? "Excellent health - Production ready" 
+                ? "Excellent health • Production ready" 
                 : maturityScore >= 60 
-                ? "Good health - Minor improvements needed"
-                : "Needs attention - Significant work required"}
+                ? "Good health • Minor improvements needed"
+                : "Needs attention • Significant work required"}
             </p>
-
-            {/* Bottom indicator */}
-            <div className="w-8 h-0.5 rounded-full bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
           </div>
         </div>
       </div>
