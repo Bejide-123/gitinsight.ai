@@ -27,7 +27,8 @@ export const metadata: Metadata = {
   icons: {
     icon: "/GitInsight2.png",
   },
-  description: "Unleash the power of your GitHub data with GitInsight.",
+  description:
+    "Analyze GitHub repositories with engineering maturity scores, security and quality findings, production-readiness insights, and actionable recommendations.",
   keywords: ["GitHub", "analytics", "developer tools", "GitInsight"],
   authors: [{ name: "GitInsight Team" }],
   metadataBase: new URL("https://gitinsight.com"),

@@ -10,6 +10,7 @@ import PerformanceMetrics from "./PerformanceMetrics";
 import IdentifiedGaps from "./IdentifiedGaps";
 import PriorityOptimization from "./PriorityOptimization";
 import ComparisonDeltaBanner from "@/components/analysis/ComparisonDeltaBanner";
+import ReportActions from "@/components/report/Reportactions";
 
 interface AnalysisResultsProps {
   analysis: Analysis;
@@ -62,7 +63,7 @@ export default function AnalysisResults({
           </div>
 
           <p className="text-sm text-zinc-400 mt-1">
-            {analysis.repoName} • <span className="text-zinc-500 capitalize">{analysis.projectContext.intent.replace(/-/g, " ")}</span>
+            {analysis.repoName} • <span className="text-zinc-500 capitalize">{analysis.projectContext?.intent?.replace(/-/g, " ") || "Repository audit"}</span>
           </p>
 
           <div className="flex items-center gap-4 mt-2 text-xs text-zinc-500">
@@ -78,7 +79,8 @@ export default function AnalysisResults({
           </div>
         </div>
 
-        {/* Enhanced Refresh Button */}
+        <ReportActions analysis={analysis} compact />
+
         {onRefresh && (
           <motion.button
             whileHover={{ scale: 1.02 }}
