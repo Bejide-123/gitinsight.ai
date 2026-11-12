@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { getAuthToken } from "@/services/auth-service";
+import { getCsrfToken } from "@/services/auth-service";
 import type { ChatMessage } from "@/types/chat";
 
 interface UseChatProps {
@@ -40,12 +40,7 @@ export function useChat({
     let isMounted = true;
     async function loadChat() {
       try {
-        const token = getAuthToken();
         const headers: Record<string, string> = { "Content-Type": "application/json" };
-        if (token) {
-          headers["Authorization"] = `Bearer ${token}`;
-          headers["x-auth-token"] = token;
-        }
 
         const res = await fetch(`/api/chat/${chatId}`, {
           method: "GET",
@@ -102,16 +97,11 @@ export function useChat({
       setMessages((prev) => [...prev, optimisticUserMsg]);
 
       try {
-        const token = getAuthToken();
-        const csrfToken = typeof window !== "undefined" ? localStorage.getItem("csrfToken") : null;
+        const csrfToken = getCsrfToken();
 
         const headers: Record<string, string> = {
           "Content-Type": "application/json",
         };
-        if (token) {
-          headers["Authorization"] = `Bearer ${token}`;
-          headers["x-auth-token"] = token;
-        }
         if (csrfToken) {
           headers["x-csrf-token"] = csrfToken;
         }

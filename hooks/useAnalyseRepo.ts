@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Analysis } from "@/types/analysis";
+import { getCsrfToken } from "@/services/auth-service";
 
 interface AnalyzeRepoResponse {
   success: boolean;
@@ -7,7 +8,6 @@ interface AnalyzeRepoResponse {
   reportId?: string;
   chatId?: string;
   suggestedQuestions?: string[];
-  csrfToken?: string; // New token from server
   error?: string;
 }
 
@@ -20,22 +20,13 @@ export function useRepositoryAnalysis(repoUrl: string | null) {
       }
       
       console.log(`[ANALYSE HOOK] Starting analysis for: ${repoUrl}`);
-      console.log(`[ANALYSE HOOK] Checking for auth token in cookies`);
-      const authCookies = document.cookie.split(';').map(c => c.trim());
-      const hasTokenCookie = authCookies.some(c => c.startsWith('token=') || c.startsWith('auth_token='));
-      console.log(`[ANALYSE HOOK] Auth cookie found: ${hasTokenCookie}`);
-
-      // Get CSRF token from localStorage
-      const csrfToken = localStorage.getItem('csrfToken');
-      if (!csrfToken) {
-        console.warn(`[ANALYSE HOOK] No CSRF token found in localStorage`);
-      }
+      const csrfToken = getCsrfToken();
       
       const response = await fetch("/api/analyse", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-csrf-token": csrfToken || '', // Include CSRF token in header
+          "x-csrf-token": csrfToken || '',
         },
         body: JSON.stringify({ repoUrl }),
       });
@@ -51,8 +42,6 @@ export function useRepositoryAnalysis(repoUrl: string | null) {
         }
         if (response.status === 403) {
           console.error(`[ANALYSE HOOK] Received 403 Forbidden (likely CSRF token issue)`);
-          // Clear invalid CSRF token and redirect to login to get a new one
-          localStorage.removeItem('csrfToken');
           window.location.href = "/login";
           throw new Error("Session expired. Please login again.");
         }
@@ -62,12 +51,6 @@ export function useRepositoryAnalysis(repoUrl: string | null) {
 
       console.log(`[ANALYSE HOOK] Analysis completed successfully`);
       const data = await response.json();
-
-      // Store new CSRF token from response if provided
-      if (data.csrfToken) {
-        localStorage.setItem('csrfToken', data.csrfToken);
-        console.log(`[ANALYSE HOOK] Stored new CSRF token from response`);
-      }
 
       return data;
     },

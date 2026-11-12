@@ -24,8 +24,7 @@ export async function csrfProtection(request: NextRequest) {
   }
 
   const authToken = request.headers.get('x-auth-token') ||
-    request.cookies.get('token')?.value ||
-    request.cookies.get('auth_token')?.value;
+    request.cookies.get('token')?.value;
 
   if (!authToken) {
     console.warn('[CSRF] No auth token found in request');

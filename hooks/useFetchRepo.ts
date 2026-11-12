@@ -1,6 +1,7 @@
 // src/hooks/useAnalyzeRepo.ts
 import { useMutation } from '@tanstack/react-query';
 import type { FileTreeItem } from '@/types/github'
+import { getCsrfToken } from '@/services/auth-service';
 
 interface AnalyzeRepoInput {
   repoUrl: string;
@@ -41,7 +42,7 @@ export function useAnalyzeRepo() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-csrf-token': localStorage.getItem('csrfToken') || '',
+          'x-csrf-token': getCsrfToken() || '',
         },
         body: JSON.stringify(input),
       });

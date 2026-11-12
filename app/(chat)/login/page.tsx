@@ -10,6 +10,7 @@ import type { LoginData } from "@/types/auth";
 import { signIn } from "next-auth/react";
 import { AccessGrantedModal, PerimeterAlertModal } from "@/components/modals/Modals";
 import { useAuth } from "@/app/context/AuthContext";
+import { loginSchema } from "@/lib/validation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -40,12 +41,19 @@ export default function LoginPage() {
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
     setShowErrorModal(false);
-    
+
+    const parsedLogin = loginSchema.safeParse({ email, password });
+    if (!parsedLogin.success) {
+      setError(parsedLogin.error.issues[0]?.message || "Enter valid login details.");
+      setShowErrorModal(true);
+      return;
+    }
+
+    setLoading(true);
     try {
-      const loginData: LoginData = { email, password };
+      const loginData: LoginData = parsedLogin.data;
       const { user } = await login(loginData);
       setAuthUser(user);
       setShowSuccessModal(true);

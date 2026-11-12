@@ -76,6 +76,7 @@ The output is structured as a product-style engineering report with clear verdic
 - Vitest
 - Docker
 - ESLint
+- GitHub Dependabot for weekly npm and GitHub Actions dependency updates
 
 ---
 
@@ -170,6 +171,10 @@ The app includes a health endpoint for container readiness checks:
 ```bash
 http://localhost:3000/api/health
 ```
+
+## Production transport security
+
+Production responses include an HSTS header. Configure the hosting provider or reverse proxy to redirect HTTP traffic to HTTPS as well; HSTS protects browsers after they have first reached the site over HTTPS.
 
 ---
 

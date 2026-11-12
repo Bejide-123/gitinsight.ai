@@ -2,10 +2,10 @@ import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { registerSchema } from "@/lib/validation";
 
 export async function POST(req: Request) {
   try {
-    await dbConnect();
     let body;
     try {
       body = await req.json();
@@ -18,7 +18,17 @@ export async function POST(req: Request) {
       }
       throw error;
     }
-    const { name, email, password } = body;
+
+    const parsedBody = registerSchema.safeParse(body);
+    if (!parsedBody.success) {
+      return NextResponse.json(
+        { message: "Invalid registration data", errors: parsedBody.error.issues },
+        { status: 400 }
+      );
+    }
+
+    const { name, email, password } = parsedBody.data;
+    await dbConnect();
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {

@@ -1,18 +1,17 @@
 import axios, { AxiosError } from 'axios';
 import { signOut } from 'next-auth/react';
 import { LoginData, RegisterData } from '@/types/auth';
+import { loginSchema } from '@/lib/validation';
 
 const API_URL = '/api/auth';
-const AUTH_COOKIE_NAME = 'token';
-const LEGACY_AUTH_COOKIE_NAME = 'auth_token';
 
-const getCookieValue = (name: string): string | null => {
+export const getCsrfToken = (): string | null => {
   if (typeof document === 'undefined') return null;
 
   const cookies = document.cookie.split(';');
   for (const cookie of cookies) {
     const [cookieName, ...rest] = cookie.trim().split('=');
-    if (cookieName === name) {
+    if (cookieName === 'csrf_token') {
       return decodeURIComponent(rest.join('='));
     }
   }
@@ -41,21 +40,13 @@ const handleError = (error: unknown): never => {
 };
 
 /**
- * Logs in a user - receives token in response
+ * Logs in a user; the session token is set in an HTTP-only cookie.
  */
-export const login = async (loginData: LoginData): Promise<{ token: string; csrfToken: string; user: any }> => {
+export const login = async (loginData: LoginData): Promise<{ user: any }> => {
   try {
-    const response = await apiClient.post('/login', loginData);
-    const { token, csrfToken, user } = response.data;
-
-    // Save a client-side fallback cookie so protected routes can still authenticate
-    // if the server-set HTTP-only cookie is not available in the browser for any reason.
-    setAuthToken(token);
-    if (csrfToken) {
-      localStorage.setItem('csrfToken', csrfToken);
-    }
-
-    return { token, csrfToken, user };
+    const validatedData = loginSchema.parse(loginData);
+    const response = await apiClient.post('/login', validatedData);
+    return { user: response.data.user };
   } catch (error) {
     throw handleError(error);
   }
@@ -80,48 +71,11 @@ export const logout = async (): Promise<void> => {
   try {
     await apiClient.post('/logout');
     await signOut({ redirect: false });
-    clearAuthToken();
     clearCsrfToken();
-    localStorage.removeItem('csrfToken');
   } catch (error) {
-    // Even if server fails, clear local token
-    clearAuthToken();
     clearCsrfToken();
-    localStorage.removeItem('csrfToken');
     throw handleError(error);
   }
-};
-
-/**
- * Get the current auth token from cookies
- */
-export const getAuthToken = (): string | null => {
-  return getCookieValue(AUTH_COOKIE_NAME) ?? getCookieValue(LEGACY_AUTH_COOKIE_NAME);
-};
-
-/**
- * Set the auth token in cookies with secure options
- */
-export const setAuthToken = (token: string): void => {
-  if (typeof document === 'undefined') return;
-
-  const maxAge = 7 * 24 * 60 * 60; // 7 days
-  const secureFlag = process.env.NODE_ENV === 'production' ? '; Secure' : '';
-  const cookieOptions = `path=/; max-age=${maxAge}; SameSite=Lax${secureFlag}`;
-
-  document.cookie = `${AUTH_COOKIE_NAME}=${encodeURIComponent(token)}; ${cookieOptions}`;
-  document.cookie = `${LEGACY_AUTH_COOKIE_NAME}=${encodeURIComponent(token)}; ${cookieOptions}`;
-};
-
-/**
- * Clear the auth token from cookies
- */
-export const clearAuthToken = (): void => {
-  if (typeof document === 'undefined') return;
-
-  const cookieOptions = 'path=/; max-age=0; SameSite=Lax';
-  document.cookie = `${AUTH_COOKIE_NAME}=; ${cookieOptions}`;
-  document.cookie = `${LEGACY_AUTH_COOKIE_NAME}=; ${cookieOptions}`;
 };
 
 export const clearCsrfToken = (): void => {
@@ -130,7 +84,7 @@ export const clearCsrfToken = (): void => {
   document.cookie = 'csrf_token=; path=/; max-age=0; SameSite=Strict';
 };
 
-export const restoreGitHubSession = async (): Promise<{ user: any; csrfToken?: string } | null> => {
+export const restoreGitHubSession = async (): Promise<{ user: any } | null> => {
   try {
     const response = await fetch('/api/auth/github/session', {
       method: 'POST',
@@ -140,37 +94,19 @@ export const restoreGitHubSession = async (): Promise<{ user: any; csrfToken?: s
     if (!response.ok) return null;
 
     const data = await response.json();
-    if (data.csrfToken) {
-      localStorage.setItem('csrfToken', data.csrfToken);
-    }
-
-    return data.user ? { user: data.user, csrfToken: data.csrfToken } : null;
+    return data.user ? { user: data.user } : null;
   } catch {
     return null;
   }
 };
 
 /**
- * Check if user is authenticated (has valid token)
- */
-export const isAuthenticated = (): boolean => {
-  return !!getAuthToken();
-};
-
-/**
- * Get current user data from server using token
+ * Get current user data from the server using the HTTP-only session cookie.
  */
 export const getCurrentUser = async (): Promise<any> => {
   try {
-    const token = getAuthToken();
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-    
     const response = await apiClient.get('/me', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      withCredentials: true,
     });
     return response.data;
   } catch (error) {
@@ -179,28 +115,4 @@ export const getCurrentUser = async (): Promise<any> => {
 };
 
 
-// // Example: making authenticated API calls in other services
-// import { getAuthToken } from '@/services/auth-service';
-
-// export const fetchProtectedData = async () => {
-//   const token = getAuthToken();
-  
-//   if (!token) {
-//     throw new Error('Not authenticated');
-//   }
-  
-//   const response = await fetch('/api/protected-endpoint', {
-//     headers: {
-//       'Authorization': `Bearer ${token}`,
-//       'Content-Type': 'application/json',
-//     },
-//   });
-  
-//   if (!response.ok) {
-//     throw new Error('Failed to fetch protected data');
-//   }
-  
-//   return response.json();
-// };
-// Export the client for custom requests with token
 export default apiClient;

@@ -75,7 +75,7 @@ describe('auth and analysis API routes', () => {
     mocks.mockCookieGet.mockReturnValue({ value: '' });
   });
 
-  it('logs in a user and returns a token when credentials are valid', async () => {
+  it('sets an HTTP-only auth cookie without returning the token to JavaScript', async () => {
     const hashedPassword = await bcrypt.hash('password123', 10);
     mocks.mockUserFindOne.mockResolvedValue({
       _id: 'user-123',
@@ -97,8 +97,10 @@ describe('auth and analysis API routes', () => {
     expect(response.status).toBe(200);
     expect(payload.message).toBe('Logged in successfully');
     expect(payload.user.email).toBe('jane@example.com');
-    expect(payload.token).toBeTruthy();
-    expect(response.headers.get('set-cookie')).toContain('token=');
+    expect(payload.token).toBeUndefined();
+    expect(payload.csrfToken).toBeUndefined();
+    expect(response.headers.get('set-cookie')).toMatch(/token=.*HttpOnly/i);
+    expect(response.headers.get('set-cookie')).not.toMatch(/auth_token=[^;]+/);
   });
 
   it('rejects login when the user does not exist', async () => {
@@ -116,6 +118,19 @@ describe('auth and analysis API routes', () => {
 
     expect(response.status).toBe(404);
     expect(payload.message).toBe('User not found');
+  });
+
+  it('rejects invalid login data before querying the database', async () => {
+    const response = await loginHandler(
+      new Request('http://localhost/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'invalid-email', password: '' }),
+      })
+    );
+
+    expect(response.status).toBe(400);
+    expect(mocks.mockUserFindOne).not.toHaveBeenCalled();
   });
 
   it('rejects registration when the user already exists', async () => {
@@ -139,9 +154,26 @@ describe('auth and analysis API routes', () => {
     expect(payload.message).toBe('User already exists');
   });
 
+  it('rejects registration data that does not satisfy the schema', async () => {
+    const response = await registerHandler(
+      new Request('http://localhost/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: ' ',
+          email: 'not-an-email',
+          password: 'short',
+        }),
+      })
+    );
+
+    expect(response.status).toBe(400);
+    expect(mocks.mockUserFindOne).not.toHaveBeenCalled();
+  });
+
   it('returns the current user from a valid token', async () => {
     const token = jwt.sign({ id: 'user-123', name: 'Jane Doe', email: 'jane@example.com' }, process.env.JWT_SECRET as string);
-    mocks.mockCookieGet.mockImplementation((name: string) => name === 'auth_token' ? { value: token } : { value: '' });
+    mocks.mockCookieGet.mockImplementation((name: string) => name === 'token' ? { value: token } : { value: '' });
     mocks.mockUserFindById.mockReturnValue({
       select: () => ({
         _id: 'user-123',
@@ -150,12 +182,7 @@ describe('auth and analysis API routes', () => {
       }),
     });
 
-    const response = await meHandler(
-      new Request('http://localhost/api/auth/me', {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-    );
+    const response = await meHandler();
 
     const payload = await response.json();
 

@@ -5,11 +5,33 @@ import { generateCsrfToken } from "@/lib/csrf";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { loginSchema } from "@/lib/validation";
 
 export async function POST(req: Request) {
   try {
+    let body;
+    try {
+      body = await req.json();
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        return NextResponse.json(
+          { message: "Invalid JSON provided" },
+          { status: 400 }
+        );
+      }
+      throw error;
+    }
+
+    const parsedBody = loginSchema.safeParse(body);
+    if (!parsedBody.success) {
+      return NextResponse.json(
+        { message: "Invalid login data", errors: parsedBody.error.issues },
+        { status: 400 }
+      );
+    }
+
+    const { email, password } = parsedBody.data;
     await dbConnect();
-    const { email, password } = await req.json();
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -42,8 +64,6 @@ export async function POST(req: Request) {
     const response = NextResponse.json(
       {
         message: "Logged in successfully",
-        token,
-        csrfToken, // Include CSRF token in response
         user: {
           id: user._id,
           name: user.name,
@@ -63,19 +83,19 @@ export async function POST(req: Request) {
       path: "/",
     });
 
-    response.cookies.set("auth_token", token, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 3600,
-      path: "/",
-    });
-
     response.cookies.set("csrf_token", csrfToken, {
       httpOnly: false,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       maxAge: 3600,
+      path: "/",
+    });
+
+    response.cookies.set("auth_token", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 0,
       path: "/",
     });
 

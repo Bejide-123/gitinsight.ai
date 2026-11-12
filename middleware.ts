@@ -11,7 +11,7 @@ export async function middleware(req: NextRequest) {
 
   // Preserve the auth header that the route handlers use after authentication.
   const requestHeaders = new Headers(req.headers);
-  const token = req.cookies.get("token")?.value || req.cookies.get("auth_token")?.value;
+  const token = req.cookies.get("token")?.value;
   if (token) {
     requestHeaders.set("x-auth-token", token);
   }
