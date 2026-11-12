@@ -22,8 +22,7 @@ export async function GET(request: NextRequest) {
     }
 
     const nextAuthToken = await getToken({ req: request, secret });
-    const appToken = request.cookies.get("token")?.value ??
-      request.cookies.get("auth_token")?.value;
+    const appToken = request.cookies.get("token")?.value;
 
     if (!nextAuthToken || !appToken) {
       return NextResponse.json({ error: "Sign in to view your repositories." }, { status: 401 });

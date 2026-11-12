@@ -1,4 +1,3 @@
-import { getAuthToken } from "./auth-service";
 import type { Analysis } from "@/types/analysis";
 
 interface AnalysisResponse {
@@ -12,18 +11,12 @@ interface AnalysisResponse {
 
 
 export const getRepoAnalysis = async (reportId: string): Promise<AnalysisResponse> => {
-  const token = getAuthToken();
-
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
   const response = await fetch(`/api/analysis/${reportId}`, {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
+    credentials: "include",
   });
 
   if (!response.ok) {

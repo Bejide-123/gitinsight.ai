@@ -9,14 +9,11 @@ export function authMiddleware(req: NextRequest) {
     return routeRateLimit;
   }
 
-  const token = req.cookies.get("token")?.value || req.cookies.get("auth_token")?.value;
+  const token = req.cookies.get("token")?.value;
   const pathname = req.nextUrl.pathname;
 
   console.log(`[AUTH MIDDLEWARE] Path: ${pathname}`);
   console.log(`[AUTH MIDDLEWARE] Token found: ${!!token}`);
-  if (token) {
-    console.log(`[AUTH MIDDLEWARE] Token preview: ${token.slice(0, 20)}...`);
-  }
 
   if (!token) {
     if (req.nextUrl.pathname.startsWith('/api')) {

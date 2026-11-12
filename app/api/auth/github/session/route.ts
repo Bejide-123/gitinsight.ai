@@ -38,7 +38,6 @@ export async function POST() {
 
     const response = NextResponse.json({
       success: true,
-      csrfToken,
       user: {
         id: String(user._id),
         name: user.name || "GitHub User",
@@ -55,18 +54,18 @@ export async function POST() {
       maxAge: 3600,
       path: "/",
     });
-    response.cookies.set("auth_token", token, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 3600,
-      path: "/",
-    });
     response.cookies.set("csrf_token", csrfToken, {
       httpOnly: false,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       maxAge: 3600,
+      path: "/",
+    });
+    response.cookies.set("auth_token", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 0,
       path: "/",
     });
 

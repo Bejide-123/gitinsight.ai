@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { clearAuthToken, getAuthToken, setAuthToken } from '@/services/auth-service';
+import { clearCsrfToken, getCsrfToken } from '@/services/auth-service';
 
 describe('db configuration', () => {
   it('allows importing the db module without a configured MONGODB_URI', async () => {
@@ -17,23 +17,17 @@ describe('db configuration', () => {
 
 describe('auth service token handling', () => {
   beforeEach(() => {
-    document.cookie = 'token=; max-age=0; path=/';
-    document.cookie = 'auth_token=; max-age=0; path=/';
+    document.cookie = 'csrf_token=; max-age=0; path=/';
   });
 
-  it('stores a token and reads it back from the cookie', () => {
-    const token = 'test-token-123';
-
-    setAuthToken(token);
-
-    expect(getAuthToken()).toBe(token);
+  it('reads the CSRF token from its cookie', () => {
+    document.cookie = 'csrf_token=test-csrf-token; path=/';
+    expect(getCsrfToken()).toBe('test-csrf-token');
   });
 
-  it('removes both token cookies when logging out', () => {
-    setAuthToken('another-token');
-
-    clearAuthToken();
-
-    expect(getAuthToken()).toBeNull();
+  it('clears the CSRF cookie when logging out', () => {
+    document.cookie = 'csrf_token=test-csrf-token; path=/';
+    clearCsrfToken();
+    expect(getCsrfToken()).toBeNull();
   });
 });

@@ -5,15 +5,11 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     await dbConnect();
     const cookieStore = await cookies();
-    const tokenFromCookie =
-      cookieStore.get("token")?.value ||
-      cookieStore.get("auth_token")?.value;
-    const authHeader = request.headers.get("authorization");
-    const token = tokenFromCookie || authHeader?.replace(/^Bearer\s+/i, "");
+    const token = cookieStore.get("token")?.value;
 
     if (!token) {
       return NextResponse.json({ message: "Not authenticated" }, { status: 401 });

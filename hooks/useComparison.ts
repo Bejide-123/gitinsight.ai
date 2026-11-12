@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getAuthToken } from "@/services/auth-service";
 import type { AnalysisComparisonResult, AnalysisRunMetadata } from "@/types/comparison";
 
 interface UseComparisonProps {
@@ -30,13 +29,6 @@ export function useComparison({
     setError(null);
 
     try {
-      const token = getAuthToken();
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-        headers["x-auth-token"] = token;
-      }
-
       const params = new URLSearchParams();
       if (baseRunId) params.set("baseRunId", baseRunId);
       if (targetRunId) params.set("targetRunId", targetRunId);
@@ -44,7 +36,6 @@ export function useComparison({
       const qs = params.toString() ? `?${params.toString()}` : "";
       const res = await fetch(`/api/analysis/${reportId}/compare${qs}`, {
         method: "GET",
-        headers,
         credentials: "include",
       });
 

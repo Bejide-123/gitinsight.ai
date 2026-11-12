@@ -2,8 +2,9 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import { randomBytes } from "node:crypto";
 
-const mockJwtSecret = "12345678901234567890123456789012";
+const mockJwtSecret = randomBytes(32).toString("hex");
 
 const mocks = vi.hoisted(() => ({
   mockChatFindOne: vi.fn(),

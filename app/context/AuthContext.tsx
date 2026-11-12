@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
-import { getAuthToken, getCurrentUser, restoreGitHubSession } from "@/services/auth-service";
+import { getCurrentUser, restoreGitHubSession } from "@/services/auth-service";
 
 interface User {
   id: string;
@@ -29,17 +29,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (user) return;
 
       try {
-        const token = getAuthToken();
-        if (token) {
-          const currentUser = await getCurrentUser();
-          setUser(currentUser);
-          return;
-        }
-
-        const restoredSession = await restoreGitHubSession();
-        if (restoredSession?.user) {
-          setUser(restoredSession.user);
-        }
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
       } catch (error) {
         console.warn("Unable to restore auth user:", error);
 

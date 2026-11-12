@@ -1,7 +1,5 @@
 // services/history-service.ts
 
-import { getAuthToken } from "@/services/auth-service";
-
 export interface HistoryChat {
   _id: string;
   userId: string;
@@ -42,22 +40,15 @@ export interface HistoryResponse {
 
 /**
  * Fetch the current user's analysis history.
- * Sends the JWT from the auth cookie in the Authorization header
- * so the /api/history route can verify identity.
+ * Sends the HTTP-only auth cookie so the route can verify identity.
  */
 export const getHistory = async (): Promise<HistoryResponse> => {
-  const token = getAuthToken();
-
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
   const response = await fetch("/api/history", {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
+    credentials: "include",
   });
 
   if (!response.ok) {

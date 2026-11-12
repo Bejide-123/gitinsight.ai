@@ -25,9 +25,6 @@ export default function GitHubCallbackPage() {
         }
 
         const payload = await response.json();
-        if (payload.csrfToken) {
-          localStorage.setItem("csrfToken", payload.csrfToken);
-        }
 
         setAuthUser(payload.user);
 
