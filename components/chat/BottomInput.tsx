@@ -88,13 +88,13 @@ export default function BottomInput({
   };
 
   return (
-    <div className="absolute inset-x-0 bottom-0 z-30 border-t border-white/[0.08] bg-[#090c0f]/95 px-4 py-3.5 backdrop-blur sm:px-6 lg:px-8">
+    <div className="absolute inset-x-0 bottom-0 z-30 border-t border-white/[0.08] bg-[#07080b]/95 px-4 py-3.5 backdrop-blur sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl space-y-2.5">
         {/* Recommended Questions Section (Chat Mode) */}
         {isChatMode && suggestedQuestions.length > 0 && (
           <div className="space-y-1.5">
-            <div className="flex items-center gap-1.5 text-[11px] font-medium text-cyan-200/80">
-              <Sparkles className="h-3 w-3 text-cyan-300" />
+            <div className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-400">
+              <Sparkles className="h-3 w-3 text-zinc-400" />
               <span>Recommended follow-ups:</span>
             </div>
             <div className="hide-scrollbar flex items-center gap-2 overflow-x-auto pb-1">
@@ -104,7 +104,7 @@ export default function BottomInput({
                   type="button"
                   disabled={isSending}
                   onClick={() => handleQuestionPillClick(question)}
-                  className="group inline-flex shrink-0 items-center gap-1.5 rounded-full border border-cyan-200/20 bg-cyan-950/30 px-3 py-1.5 text-xs text-cyan-100 transition hover:border-cyan-200/40 hover:bg-cyan-900/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  className="group inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs text-zinc-300 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <span className="truncate max-w-[min(26rem,70vw)]">{question}</span>
                 </button>
@@ -115,7 +115,7 @@ export default function BottomInput({
 
         {/* Metadata Preview if analyzing a URL */}
         {!isChatMode && metadata && (
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-md border border-white/[0.08] bg-[#0d1115] px-3 py-2.5 text-xs text-zinc-400">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-white/[0.08] bg-[#0c0f16] px-3.5 py-2.5 text-xs text-zinc-400">
             <span className="font-medium text-zinc-100">{metadata.name}</span>
             {metadata.language !== "Unknown" && <span>{metadata.language}</span>}
             <span className="inline-flex items-center gap-1">
@@ -134,7 +134,7 @@ export default function BottomInput({
         {isChatMode ? (
           <form
             onSubmit={handleChatSubmit}
-            className="flex items-center gap-3 rounded-lg border border-white/10 bg-[#0d1115] p-1.5 shadow-sm focus-within:border-cyan-200/40"
+            className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-[#0c0f16] p-1.5 shadow-sm focus-within:border-white/20"
           >
             <input
               type="text"
@@ -143,12 +143,12 @@ export default function BottomInput({
               disabled={isSending}
               placeholder="Ask a question about this repository's code or findings..."
               aria-label="Repository chat question"
-              className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-white outline-none placeholder:text-zinc-600 disabled:opacity-50"
+              className="min-w-0 flex-1 bg-transparent px-3 py-2 text-xs sm:text-sm text-white outline-none placeholder:text-zinc-600 disabled:opacity-50"
             />
             <button
               type="submit"
               disabled={!chatMessage.trim() || isSending}
-              className="inline-flex h-9 items-center gap-2 rounded bg-cyan-300 px-4 text-xs font-semibold text-[#071013] transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-white px-3.5 text-xs font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {isSending ? (
                 <>
@@ -169,7 +169,7 @@ export default function BottomInput({
               event.preventDefault();
               goToReport();
             }}
-            className="flex items-center gap-3 rounded-md border border-white/10 bg-[#0d1115] p-1.5 focus-within:border-cyan-200/30"
+            className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-[#0c0f16] p-1.5 focus-within:border-white/20"
           >
             <input
               type="url"
@@ -178,20 +178,20 @@ export default function BottomInput({
               onBlur={handleFetchMetadata}
               placeholder="Paste a GitHub repository URL"
               aria-label="GitHub repository URL"
-              className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-white outline-none placeholder:text-zinc-600"
+              className="min-w-0 flex-1 bg-transparent px-3 py-2 text-xs sm:text-sm text-white outline-none placeholder:text-zinc-600"
             />
             <button
               type="button"
               onClick={chatWithAI}
               disabled={!repoUrl.trim() || isPending}
-              className="hidden h-9 items-center gap-2 rounded border border-white/10 px-3 text-xs text-zinc-300 transition hover:bg-white/[0.04] disabled:opacity-40 sm:inline-flex"
+              className="hidden h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 text-xs text-zinc-300 transition hover:bg-white/[0.06] disabled:opacity-40 sm:inline-flex"
             >
               {isPending ? "Checking..." : "Chat with AI"}
             </button>
             <button
               type="submit"
               disabled={!repoUrl.trim() || isPending}
-              className="inline-flex h-9 items-center gap-2 rounded bg-cyan-300 px-3.5 text-xs font-semibold text-[#071013] transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-white px-3.5 text-xs font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Full report
               <ArrowUpRight className="h-3.5 w-3.5" />

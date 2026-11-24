@@ -2,12 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, ArrowUpRight, GitFork, LockKeyhole, Search, Star } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, GitFork, GitPullRequest, LockKeyhole, Search, Star } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
 import { formatDistanceToNow } from "date-fns";
 import { useGitHubRepos } from "@/hooks/useGithubRepos";
 import { startGitHubConnection } from "@/services/github-auth";
 import type { DashboardGitHubRepository } from "@/types/github";
+import { PullRequestSelectorModal } from "./PullRequestSelectorModal";
 
 interface GitHubRepositoriesProps {
   connected: boolean;
@@ -26,6 +27,7 @@ export function GitHubRepositories({ connected }: GitHubRepositoriesProps) {
   const [search, setSearch] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectError, setConnectError] = useState<string | null>(null);
+  const [prRepo, setPrRepo] = useState<{ url: string; fullName: string } | null>(null);
 
   const filteredRepositories = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -70,7 +72,7 @@ export function GitHubRepositories({ connected }: GitHubRepositoriesProps) {
         </div>
         {connected && !error && repositories.length > 0 && (
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-            <label className="flex h-10 w-full items-center gap-2 rounded border border-white/10 bg-white/[0.03] px-3 text-zinc-400 focus-within:border-cyan-300/40 sm:max-w-[240px]">
+            <label className="flex h-10 w-full items-center gap-2 rounded border border-white/10 bg-white/[0.03] px-3 text-zinc-400 focus-within:border-white/20 sm:max-w-[240px]">
               <Search className="h-4 w-4 shrink-0" />
               <input
                 value={search}
@@ -113,7 +115,7 @@ export function GitHubRepositories({ connected }: GitHubRepositoriesProps) {
             type="button"
             onClick={connectGitHub}
             disabled={isConnecting}
-            className="shrink-0 rounded bg-white px-3.5 py-2 text-sm font-medium text-zinc-950 transition hover:bg-cyan-200 disabled:opacity-60"
+            className="shrink-0 rounded bg-white px-3.5 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200 disabled:opacity-60"
           >
             {isConnecting ? "Connecting..." : "Connect GitHub"}
           </button>
@@ -139,7 +141,7 @@ export function GitHubRepositories({ connected }: GitHubRepositoriesProps) {
               type="button"
               onClick={connectGitHub}
               disabled={isConnecting}
-              className="rounded bg-white px-3 py-2 text-xs font-medium text-zinc-950 transition hover:bg-cyan-200 disabled:opacity-60"
+              className="rounded bg-white px-3 py-2 text-xs font-medium text-zinc-950 transition hover:bg-zinc-200 disabled:opacity-60"
             >
               {isConnecting ? "Connecting..." : "Reconnect GitHub"}
             </button>
@@ -163,6 +165,12 @@ export function GitHubRepositories({ connected }: GitHubRepositoriesProps) {
               key={repository.id}
               repository={repository}
               onAnalyze={() => analyzeRepository(repository)}
+              onOpenPRs={() =>
+                setPrRepo({
+                  url: repository.htmlUrl,
+                  fullName: repository.fullName,
+                })
+              }
             />
           ))}
         </div>
@@ -196,6 +204,15 @@ export function GitHubRepositories({ connected }: GitHubRepositoriesProps) {
         </div>
       )}
       {connectError && <p role="alert" className="mt-3 text-sm text-red-300">{connectError}</p>}
+
+      {prRepo && (
+        <PullRequestSelectorModal
+          isOpen={Boolean(prRepo)}
+          onClose={() => setPrRepo(null)}
+          repoUrl={prRepo.url}
+          repoFullName={prRepo.fullName}
+        />
+      )}
     </section>
   );
 }
@@ -203,9 +220,11 @@ export function GitHubRepositories({ connected }: GitHubRepositoriesProps) {
 function RepositoryRow({
   repository,
   onAnalyze,
+  onOpenPRs,
 }: {
   repository: DashboardGitHubRepository;
   onAnalyze: () => void;
+  onOpenPRs: () => void;
 }) {
   const updatedAt = new Date(repository.updatedAt);
   const updatedLabel = Number.isNaN(updatedAt.getTime())
@@ -236,14 +255,24 @@ function RepositoryRow({
           </div>
         </div>
       </div>
-      <button
-        type="button"
-        onClick={onAnalyze}
-        className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded bg-cyan-300 px-3.5 text-xs font-semibold text-[#071013] transition hover:bg-cyan-200 sm:min-w-28"
-      >
-        Analyze
-        <ArrowUpRight className="h-3.5 w-3.5" />
-      </button>
+      <div className="flex items-center gap-2 shrink-0">
+        <button
+          type="button"
+          onClick={onOpenPRs}
+          className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded border border-white/10 bg-white/[0.04] px-3 text-xs font-medium text-zinc-200 transition hover:bg-white/10"
+        >
+          <GitPullRequest className="h-3.5 w-3.5 text-zinc-400" />
+          PRs
+        </button>
+        <button
+          type="button"
+          onClick={onAnalyze}
+          className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded bg-white px-3.5 text-xs font-semibold text-black transition hover:bg-zinc-200 sm:min-w-24"
+        >
+          Analyze
+          <ArrowUpRight className="h-3.5 w-3.5" />
+        </button>
+      </div>
     </article>
   );
 }

@@ -219,10 +219,15 @@ export async function fetchFileTree(
 export async function fetchReadme(
   owner: string,
   repo: string,
-  client: typeof octokit = octokit
+  client: typeof octokit = octokit,
+  ref?: string
 ): Promise<string | null> {
   try {
-    const { data } = await client.repos.getReadme({ owner, repo });
+    const { data } = await client.repos.getReadme({
+      owner,
+      repo,
+      ...(ref ? { ref } : {}),
+    });
     const readmeContent = Buffer.from(data.content, "base64").toString("utf-8");
     console.log("Fetched README content:", readmeContent);
     return readmeContent;
@@ -239,13 +244,15 @@ export async function fetchReadme(
 export async function fetchPackageJson(
   owner: string,
   repo: string,
-  client: typeof octokit = octokit
+  client: typeof octokit = octokit,
+  ref?: string
 ): Promise<Record<string, unknown> | null> {
   try {
     const { data } = await client.repos.getContent({
       owner,
       repo,
       path: "package.json",
+      ...(ref ? { ref } : {}),
     });
 
     if ("content" in data) {
@@ -268,10 +275,16 @@ export async function fetchFileContent(
   owner: string,
   repo: string,
   path: string,
-  client: typeof octokit = octokit
+  client: typeof octokit = octokit,
+  ref?: string
 ): Promise<string | null> {
   try {
-    const { data } = await client.repos.getContent({ owner, repo, path });
+    const { data } = await client.repos.getContent({
+      owner,
+      repo,
+      path,
+      ...(ref ? { ref } : {}),
+    });
 
     if ("content" in data) {
       const sizeBytes = Buffer.byteLength(data.content || '', 'base64');
@@ -299,14 +312,15 @@ export async function fetchMultipleFiles(
   owner: string,
   repo: string,
   paths: string[],
-  client: typeof octokit = octokit
+  client: typeof octokit = octokit,
+  ref?: string
 ): Promise<Record<string, string>> {
   const boundedPaths = paths.slice(0, MAX_FETCHED_FILES);
   console.log(`Fetching ${boundedPaths.length} files (bounded from ${paths.length})...`);
 
   const results = await Promise.allSettled(
     boundedPaths.map(async (path) => {
-      const content = await fetchFileContent(owner, repo, path, client);
+      const content = await fetchFileContent(owner, repo, path, client, ref);
       return { path, content };
     })
   );

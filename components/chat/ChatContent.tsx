@@ -48,7 +48,7 @@ export default function ChatContent({
     <>
       <div
         ref={scrollRef}
-        className="hide-scrollbar flex-1 overflow-y-auto bg-[#07090c] px-4 py-6 pb-60 sm:px-6 lg:px-8"
+        className="hide-scrollbar flex-1 overflow-y-auto bg-[#07080b] px-4 py-6 pb-60 sm:px-6 lg:px-8"
       >
         <div className="mx-auto flex max-w-4xl flex-col gap-6">
           {/* Top Report or Child Content */}
@@ -67,12 +67,12 @@ export default function ChatContent({
           {/* Assistant Thinking Indicator */}
           {isSending && (
             <div className="flex items-start gap-3 justify-start animate-pulse">
-              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded border border-cyan-200/15 bg-cyan-200/[0.05] text-cyan-100">
-                <Bot className="h-4 w-4 animate-spin text-cyan-300" />
+              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-white">
+                <Bot className="h-4 w-4 animate-spin text-white" />
               </div>
-              <div className="rounded-lg border border-white/[0.08] bg-[#0d1115] px-4 py-3 text-sm text-zinc-400">
+              <div className="rounded-xl border border-white/[0.08] bg-[#0c0f16] px-4 py-3 text-xs text-zinc-400">
                 <div className="flex items-center gap-2">
-                  <span className="inline-block h-2 w-2 rounded-full bg-cyan-400 animate-ping" />
+                  <span className="inline-block h-2 w-2 rounded-full bg-white animate-ping" />
                   <span>Examining repository code and analysis findings...</span>
                 </div>
               </div>

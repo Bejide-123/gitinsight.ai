@@ -1,6 +1,7 @@
 // types/analysis.ts
 
 import type { GitHubRepoData } from "./github";
+import type { RemediationGuidance } from "./pr";
 
 // ============================================================================
 // PROJECT INTENT & CONTEXT
@@ -40,6 +41,11 @@ export interface Issue {
   evidence: string[]; // Code snippets or examples
   file?: string; // File where issue was found
   lineNumber?: number; // Optional line number
+  startLine?: number;
+  endLine?: number;
+  fingerprint?: string;
+  ruleId?: string;
+  remediation?: RemediationGuidance;
 }
 
 // ============================================================================
