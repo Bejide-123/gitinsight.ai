@@ -56,7 +56,7 @@ const SidebarItem = ({
       className={cn(
         "group relative flex w-full items-center overflow-hidden rounded-md transition-colors duration-150",
         isOpen ? "justify-start gap-3 px-3 py-2.5" : "justify-center px-2 py-3",
-        variant === "primary" && "bg-cyan-300 text-[#071013] hover:bg-cyan-200",
+        variant === "primary" && "bg-white text-black hover:bg-zinc-200 font-medium",
         variant === "default" && (active
           ? "bg-white/[0.07] text-white"
           : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"),
@@ -65,7 +65,7 @@ const SidebarItem = ({
     >
       <Icon className={cn(
         "relative z-10 h-4 w-4 shrink-0",
-        isPrimary ? "text-black" : active ? "text-cyan-400" : "",
+        isPrimary ? "text-black" : active ? "text-white" : "",
       )} />
       
       <AnimatePresence mode="wait">
@@ -89,7 +89,7 @@ const SidebarItem = ({
       {active && isOpen && variant === "default" && (
         <motion.div
           layoutId="sidebar-indicator"
-          className="ml-auto h-1.5 w-1.5 rounded-full bg-cyan-300"
+          className="ml-auto h-1.5 w-1.5 rounded-full bg-white"
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
         />
       )}
@@ -195,14 +195,14 @@ export default function Sidebar() {
   // Score color — mirrors your maturity level logic
   const scoreColor = (score: number) => {
     if (score >= 80) return "text-emerald-200 border-emerald-200/15 bg-emerald-200/[0.05]";
-    if (score >= 60) return "text-cyan-100 border-cyan-100/15 bg-cyan-100/[0.05]";
+    if (score >= 60) return "text-zinc-200 border-white/10 bg-white/[0.04]";
     if (score >= 40) return "text-amber-100 border-amber-100/15 bg-amber-100/[0.05]";
     return "text-rose-200 border-rose-200/15 bg-rose-200/[0.05]";
   };
 
   const barColor = (score: number) => {
     if (score >= 80) return "bg-emerald-300";
-    if (score >= 60) return "bg-cyan-300";
+    if (score >= 60) return "bg-zinc-300";
     if (score >= 40) return "bg-amber-300";
     return "bg-rose-300";
   };
@@ -253,8 +253,8 @@ export default function Sidebar() {
         >
           <div className="flex items-center gap-3">
             <div className="relative shrink-0">
-              <div className="relative flex h-9 w-9 items-center justify-center rounded border border-cyan-200/15 bg-cyan-200/[0.06]">
-                <Terminal className="h-4 w-4 text-cyan-100" />
+              <div className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04]">
+                <Terminal className="h-4 w-4 text-white" />
               </div>
             </div>
             
@@ -362,7 +362,7 @@ export default function Sidebar() {
                         No analyses yet.{" "}
                         <button
                           onClick={() => router.push("/chat")}
-                          className="text-cyan-200 transition-colors hover:text-cyan-100"
+                          className="text-white underline transition-colors hover:text-zinc-300"
                         >
                           Start your first one.
                         </button>
@@ -385,7 +385,7 @@ export default function Sidebar() {
                           className={cn(
                             "w-full rounded-md border border-transparent px-3 py-2.5 text-left transition",
                             isFirst
-                              ? "border-white/[0.08] bg-white/[0.03] hover:border-cyan-200/20"
+                              ? "border-white/[0.08] bg-white/[0.03] hover:border-white/20"
                               : "hover:bg-white/[0.04]",
                             isLoadingItem ? "cursor-wait opacity-50" : ""
                           )}
@@ -397,7 +397,7 @@ export default function Sidebar() {
                             )}>
                               <GitBranch className={cn(
                                 "h-3 w-3 shrink-0",
-                                isFirst ? "text-cyan-200" : "text-zinc-500"
+                                isFirst ? "text-white" : "text-zinc-500"
                               )} />
                               <span className="truncate">{repo.repoName}</span>
                             </span>
@@ -420,7 +420,7 @@ export default function Sidebar() {
                             </div>
                             {isFirst && !isLoadingItem && <TrendingUp className="w-3 h-3 text-emerald-400 flex-shrink-0" />}
                             {isLoadingItem && (
-                              <div className="w-3 h-3 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                              <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin flex-shrink-0" />
                             )}
                           </div>
 
@@ -478,7 +478,7 @@ export default function Sidebar() {
               <div className="px-3">
                 <div className="rounded-md border border-white/[0.08] bg-white/[0.025] p-3">
                   <div className="mb-2 flex items-center gap-2">
-                    <Zap className="h-3.5 w-3.5 text-cyan-200" />
+                    <Zap className="h-3.5 w-3.5 text-zinc-300" />
                     <span className="text-xs font-medium text-zinc-200">Repository insights</span>
                   </div>
                   <p className="mb-3 text-[11px] leading-4 text-zinc-500">
@@ -487,7 +487,7 @@ export default function Sidebar() {
                   <button
                     type="button"
                     onClick={() => router.push("/dashboard")}
-                    className="w-full rounded border border-white/10 px-2.5 py-2 text-xs font-medium text-zinc-200 transition hover:border-cyan-200/20 hover:bg-white/[0.04]"
+                    className="w-full rounded border border-white/10 px-2.5 py-2 text-xs font-medium text-zinc-200 transition hover:border-white/20 hover:bg-white/[0.04]"
                   >
                     Open dashboard
                   </button>

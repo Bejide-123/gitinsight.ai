@@ -44,7 +44,7 @@ export const AccessGrantedModal: React.FC<{ onDashboardClick?: () => void }> = (
     <button
       type="button"
       onClick={onDashboardClick}
-      className="mt-6 inline-flex h-10 w-full items-center justify-center gap-2 rounded bg-cyan-300 px-4 text-sm font-semibold text-[#071013] transition hover:bg-cyan-200"
+      className="mt-6 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-white px-4 text-xs font-semibold text-black transition hover:bg-zinc-200"
     >
       Open dashboard
       <Terminal className="h-4 w-4" />
@@ -69,7 +69,7 @@ export const PerimeterAlertModal: React.FC<{ onRetry?: () => void; message?: str
       <button
         type="button"
         onClick={onRetry}
-        className="inline-flex h-10 flex-1 items-center justify-center rounded bg-cyan-300 px-4 text-sm font-semibold text-[#071013] transition hover:bg-cyan-200"
+        className="inline-flex h-10 flex-1 items-center justify-center rounded-lg bg-white px-4 text-xs font-semibold text-black transition hover:bg-zinc-200"
       >
         Try again
       </button>

@@ -35,31 +35,31 @@ export function DashboardHero({ user }: DashboardHeroProps) {
   };
 
   return (
-    <section className="relative overflow-hidden border-b border-white/[0.08] bg-[radial-gradient(ellipse_at_top_left,rgba(34,211,238,0.11),transparent_48%),linear-gradient(115deg,#0b1114,#080a0d_58%,#10100b)]">
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-6 px-4 py-7 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8 lg:py-9">
+    <section className="relative overflow-hidden border-b border-white/[0.08] bg-[#07080b]">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-6 px-4 py-7 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8 lg:py-8">
         <div className="flex min-w-0 items-center gap-4 sm:gap-5">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.06] text-lg font-semibold text-cyan-100 sm:h-16 sm:w-16">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-base font-semibold text-white sm:h-14 sm:w-14">
             {initials || "GI"}
           </div>
           <div className="min-w-0">
-            <div className="mb-1 flex items-center gap-2 text-xs text-cyan-200/80">
+            <div className="mb-1 flex items-center gap-2 text-xs text-zinc-400">
               <LayoutDashboard className="h-3.5 w-3.5" />
-              <span>Workspace overview</span>
+              <span>Workspace Overview</span>
             </div>
-            <h1 className="break-words text-2xl font-semibold text-white sm:text-3xl">
+            <h1 className="break-words text-xl font-semibold text-white sm:text-2xl tracking-tight">
               Welcome back, {user.username}
             </h1>
-            <p className="mt-1 max-w-2xl text-sm leading-6 text-zinc-400">
-              Review repository health and pick up where your last analysis left off.
+            <p className="mt-0.5 max-w-2xl text-xs text-zinc-400">
+              Review repository health, inspect findings, and track progress over commits.
             </p>
-            {user.email && <p className="mt-1 truncate text-xs text-zinc-500">{user.email}</p>}
+            {user.email && <p className="mt-0.5 truncate text-[11px] text-zinc-500">{user.email}</p>}
           </div>
         </div>
 
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           {user.githubConnected ? (
-            <div className="inline-flex h-10 items-center gap-2 rounded border border-emerald-300/20 bg-emerald-300/[0.06] px-3.5 text-sm text-emerald-100">
-              <Check className="h-4 w-4 text-emerald-300" />
+            <div className="inline-flex h-9 items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/[0.06] px-3 text-xs text-emerald-300">
+              <Check className="h-3.5 w-3.5 text-emerald-400" />
               <span>Connected{user.githubUsername ? ` as @${user.githubUsername}` : " to GitHub"}</span>
             </div>
           ) : (
@@ -67,34 +67,34 @@ export function DashboardHero({ user }: DashboardHeroProps) {
               type="button"
               onClick={handleConnectGitHub}
               disabled={isConnecting}
-              className="inline-flex h-10 items-center gap-2 rounded border border-white/15 px-3.5 text-sm text-zinc-100 transition hover:border-white/30 hover:bg-white/[0.05] disabled:cursor-wait disabled:opacity-60"
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 text-xs text-zinc-200 transition hover:border-white/20 hover:bg-white/[0.06] disabled:cursor-wait disabled:opacity-60"
             >
               {isConnecting ? (
-                <LoaderCircle className="h-4 w-4 animate-spin" />
+                <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
               ) : (
-                <FaGithub className="h-4 w-4" />
+                <FaGithub className="h-3.5 w-3.5" />
               )}
               {isConnecting ? "Connecting..." : "Connect GitHub"}
             </button>
           )}
           <Link
             href="/history"
-            className="inline-flex h-10 items-center gap-2 rounded border border-white/10 px-3.5 text-sm text-zinc-200 transition hover:border-white/20 hover:bg-white/[0.04]"
+            className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 text-xs text-zinc-300 transition hover:border-white/20 hover:text-white"
           >
-            View history
-            <ArrowRight className="h-4 w-4" />
+            History
+            <ArrowRight className="h-3.5 w-3.5" />
           </Link>
           <Link
             href="/chat"
-            className="inline-flex h-10 items-center gap-2 rounded bg-cyan-300 px-4 text-sm font-semibold text-[#071013] transition hover:bg-cyan-200"
+            className="inline-flex h-9 items-center gap-2 rounded-lg bg-white px-3.5 text-xs font-semibold text-black transition hover:bg-zinc-200"
           >
-            <Plus className="h-4 w-4" />
-            Analyze repository
+            <Plus className="h-3.5 w-3.5" />
+            Analyze Repository
           </Link>
         </div>
       </div>
       {connectError && (
-        <p role="alert" className="mx-auto w-full max-w-[1440px] px-4 pb-4 text-sm text-red-300 sm:px-6 lg:px-8">
+        <p role="alert" className="mx-auto w-full max-w-[1440px] px-4 pb-4 text-xs text-rose-400 sm:px-6 lg:px-8">
           {connectError}
         </p>
       )}

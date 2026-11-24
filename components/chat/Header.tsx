@@ -53,16 +53,16 @@ export default function ChatHeader() {
         : "Workspace";
 
   return (
-    <header className="relative z-30 flex h-16 w-full shrink-0 items-center justify-between border-b border-white/[0.08] bg-[#0a0d10] px-4 sm:px-6">
+    <header className="relative z-30 flex h-14 w-full shrink-0 items-center justify-between border-b border-white/[0.08] bg-[#07080b] px-4 sm:px-6">
       <div className="min-w-0">
-        <p className="text-[11px] text-zinc-500">GitInsight / Workspace</p>
-        <h1 className="truncate text-sm font-semibold text-white">{pageTitle}</h1>
+        <p className="text-[10px] uppercase font-mono text-zinc-500">GitInsight / Workspace</p>
+        <h1 className="truncate text-xs sm:text-sm font-semibold text-white tracking-tight">{pageTitle}</h1>
       </div>
 
       <div className="flex items-center gap-3">
         {user?.githubConnected && (
-          <div className="hidden items-center gap-2 text-xs text-emerald-200 sm:flex">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+          <div className="hidden items-center gap-1.5 text-xs text-emerald-400 sm:flex">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
             GitHub connected
           </div>
         )}
@@ -74,12 +74,12 @@ export default function ChatHeader() {
             aria-expanded={dropdownOpen}
             aria-haspopup="menu"
             aria-label="Open account menu"
-            className="flex items-center gap-2 rounded-md border border-transparent px-2 py-1.5 transition hover:border-white/10 hover:bg-white/[0.04]"
+            className="flex items-center gap-2 rounded-lg border border-transparent px-2 py-1 transition hover:border-white/10 hover:bg-white/[0.04]"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded border border-white/10 bg-[#151a1e] text-xs font-semibold text-cyan-100">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-xs font-semibold text-white">
               {initials || "GI"}
             </div>
-            <ChevronDown className={`h-3.5 w-3.5 text-zinc-500 transition-transform ${
+            <ChevronDown className={`h-3 w-3 text-zinc-500 transition-transform ${
               dropdownOpen ? "rotate-180" : ""
             }`} />
           </motion.button>
@@ -88,22 +88,22 @@ export default function ChatHeader() {
           <AnimatePresence>
             {dropdownOpen && (
               <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                initial={{ opacity: 0, y: 8, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                transition={{ duration: 0.15 }}
                 role="menu"
-                className="absolute right-0 mt-2 w-64 overflow-hidden rounded-lg border border-white/10 bg-[#0d1115] shadow-xl shadow-black/30"
+                className="absolute right-0 mt-2 w-60 overflow-hidden rounded-xl border border-white/10 bg-[#0c0f16] shadow-2xl"
               >
-                <div className="border-b border-white/[0.08] px-4 py-3.5">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded border border-white/10 bg-[#151a1e] text-sm font-semibold text-cyan-100">
+                <div className="border-b border-white/[0.08] px-4 py-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-xs font-semibold text-white">
                       {initials || "GI"}
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-white">{displayName}</p>
-                      <p className="truncate text-xs text-zinc-500">{displayEmail}</p>
-                      <div className="mt-1 flex items-center gap-1.5 text-[10px] text-emerald-300">
+                      <p className="truncate text-xs font-semibold text-white">{displayName}</p>
+                      <p className="truncate text-[11px] text-zinc-500">{displayEmail}</p>
+                      <div className="mt-0.5 flex items-center gap-1 text-[10px] text-emerald-400">
                         <ShieldCheck className="h-3 w-3" />
                         Signed in
                       </div>
@@ -111,7 +111,7 @@ export default function ChatHeader() {
                   </div>
                 </div>
 
-                <div className="p-1.5">
+                <div className="p-1.5 space-y-0.5">
                   <MenuItem
                     icon={LayoutDashboard}
                     label="Dashboard"
@@ -121,7 +121,7 @@ export default function ChatHeader() {
                     icon={LogOut}
                     label="Logout"
                     onClick={handleLogout}
-                    className="text-rose-300 hover:bg-rose-300/[0.06] hover:text-rose-200"
+                    className="text-rose-400 hover:bg-rose-500/[0.06] hover:text-rose-300"
                   />
                 </div>
               </motion.div>
@@ -133,7 +133,6 @@ export default function ChatHeader() {
   );
 }
 
-// Menu Item Component
 interface MenuItemProps {
   icon: React.ElementType;
   label: string;
@@ -146,9 +145,9 @@ const MenuItem = ({ icon: Icon, label, onClick, className = "" }: MenuItemProps)
     role="menuitem"
     whileTap={{ scale: 0.98 }}
     onClick={onClick}
-    className={`flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-zinc-300 transition hover:bg-white/[0.04] hover:text-white ${className}`}
+    className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs text-zinc-300 transition hover:bg-white/[0.05] hover:text-white ${className}`}
   >
-    <Icon className="h-4 w-4" />
-    <span className="text-sm">{label}</span>
+    <Icon className="h-3.5 w-3.5" />
+    <span>{label}</span>
   </motion.button>
 );

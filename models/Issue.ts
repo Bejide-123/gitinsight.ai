@@ -1,7 +1,34 @@
 import { Schema } from "mongoose";
-import { IssueSeverity } from "@/types/analysis";
+import type { IssueSeverity } from "@/types/analysis";
+
+export const SuggestedPatchSchema = new Schema(
+  {
+    diffHunk: { type: String },
+    beforeCode: { type: String },
+    afterCode: { type: String },
+    fileName: { type: String },
+    startLine: { type: Number },
+    endLine: { type: Number },
+  },
+  { _id: false }
+);
+
+export const RemediationSchema = new Schema(
+  {
+    whyItMatters: { type: String },
+    exploitScenario: { type: String },
+    steps: [{ type: String }],
+    suggestedPatch: SuggestedPatchSchema,
+    tradeoffs: [{ type: String }],
+    confidence: { type: Number, default: 1.0 },
+    ruleId: { type: String },
+    autoFixable: { type: Boolean, default: false },
+  },
+  { _id: false }
+);
 
 export const IssueSchema = new Schema({
+  fingerprint: { type: String },
   category: { type: String, required: true },
   severity: {
     type: String,
@@ -16,4 +43,8 @@ export const IssueSchema = new Schema({
   evidence: [{ type: String }],
   file: { type: String },
   lineNumber: { type: Number },
+  startLine: { type: Number },
+  endLine: { type: Number },
+  ruleId: { type: String },
+  remediation: RemediationSchema,
 });

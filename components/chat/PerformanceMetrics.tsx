@@ -51,10 +51,10 @@ const CATEGORY_META: Record<string, CategoryMetaConfig> = {
   architecture: {
     label: "Architecture",
     icon: Layers,
-    color: "text-purple-400",
-    badgeColor: "bg-purple-500/10 text-purple-300 border-purple-500/20",
-    bg: "bg-purple-500/10",
-    border: "border-purple-500/20",
+    color: "text-zinc-200",
+    badgeColor: "bg-white/[0.05] text-zinc-300 border-white/10",
+    bg: "bg-white/[0.05]",
+    border: "border-white/10",
   },
   testing: {
     label: "Testing",
@@ -67,10 +67,10 @@ const CATEGORY_META: Record<string, CategoryMetaConfig> = {
   completeness: {
     label: "Completeness",
     icon: CheckCircle2,
-    color: "text-cyan-400",
-    badgeColor: "bg-cyan-500/10 text-cyan-300 border-cyan-500/20",
-    bg: "bg-cyan-500/10",
-    border: "border-cyan-500/20",
+    color: "text-zinc-300",
+    badgeColor: "bg-white/[0.05] text-zinc-300 border-white/10",
+    bg: "bg-white/[0.05]",
+    border: "border-white/10",
   },
   readiness: {
     label: "Readiness",
@@ -120,10 +120,10 @@ function getCategoryMeta(key: string): CategoryMetaConfig {
     CATEGORY_META[normalized] || {
       label: key.charAt(0).toUpperCase() + key.slice(1),
       icon: BarChart3,
-      color: "text-purple-400",
-      badgeColor: "bg-purple-500/10 text-purple-300 border-purple-500/20",
-      bg: "bg-purple-500/10",
-      border: "border-purple-500/20",
+      color: "text-zinc-300",
+      badgeColor: "bg-white/[0.05] text-zinc-300 border-white/10",
+      bg: "bg-white/[0.05]",
+      border: "border-white/10",
     }
   );
 }
@@ -290,26 +290,24 @@ export default function PerformanceMetrics({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.1 }}
-        className="col-span-12 md:col-span-8 overflow-hidden rounded-3xl border border-white/10 bg-[#0a0a0a] backdrop-blur-xl group relative"
+        className="col-span-12 md:col-span-8 overflow-hidden rounded-2xl border border-white/10 bg-[#0c0f16] group relative"
       >
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl group-hover:opacity-100 transition-opacity duration-700 opacity-0 pointer-events-none" />
-
-        <div className="relative p-6 sm:p-8">
+        <div className="relative p-6 sm:p-7">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6 sm:mb-8">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-purple-500/5 border border-purple-500/10">
-                <BarChart3 className="w-5 h-5 text-purple-400" />
+              <div className="p-2 rounded-xl bg-white/[0.04] border border-white/10">
+                <BarChart3 className="w-5 h-5 text-zinc-300" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-white">Performance Metrics</h3>
+                <h3 className="text-base font-semibold text-white tracking-tight">Performance Metrics</h3>
                 <p className="text-xs text-zinc-500 mt-0.5">
                   Hover over any dimension to inspect flagged issues
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2 text-xs text-zinc-500">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <span className="hidden sm:inline">Interactive inspection</span>
             </div>
           </div>
@@ -349,7 +347,7 @@ export default function PerformanceMetrics({
                   onClick={() => handleCardClick(categoryKey)}
                   className={`group/item relative p-4 rounded-2xl border transition-all duration-300 cursor-pointer ${
                     isSelected
-                      ? "border-cyan-400/40 bg-white/[0.08] shadow-lg shadow-cyan-500/10"
+                      ? "border-white/30 bg-white/[0.06] shadow-lg"
                       : "border-white/5 hover:border-white/20 bg-white/[0.03] hover:bg-white/[0.06]"
                   }`}
                 >
@@ -375,7 +373,7 @@ export default function PerformanceMetrics({
                         score >= 80
                           ? "bg-emerald-400"
                           : score >= 60
-                          ? "bg-cyan-400"
+                          ? "bg-zinc-300"
                           : score >= 40
                           ? "bg-amber-400"
                           : "bg-rose-400"
@@ -400,7 +398,7 @@ export default function PerformanceMetrics({
                         : "0 issues detected"}
                     </span>
 
-                    <span className="text-[10px] text-zinc-500 group-hover/item:text-cyan-300 transition-colors">
+                    <span className="text-[10px] text-zinc-500 group-hover/item:text-white transition-colors">
                       {isSelected && isPinned ? "Pinned 📌" : "Hover to view →"}
                     </span>
                   </div>

@@ -2,199 +2,47 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowDown,
   ArrowRight,
   ArrowUpRight,
-  Check,
+  CheckCircle2,
+  AlertTriangle,
+  AlertOctagon,
   FileCode2,
   GitBranch,
-  GitCommitHorizontal,
-  ScanLine,
-  ShieldCheck,
+  GitCommit,
+  Layers,
+  MessageSquare,
+  ShieldAlert,
   Sparkles,
+  Terminal,
+  Activity,
+  Check,
+  TrendingUp,
+  Cpu,
 } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
 
-const fileRows = [
-  { name: "src/", detail: "application code", color: "text-cyan-200" },
-  { name: "tests/", detail: "quality signals", color: "text-violet-200" },
-  { name: "package.json", detail: "technology stack", color: "text-amber-200" },
+type HeroTab = "scorecard" | "findings" | "chat" | "diff";
+
+const SAMPLE_REPOS = [
+  { name: "shadcn/ui", url: "https://github.com/shadcn-ui/ui" },
+  { name: "expressjs/express", url: "https://github.com/expressjs/express" },
+  { name: "facebook/react", url: "https://github.com/facebook/react" },
 ];
-
-const dimensions = ["Security", "Architecture", "Testing", "Readiness"];
-
-function AnalysisIllustration() {
-  return (
-    <div
-      className="relative mx-auto aspect-[1/1.35] min-h-[390px] w-full max-w-[650px] sm:aspect-[760/460] sm:min-h-0"
-      aria-label="Illustration of repository code being turned into an engineering report"
-    >
-      <div className="absolute inset-[8%] rounded-full bg-cyan-400/[0.12] blur-[70px]" />
-      <div className="absolute inset-[18%] rounded-full bg-violet-500/[0.12] blur-[80px]" />
-
-      <motion.div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-[5%] rounded-full border border-cyan-100/[0.08]"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 48, repeat: Infinity, ease: "linear" }}
-      >
-        <span className="absolute left-[13%] top-[20%] h-2 w-2 rounded-full bg-cyan-200 shadow-[0_0_20px_5px_rgba(103,232,249,0.5)]" />
-      </motion.div>
-      <motion.div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-[12%] rounded-full border border-dashed border-violet-200/[0.10]"
-        animate={{ rotate: -360 }}
-        transition={{ duration: 64, repeat: Infinity, ease: "linear" }}
-      >
-        <span className="absolute bottom-[18%] right-[14%] h-1.5 w-1.5 rounded-full bg-violet-200 shadow-[0_0_16px_4px_rgba(196,181,253,0.5)]" />
-      </motion.div>
-
-      <svg
-        aria-hidden="true"
-        viewBox="0 0 760 460"
-        className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
-        fill="none"
-      >
-        <defs>
-          <linearGradient id="insight-flow" x1="120" y1="0" x2="670" y2="0" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#67e8f9" stopOpacity=".05" />
-            <stop offset=".48" stopColor="#a78bfa" stopOpacity=".8" />
-            <stop offset="1" stopColor="#67e8f9" stopOpacity=".12" />
-          </linearGradient>
-        </defs>
-        <path d="M194 225C270 225 282 142 374 142s106 83 191 83" stroke="url(#insight-flow)" strokeWidth="1.5" strokeDasharray="5 8" />
-        <path d="M194 238c80 0 92 83 180 83s110-83 191-83" stroke="url(#insight-flow)" strokeWidth="1.5" strokeDasharray="5 8" />
-      </svg>
-
-      <motion.div
-        initial={{ opacity: 0, x: -18, y: 8 }}
-        animate={{ opacity: 1, x: 0, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.35 }}
-        className="absolute left-1/2 top-[4%] z-10 w-[84%] -translate-x-1/2 rounded-2xl border border-white/10 bg-[#11151c]/90 p-3 shadow-2xl shadow-black/30 backdrop-blur-xl sm:left-0 sm:top-[35%] sm:w-[34%] sm:translate-x-0 sm:p-4"
-      >
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-medium text-zinc-200">
-            <FaGithub className="h-3.5 w-3.5 text-zinc-400" />
-            your repository
-          </div>
-          <GitBranch className="h-3.5 w-3.5 text-zinc-500" />
-        </div>
-        <div className="space-y-3">
-          {fileRows.map((row, index) => (
-            <motion.div
-              key={row.name}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.65 + index * 0.12 }}
-              className="flex items-center gap-2.5"
-            >
-              <FileCode2 className={`h-3.5 w-3.5 shrink-0 ${row.color}`} />
-              <span className="min-w-0 flex-1 truncate font-mono text-[10px] text-zinc-200">{row.name}</span>
-              <span className="hidden text-[9px] text-zinc-600 lg:block">{row.detail}</span>
-            </motion.div>
-          ))}
-        </div>
-        <div className="mt-4 flex items-center gap-1.5 border-t border-white/[0.07] pt-3 text-[10px] text-zinc-500">
-          <GitCommitHorizontal className="h-3 w-3" />
-          Code, structure, and project signals
-        </div>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, scale: 0.72 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: "spring", stiffness: 100, damping: 16, delay: 0.2 }}
-        className="absolute left-1/2 top-1/2 z-20 flex h-32 w-32 -translate-x-1/2 -translate-y-1/2 items-center justify-center sm:h-40 sm:w-40"
-      >
-        <motion.div
-          aria-hidden="true"
-          className="absolute inset-0 rounded-full border border-cyan-100/20"
-          animate={{ scale: [1, 1.18, 1], opacity: [0.55, 0.12, 0.55] }}
-          transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <div className="absolute inset-2 rounded-full bg-gradient-to-br from-cyan-300/25 via-violet-400/20 to-fuchsia-400/20 blur-xl" />
-        <div className="relative flex h-24 w-24 flex-col items-center justify-center rounded-full border border-white/15 bg-[#111621]/90 shadow-[0_0_50px_rgba(34,211,238,0.18)] backdrop-blur sm:h-32 sm:w-32">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-            className="mb-1"
-          >
-            <Sparkles className="h-6 w-6 text-cyan-100 sm:h-7 sm:w-7" />
-          </motion.div>
-          <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/80 sm:text-[9px]">GitInsight AI</span>
-          <span className="mt-1 text-[8px] text-cyan-100/70">making sense of code</span>
-        </div>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, x: 18, y: 8 }}
-        animate={{ opacity: 1, x: 0, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.48 }}
-        className="absolute left-1/2 top-[69%] z-10 w-[84%] -translate-x-1/2 rounded-2xl border border-cyan-100/15 bg-[#10151d]/95 p-3 shadow-2xl shadow-cyan-950/30 backdrop-blur-xl sm:left-auto sm:right-0 sm:top-[35%] sm:w-[34%] sm:translate-x-0 sm:p-4"
-      >
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-xs font-medium text-zinc-200">Engineering report</span>
-          <span className="rounded-full border border-emerald-200/20 bg-emerald-200/[0.08] px-2 py-0.5 text-[9px] text-emerald-100">ready to explore</span>
-        </div>
-        <div className="mb-4 flex items-center gap-3 rounded-xl bg-gradient-to-r from-cyan-200/[0.10] to-violet-300/[0.08] p-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-cyan-100/30 text-sm font-semibold text-white">76</div>
-          <div>
-            <p className="text-[11px] font-medium text-white">Maturity score</p>
-            <p className="mt-0.5 text-[9px] text-zinc-400">A starting point, with context</p>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {dimensions.map((dimension, index) => (
-            <motion.span
-              key={dimension}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.85 + index * 0.1 }}
-              className="rounded-full border border-white/10 bg-white/[0.035] px-2 py-1 text-[9px] text-zinc-300"
-            >
-              {dimension}
-            </motion.span>
-          ))}
-        </div>
-        <div className="mt-4 flex items-center gap-2 border-t border-white/[0.07] pt-3 text-[10px] text-cyan-100">
-          <ArrowUpRight className="h-3 w-3" />
-          Findings + prioritized next steps
-        </div>
-      </motion.div>
-
-      <motion.div
-        aria-hidden="true"
-        animate={{ y: [0, -8, 0], rotate: [0, 3, 0] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute right-[8%] top-[25%] flex h-9 w-9 items-center justify-center rounded-xl border border-fuchsia-200/20 bg-fuchsia-200/[0.07] text-fuchsia-100 shadow-[0_0_28px_rgba(232,121,249,0.15)] sm:right-[13%] sm:top-[13%] sm:h-10 sm:w-10"
-      >
-        <ShieldCheck className="h-4 w-4" />
-      </motion.div>
-      <motion.div
-        aria-hidden="true"
-        animate={{ y: [0, 8, 0], rotate: [0, -3, 0] }}
-        transition={{ duration: 5.8, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-        className="absolute bottom-[24%] left-[8%] flex h-9 w-9 items-center justify-center rounded-xl border border-amber-100/20 bg-amber-100/[0.07] text-amber-100 shadow-[0_0_28px_rgba(253,230,138,0.12)] sm:bottom-[13%] sm:left-[12%] sm:h-10 sm:w-10"
-      >
-        <ScanLine className="h-4 w-4" />
-      </motion.div>
-
-      <p className="absolute bottom-1 right-2 text-[9px] text-zinc-600 sm:bottom-0 sm:right-6">Illustrative example</p>
-    </div>
-  );
-}
 
 export default function Hero() {
   const [repoUrl, setRepoUrl] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [inputError, setInputError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<HeroTab>("scorecard");
   const router = useRouter();
 
-  const handleAnalyze = () => {
+  const handleAnalyze = (targetUrl?: string) => {
+    const urlToTest = (targetUrl || repoUrl).trim();
     try {
-      const url = new URL(repoUrl.trim());
+      const url = new URL(urlToTest);
       const [owner, repository] = url.pathname.split("/").filter(Boolean);
       if (url.protocol !== "https:" || url.hostname !== "github.com" || !owner || !repository) {
         throw new Error("Invalid GitHub repository URL");
@@ -205,79 +53,79 @@ export default function Hero() {
       const id = crypto.randomUUID();
       router.push(`/chat/${id}?repoUrl=${encodeURIComponent(canonicalUrl)}`);
     } catch {
-      setInputError("Enter a GitHub repository URL, such as https://github.com/owner/repository.");
+      setInputError("Please enter a valid GitHub repository URL (e.g., https://github.com/owner/repo)");
     }
+  };
+
+  const handleSelectSample = (sampleUrl: string) => {
+    setRepoUrl(sampleUrl);
+    setInputError(null);
+    handleAnalyze(sampleUrl);
   };
 
   return (
     <section
       id="home"
-      className="relative isolate overflow-hidden border-b border-white/[0.08] bg-[#080910] px-4 pb-14 pt-28 sm:px-6 sm:pb-20 lg:px-8 lg:pt-32"
+      className="relative isolate overflow-hidden border-b border-white/[0.08] bg-[#07080b] pt-28 pb-20 sm:pt-32 sm:pb-28"
     >
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_18%_22%,rgba(34,211,238,0.16),transparent_35%),radial-gradient(ellipse_at_84%_28%,rgba(168,85,247,0.17),transparent_34%),radial-gradient(ellipse_at_66%_90%,rgba(236,72,153,0.09),transparent_36%)]" />
-      <div className="pointer-events-none absolute inset-0 -z-10 opacity-[0.035] [background-image:linear-gradient(rgba(255,255,255,0.4)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.4)_1px,transparent_1px)] [background-size:52px_52px] [mask-image:linear-gradient(to_bottom,black,transparent_94%)]" />
-      <motion.div
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-36 top-28 -z-10 h-96 w-96 rounded-full border border-violet-200/[0.08]"
-        animate={{ scale: [1, 1.08, 1], opacity: [0.3, 0.7, 0.3] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-      />
+      {/* Subtle monospace dot grid overlay */}
+      <div className="pointer-events-none absolute inset-0 -z-10 opacity-[0.03] [background-image:radial-gradient(rgba(255,255,255,0.7)_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_80%)]" />
 
-      <div className="mx-auto grid w-full max-w-7xl items-center gap-7 lg:grid-cols-[0.88fr_1.12fr] lg:gap-4">
-        <div className="relative z-10">
+      {/* Ambient neutral glow */}
+      <div className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[36rem] w-[64rem] -translate-x-1/2 rounded-full bg-white/[0.03] blur-[120px]" />
+
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        {/* Top Header Block */}
+        <div className="text-center">
+          {/* Release Badge */}
           <motion.div
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-100/20 bg-cyan-100/[0.06] px-3 py-1.5 text-xs text-cyan-50 shadow-[0_0_30px_rgba(34,211,238,0.08)]"
+            transition={{ duration: 0.4 }}
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1 text-xs text-zinc-300 backdrop-blur-sm"
           >
-            <span className="relative flex h-2 w-2">
-              <motion.span
-                className="absolute inline-flex h-full w-full rounded-full bg-cyan-200 opacity-70"
-                animate={{ scale: [1, 1.9], opacity: [0.7, 0] }}
-                transition={{ duration: 1.8, repeat: Infinity }}
-              />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-200" />
-            </span>
-            Engineering intelligence for your GitHub repositories
+            <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            <span className="font-mono text-[11px] text-zinc-400">GitInsight 2.0</span>
+            <span className="text-zinc-600">•</span>
+            <span>Codebase Intelligence & Interrogation</span>
           </motion.div>
 
+          {/* Main Headline */}
           <motion.h1
-            initial={{ opacity: 0, y: 18 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, delay: 0.08 }}
-            className="max-w-2xl text-[2.75rem] font-semibold leading-[0.99] tracking-[-0.055em] text-white sm:text-6xl lg:text-[4.35rem]"
+            transition={{ duration: 0.5, delay: 0.08 }}
+            className="mx-auto mt-6 max-w-4xl text-4xl font-semibold tracking-[-0.04em] text-white sm:text-6xl sm:leading-[1.08]"
           >
-            Your codebase has a story.
-            <span className="mt-3 block bg-gradient-to-r from-cyan-200 via-violet-200 to-fuchsia-200 bg-clip-text pb-2 text-transparent">
-              See the whole picture.
-            </span>
+            The Codebase Intelligence Platform for GitHub.
           </motion.h1>
 
+          {/* Subtitle */}
           <motion.p
-            initial={{ opacity: 0, y: 14 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.18 }}
-            className="mt-6 max-w-xl text-sm leading-7 text-zinc-300 sm:text-base"
+            transition={{ duration: 0.5, delay: 0.16 }}
+            className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-zinc-400 sm:text-lg"
           >
-            From security signals and testing gaps to production readiness, GitInsight turns a GitHub repository
-            into an engineering report your team can understand—and act on.
+            Audit architecture. Eliminate security risks. Track score trends over commits,
+            and interrogate your repository with grounded, line-level AI.
           </motion.p>
 
+          {/* Search/Input Form */}
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.26 }}
-            className="mt-8 max-w-xl"
+            transition={{ duration: 0.5, delay: 0.24 }}
+            className="mx-auto mt-8 max-w-xl"
           >
             <form
-              onSubmit={(event) => {
-                event.preventDefault();
+              onSubmit={(e) => {
+                e.preventDefault();
                 handleAnalyze();
               }}
-              className={`group flex items-center gap-2 rounded-xl border bg-[#10121b]/90 p-1.5 shadow-2xl shadow-black/30 backdrop-blur transition-all ${
+              className={`flex items-center gap-2 rounded-xl border bg-[#0d1017]/90 p-1.5 shadow-2xl backdrop-blur-md transition-all ${
                 isFocused
-                  ? "border-cyan-100/50 shadow-[0_0_35px_rgba(34,211,238,0.12)]"
+                  ? "border-white/30 shadow-[0_0_30px_rgba(255,255,255,0.06)]"
                   : "border-white/10 hover:border-white/20"
               }`}
             >
@@ -285,11 +133,11 @@ export default function Hero() {
               <input
                 type="url"
                 aria-label="GitHub repository URL"
-                className="min-w-0 flex-1 bg-transparent px-2 py-3.5 text-sm text-white outline-none placeholder:text-zinc-500"
-                placeholder="Paste a GitHub repository URL"
+                className="min-w-0 flex-1 bg-transparent px-2 py-2.5 font-mono text-xs text-white outline-none placeholder:text-zinc-500 sm:text-sm"
+                placeholder="https://github.com/owner/repository"
                 value={repoUrl}
-                onChange={(event) => {
-                  setRepoUrl(event.target.value);
+                onChange={(e) => {
+                  setRepoUrl(e.target.value);
                   setInputError(null);
                 }}
                 onFocus={() => setIsFocused(true)}
@@ -298,65 +146,409 @@ export default function Hero() {
               <button
                 type="submit"
                 disabled={!repoUrl.trim()}
-                className="flex shrink-0 items-center gap-2 rounded-lg bg-gradient-to-r from-cyan-200 to-cyan-300 px-4 py-3.5 text-xs font-bold text-[#071013] shadow-lg shadow-cyan-950/30 transition hover:from-cyan-100 hover:to-cyan-200 disabled:cursor-not-allowed disabled:opacity-40 sm:px-5 sm:text-sm"
+                className="flex shrink-0 items-center gap-1.5 rounded-lg bg-white px-4 py-2.5 text-xs font-semibold text-black shadow transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Analyze repo
-                <ArrowRight className="h-4 w-4" />
+                Analyze Codebase
+                <ArrowRight className="h-3.5 w-3.5" />
               </button>
             </form>
-            {inputError && <p role="alert" className="mt-2 text-sm text-rose-300">{inputError}</p>}
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-500">
-              <span className="inline-flex items-center gap-1.5">
-                <Check className="h-3.5 w-3.5 text-emerald-200" />
-                Start from a repository URL
-              </span>
-              <a href="/login" className="inline-flex items-center gap-1 text-zinc-400 transition hover:text-cyan-100">
-                Connect GitHub to browse repos
-                <ArrowUpRight className="h-3 w-3" />
-              </a>
+
+            {inputError && (
+              <p role="alert" className="mt-2 text-left text-xs text-rose-400">
+                {inputError}
+              </p>
+            )}
+
+            {/* Quick-try Pills */}
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-xs text-zinc-500">
+              <span className="text-[11px] text-zinc-400">Try popular repos:</span>
+              {SAMPLE_REPOS.map((sample) => (
+                <button
+                  key={sample.name}
+                  type="button"
+                  onClick={() => handleSelectSample(sample.url)}
+                  className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.03] px-2 py-1 font-mono text-[11px] text-zinc-300 transition hover:border-white/20 hover:bg-white/[0.08] hover:text-white"
+                >
+                  <FaGithub className="h-3 w-3 text-zinc-400" />
+                  {sample.name}
+                </button>
+              ))}
             </div>
           </motion.div>
-
-          <motion.a
-            href="#features"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mt-7 inline-flex items-center gap-2 text-xs font-medium text-zinc-400 transition hover:text-white"
-          >
-            Follow the journey
-            <motion.span
-              animate={{ y: [0, 4, 0] }}
-              transition={{ duration: 1.8, repeat: Infinity }}
-            >
-              <ArrowDown className="h-3.5 w-3.5" />
-            </motion.span>
-          </motion.a>
         </div>
 
+        {/* Centerpiece: Interactive Product Showcase Terminal */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.96, x: 14 }}
-          animate={{ opacity: 1, scale: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.14 }}
-          className="relative"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.32 }}
+          className="mt-14 sm:mt-16"
         >
-          <AnalysisIllustration />
-        </motion.div>
-      </div>
+          {/* Outer Frame */}
+          <div className="relative rounded-2xl border border-white/10 bg-[#0c0f16] shadow-2xl overflow-hidden">
+            {/* Header / Mac style dots + Tab selector */}
+            <div className="flex flex-wrap items-center justify-between border-b border-white/[0.08] bg-[#090b10] px-4 py-3 gap-2">
+              {/* Window Dots & Repo Context */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
+                </div>
+                <span className="h-3.5 w-px bg-white/10" />
+                <div className="flex items-center gap-1.5 font-mono text-xs text-zinc-400">
+                  <FaGithub className="h-3.5 w-3.5 text-zinc-500" />
+                  <span className="text-zinc-200">acme-corp/api-gateway</span>
+                  <span className="text-zinc-600">/</span>
+                  <span className="inline-flex items-center gap-1 text-[11px] text-zinc-400">
+                    <GitBranch className="h-3 w-3" />
+                    main
+                  </span>
+                </div>
+              </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.75 }}
-        className="mx-auto mt-8 flex max-w-7xl flex-wrap items-center justify-center gap-x-6 gap-y-2 border-t border-white/[0.07] pt-5 text-[10px] uppercase tracking-[0.15em] text-zinc-500 sm:gap-x-10 sm:text-[11px]"
-      >
-        {["Security signals", "Engineering maturity", "Actionable recommendations", "Progress over time"].map((item) => (
-          <span key={item} className="inline-flex items-center gap-2">
-            <span className="h-1 w-1 rounded-full bg-cyan-200/70" />
-            {item}
+              {/* Interactive Tabs */}
+              <div className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.03] p-1">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("scorecard")}
+                  className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                    activeTab === "scorecard"
+                      ? "bg-white/10 text-white shadow-sm"
+                      : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                >
+                  <Cpu className="h-3.5 w-3.5 text-zinc-400" />
+                  Scorecard
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("findings")}
+                  className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                    activeTab === "findings"
+                      ? "bg-white/10 text-white shadow-sm"
+                      : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                >
+                  <ShieldAlert className="h-3.5 w-3.5 text-rose-400" />
+                  Code Findings
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("chat")}
+                  className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                    activeTab === "chat"
+                      ? "bg-white/10 text-white shadow-sm"
+                      : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                >
+                  <MessageSquare className="h-3.5 w-3.5 text-zinc-300" />
+                  AI Interrogation
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("diff")}
+                  className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                    activeTab === "diff"
+                      ? "bg-white/10 text-white shadow-sm"
+                      : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                >
+                  <TrendingUp className="h-3.5 w-3.5 text-emerald-400" />
+                  Commit Diff
+                </button>
+              </div>
+            </div>
+
+            {/* Tab Content Display */}
+            <div className="p-5 sm:p-7 min-h-[360px]">
+              <AnimatePresence mode="wait">
+                {activeTab === "scorecard" && (
+                  <motion.div
+                    key="tab-scorecard"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.2 }}
+                    className="grid gap-6 md:grid-cols-[0.85fr_1.15fr] items-center"
+                  >
+                    {/* Left: Overall Health & Status */}
+                    <div className="rounded-xl border border-white/10 bg-[#090c12] p-5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                          Maturity Assessment
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
+                          <CheckCircle2 className="h-3 w-3" />
+                          Production Ready
+                        </span>
+                      </div>
+
+                      <div className="mt-5 flex items-baseline gap-3">
+                        <span className="font-mono text-5xl font-bold tracking-tight text-white">
+                          84
+                        </span>
+                        <span className="font-mono text-sm text-zinc-500">/ 100</span>
+                      </div>
+
+                      <div className="mt-4 border-t border-white/[0.08] pt-3.5 space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-zinc-400">Detected Intent</span>
+                          <span className="font-medium text-zinc-200 capitalize">Fullstack API Service</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-zinc-400">Intent Confidence</span>
+                          <span className="font-mono text-zinc-300">92%</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-zinc-400">Files Analyzed</span>
+                          <span className="font-mono text-zinc-300">48 files</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right: 6 Dimension Scores */}
+                    <div className="space-y-3.5">
+                      {[
+                        { label: "Security", score: 92, note: "0 critical vulnerabilities" },
+                        { label: "Architecture", score: 78, note: "Layered structure, 1 circular dependency" },
+                        { label: "Testing", score: 85, note: "Unit & integration harness detected" },
+                        { label: "Maintainability", score: 80, note: "Strict TypeScript & ESLint enabled" },
+                        { label: "Readiness", score: 88, note: "Docker container & health endpoints" },
+                        { label: "Completeness", score: 90, note: "CI/CD pipelines, README, License" },
+                      ].map((dim) => (
+                        <div key={dim.label} className="group">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-medium text-zinc-300">{dim.label}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[11px] text-zinc-500 hidden sm:inline">{dim.note}</span>
+                              <span className="font-mono text-zinc-200 font-semibold">{dim.score}</span>
+                            </div>
+                          </div>
+                          <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
+                            <div
+                              className="h-full rounded-full bg-zinc-200"
+                              style={{ width: `${dim.score}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+
+                {activeTab === "findings" && (
+                  <motion.div
+                    key="tab-findings"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-4"
+                  >
+                    {/* Finding Header */}
+                    <div className="rounded-xl border border-rose-500/20 bg-rose-500/[0.03] p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2.5">
+                          <span className="flex h-6 items-center rounded-md border border-rose-500/20 bg-rose-500/10 px-2 text-[10px] font-bold uppercase text-rose-400">
+                            Critical Security Risk
+                          </span>
+                          <span className="font-mono text-xs text-zinc-300">
+                            src/auth/session.ts#L42-L56
+                          </span>
+                        </div>
+                        <span className="font-mono text-xs text-zinc-500">Security Dimension</span>
+                      </div>
+
+                      <h3 className="mt-2.5 text-sm font-semibold text-white">
+                        Insecure Session Token Parsing Without Signature Verification
+                      </h3>
+                      <p className="mt-1 text-xs text-zinc-400 leading-relaxed">
+                        Session token cookies are decoded directly into user identities without HMAC signature validation.
+                        Allows potential session forgery and unauthorized privilege escalation.
+                      </p>
+                    </div>
+
+                    {/* Code Diff Preview */}
+                    <div className="rounded-xl border border-white/10 bg-[#080a0f] p-4 font-mono text-xs overflow-x-auto">
+                      <div className="text-zinc-500 mb-2">// Suggested Remediation Diff</div>
+                      <div className="space-y-1">
+                        <div className="text-zinc-500">41   const sessionCookie = req.cookies.auth_session;</div>
+                        <div className="bg-rose-500/10 text-rose-300 px-2 py-0.5 rounded -mx-2">
+                          - 42   const user = JSON.parse(Buffer.from(sessionCookie, &apos;base64&apos;).toString());
+                        </div>
+                        <div className="bg-emerald-500/10 text-emerald-300 px-2 py-0.5 rounded -mx-2">
+                          + 43   const user = verifyAndDecodeSession(sessionCookie, env.SESSION_SECRET);
+                        </div>
+                        <div className="text-zinc-500">44   if (!user) throw new UnauthorizedError();</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs text-zinc-400 pt-1">
+                      <span>Affected Files: <code className="text-zinc-300">src/auth/session.ts</code>, <code className="text-zinc-300">src/middleware/auth.ts</code></span>
+                      <span className="text-emerald-400">Remediation: 1 file change, estimated 15 mins</span>
+                    </div>
+                  </motion.div>
+                )}
+
+                {activeTab === "chat" && (
+                  <motion.div
+                    key="tab-chat"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-4"
+                  >
+                    {/* User Question */}
+                    <div className="flex justify-end">
+                      <div className="max-w-xl rounded-2xl rounded-br-sm border border-white/10 bg-white/[0.06] px-4 py-3 text-xs text-zinc-100 leading-relaxed">
+                        Why did you flag the authentication implementation in <code className="text-white font-mono">session.ts</code> as a security risk?
+                      </div>
+                    </div>
+
+                    {/* AI Grounded Answer */}
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-zinc-300">
+                        <Terminal className="h-3.5 w-3.5" />
+                      </div>
+                      <div className="max-w-2xl rounded-2xl rounded-bl-sm border border-white/10 bg-[#090c12] p-4 text-xs text-zinc-300 leading-relaxed space-y-3">
+                        <p>
+                          In <strong className="text-white font-mono">src/auth/session.ts (lines 42–56)</strong>, your handler directly base64-decodes incoming cookie data without checking a cryptographic HMAC signature against your secret key.
+                        </p>
+                        <p>
+                          Anyone can craft a modified base64 payload containing <code className="text-zinc-200 font-mono">&#123;&quot;role&quot;: &quot;admin&quot;&#125;</code> and send it to your API, bypassing identity checks.
+                        </p>
+
+                        {/* Citation Badge */}
+                        <div className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 font-mono text-[11px] text-zinc-300">
+                          <FileCode2 className="h-3 w-3 text-zinc-400" />
+                          <span>Grounded in src/auth/session.ts#L42-L56</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Follow-up Question Suggestions */}
+                    <div className="pt-2 border-t border-white/[0.08]">
+                      <span className="text-[11px] text-zinc-500">Recommended follow-up questions:</span>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {[
+                          "Which files would I need to change to fix this?",
+                          "Does this issue affect any other parts of the application?",
+                          "What should I prioritise fixing next?",
+                        ].map((prompt) => (
+                          <span
+                            key={prompt}
+                            className="rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs text-zinc-400 hover:border-white/20 hover:text-white cursor-default transition"
+                          >
+                            {prompt}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {activeTab === "diff" && (
+                  <motion.div
+                    key="tab-diff"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-4"
+                  >
+                    {/* Commit Diff Banner */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#090c12] p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-1 font-mono text-xs text-zinc-300">
+                          <GitCommit className="h-3.5 w-3.5 text-zinc-400" />
+                          <span>a8f3b21</span>
+                          <span className="text-zinc-600">→</span>
+                          <span className="text-white font-semibold">e4c90d2</span>
+                        </div>
+                        <span className="text-xs text-zinc-400">Comparing 2 analysis runs</span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1 rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 font-mono text-xs font-bold text-emerald-400">
+                          <TrendingUp className="h-3.5 w-3.5" />
+                          +14 pts (68 → 82)
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Finding Lifecycle Stats */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-3 text-center">
+                        <span className="font-mono text-xl font-bold text-emerald-400">3</span>
+                        <p className="text-[11px] uppercase tracking-wider text-emerald-300/80 mt-0.5">Resolved Issues</p>
+                      </div>
+                      <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.04] p-3 text-center">
+                        <span className="font-mono text-xl font-bold text-amber-400">1</span>
+                        <p className="text-[11px] uppercase tracking-wider text-amber-300/80 mt-0.5">Demoted / Changed</p>
+                      </div>
+                      <div className="rounded-xl border border-rose-500/20 bg-rose-500/[0.04] p-3 text-center">
+                        <span className="font-mono text-xl font-bold text-rose-400">0</span>
+                        <p className="text-[11px] uppercase tracking-wider text-rose-300/80 mt-0.5">New Vulnerabilities</p>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 text-center">
+                        <span className="font-mono text-xl font-bold text-zinc-300">2</span>
+                        <p className="text-[11px] uppercase tracking-wider text-zinc-500 mt-0.5">Persistent Gaps</p>
+                      </div>
+                    </div>
+
+                    {/* Score Attribution Breakdown */}
+                    <div className="rounded-xl border border-white/10 bg-[#090c12] p-3.5 text-xs">
+                      <span className="font-medium text-zinc-300">Primary Score Contributors:</span>
+                      <ul className="mt-2 space-y-1.5 text-zinc-400">
+                        <li className="flex items-center justify-between">
+                          <span>Security Dimension (+8 pts)</span>
+                          <span className="text-emerald-400 font-mono">+8.00</span>
+                        </li>
+                        <li className="flex items-center justify-between">
+                          <span>Architecture Dimension (+4 pts)</span>
+                          <span className="text-emerald-400 font-mono">+4.00</span>
+                        </li>
+                        <li className="flex items-center justify-between">
+                          <span>Testing Dimension (+2 pts)</span>
+                          <span className="text-emerald-400 font-mono">+2.00</span>
+                        </li>
+                      </ul>
+                      <div className="mt-3 border-t border-white/[0.06] pt-2 text-[11px] text-zinc-500">
+                        Fairness engine verified: project intent maintained as fullstack. Zero evaluation skew.
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Feature summary pills beneath the terminal */}
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-zinc-400">
+          <span className="inline-flex items-center gap-1.5">
+            <Check className="h-3.5 w-3.5 text-emerald-400" />
+            Full AST & Dependency Analysis
           </span>
-        ))}
-      </motion.div>
+          <span className="inline-flex items-center gap-1.5">
+            <Check className="h-3.5 w-3.5 text-emerald-400" />
+            Grounded Gemini Codebase Interrogation
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Check className="h-3.5 w-3.5 text-emerald-400" />
+            Commit SHA-Pinned Historical Diffs
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Check className="h-3.5 w-3.5 text-emerald-400" />
+            Production Readiness Auditing
+          </span>
+        </div>
+      </div>
     </section>
   );
 }

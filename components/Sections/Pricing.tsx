@@ -1,305 +1,181 @@
 "use client";
 
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
-import {
-  ArrowRight,
-  Check,
-  Minus,
-  Plus,
-  Rocket,
-  Shield,
-  Sparkles,
-  Zap,
-} from "lucide-react";
-
-type FaqIndex = number | null;
-
-const faqs = [
-  {
-    question: "Can I change plans later?",
-    answer:
-      "Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately at the start of the next billing cycle.",
-  },
-  {
-    question: "What kind of security protocols do you use?",
-    answer:
-      "We use encrypted infrastructure, secure repository access, role-based permissions, and enterprise-grade monitoring across all systems.",
-  },
-  {
-    question: "Do you offer discounts for educational use?",
-    answer:
-      "Yes. We support students, educators, and open-source maintainers with special pricing options and extended access.",
-  },
-  {
-    question: "Is there a limit on the number of team members?",
-    answer:
-      "No hard limits. Team scaling depends on your selected plan and infrastructure requirements.",
-  },
-];
+import { Check, ArrowRight, Zap, Rocket, Users } from "lucide-react";
 
 export default function PricingSection() {
-  const [openFaq, setOpenFaq] = useState<FaqIndex>(null);
   const [isAnnual, setIsAnnual] = useState(false);
 
   const plans = [
     {
-      name: "Free",
+      name: "Hobby",
       price: "$0",
-      description: "For individuals and small open source projects.",
-      button: "Current Plan",
+      cadence: "forever free",
+      description: "For individual developers and open-source contributors.",
+      button: "Start Free",
       featured: false,
       icon: Zap,
-      features: ["Up to 3 repositories", "Basic analytics dashboard", "Weekly email reports"],
+      features: [
+        "Up to 3 active repositories",
+        "Full 6-dimension engineering analysis",
+        "Standard AI codebase interrogation",
+        "Public GitHub repository support",
+        "Community support",
+      ],
       href: "/register",
     },
     {
-      name: "Pro",
-      price: isAnnual ? "$39" : "$49",
-      description: "For growing engineering teams.",
-      button: "Start Pro Trial",
+      name: "Pro Developer",
+      price: isAnnual ? "$15" : "$19",
+      cadence: "per month, billed annually",
+      description: "For active engineers who need continuous codebase insights.",
+      button: "Get Pro Access",
       featured: true,
+      badge: "Most Popular",
       icon: Rocket,
       features: [
-        "Unlimited repositories",
-        "Advanced velocity metrics",
-        "AI code review insights",
-        "Slack & Jira integration",
-        "Priority support",
+        "Unlimited GitHub repositories",
+        "Commit-to-commit comparison engine",
+        "Unlimited grounded AI chat sessions",
+        "Private repository access via GitHub OAuth",
+        "Full finding lifecycle tracking & score attribution",
+        "Priority analysis queue",
       ],
       href: "/register",
     },
     {
-      name: "Enterprise",
-      price: "Custom",
-      description: "Custom solutions for large organizations.",
-      button: "Contact Sales",
+      name: "Team",
+      price: isAnnual ? "$39" : "$49",
+      cadence: "per month",
+      description: "For engineering teams and tech leads maintaining code quality.",
+      button: "Start Team Trial",
       featured: false,
-      icon: Shield,
+      icon: Users,
       features: [
-        "Self-hosted option",
-        "Custom security audits",
-        "Dedicated success manager",
-        "SSO & SAML Auth",
+        "Everything in Pro Developer",
+        "Shared team workspace & dashboard",
+        "Pull Request readiness gatekeeping",
+        "Automated branch & commit monitoring",
+        "Exportable compliance & security summaries",
+        "Priority team support",
       ],
-      href: "mailto:hello@gitinsight.ai",
+      href: "/register",
     },
   ];
 
   return (
     <section
       id="pricing"
-      className="relative overflow-hidden border-b border-white/[0.08] bg-[#080910] px-4 py-20 sm:px-6 md:py-28 lg:px-8"
+      className="relative overflow-hidden border-b border-white/[0.08] bg-[#07080b] py-20 sm:py-28"
     >
-      <div className="pointer-events-none absolute -left-48 top-20 h-[32rem] w-[32rem] rounded-full bg-violet-500/[0.08] blur-[130px]" />
-      <div className="pointer-events-none absolute -right-48 top-[28%] h-[34rem] w-[34rem] rounded-full bg-cyan-300/[0.07] blur-[140px]" />
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="text-center max-w-2xl mx-auto">
+          <p className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-zinc-300">
+            Transparent Pricing
+          </p>
+          <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">
+            Simple plans for every developer.
+          </h2>
+          <p className="mt-4 text-sm text-zinc-400 sm:text-base">
+            Start analyzing for free. Upgrade when you need historical commit comparisons,
+            private repositories, and unlimited codebase chat.
+          </p>
 
-      <div className="relative z-10 mx-auto max-w-7xl">
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.4 }}
-          transition={{ duration: 0.55 }}
-          className="mb-12 grid gap-8 border-b border-white/[0.08] pb-10 lg:grid-cols-[1fr_auto] lg:items-end"
-        >
-          <div>
-            <p className="mb-5 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-100">
-              <span className="h-px w-7 bg-gradient-to-r from-violet-100 to-cyan-100" />
-              Pricing
-            </p>
-            <h2 className="max-w-3xl text-4xl font-semibold leading-[1.03] tracking-[-0.045em] text-white sm:text-5xl md:text-6xl">
-              Pick the room
-              <span className="block bg-gradient-to-r from-violet-200 via-cyan-200 to-cyan-100 bg-clip-text pb-2 text-transparent">
-                your workflow needs.
-              </span>
-            </h2>
-            <p className="mt-4 max-w-xl text-sm leading-7 text-zinc-400 sm:text-base">
-              Start with the essentials, explore more for your team, or talk through a custom setup.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 lg:pb-2">
-            <span className={`text-xs transition-colors ${!isAnnual ? "text-white" : "text-zinc-500"}`}>Monthly</span>
+          {/* Monthly / Annual Toggle */}
+          <div className="mt-8 inline-flex items-center gap-3 rounded-lg border border-white/10 bg-[#0c0f16] p-1 text-xs">
             <button
               type="button"
-              role="switch"
-              aria-checked={isAnnual}
-              aria-label="Toggle annual pricing"
-              onClick={() => setIsAnnual((annual) => !annual)}
-              className="relative h-7 w-12 rounded-full border border-white/10 bg-white/[0.05] p-1 transition-colors hover:bg-white/[0.09]"
+              onClick={() => setIsAnnual(false)}
+              className={`rounded-md px-3 py-1.5 font-medium transition ${
+                !isAnnual
+                  ? "bg-white text-black shadow-sm"
+                  : "text-zinc-400 hover:text-white"
+              }`}
             >
-              <motion.span
-                animate={{ x: isAnnual ? 18 : 0 }}
-                transition={{ type: "spring", stiffness: 300, damping: 22 }}
-                className="block h-[18px] w-[18px] rounded-full bg-gradient-to-br from-cyan-100 to-violet-200 shadow-[0_0_14px_rgba(103,232,249,0.35)]"
-              />
+              Monthly
             </button>
-            <span className={`text-xs transition-colors ${isAnnual ? "text-white" : "text-zinc-500"}`}>Annual</span>
-            <span className="rounded-full border border-emerald-100/15 bg-emerald-100/[0.05] px-2.5 py-1 text-[9px] font-medium text-emerald-100">Save 20%</span>
+            <button
+              type="button"
+              onClick={() => setIsAnnual(true)}
+              className={`rounded-md px-3 py-1.5 font-medium transition ${
+                isAnnual
+                  ? "bg-white text-black shadow-sm"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              Annual <span className="text-[10px] text-emerald-600 font-semibold ml-1">Save 20%</span>
+            </button>
           </div>
-        </motion.div>
+        </div>
 
-        <div className="grid items-stretch gap-4 lg:grid-cols-[0.84fr_1.24fr_0.92fr] lg:gap-5">
-          {plans.map((plan, index) => {
+        {/* Pricing Cards */}
+        <div className="mt-14 grid gap-6 md:grid-cols-3 items-stretch">
+          {plans.map((plan) => {
             const Icon = plan.icon;
             return (
-              <motion.article
+              <div
                 key={plan.name}
-                initial={{ opacity: 0, y: 22 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                whileHover={{ y: -7 }}
-                className={`group relative flex flex-col overflow-hidden ${
+                className={`relative flex flex-col justify-between rounded-2xl border p-6 sm:p-7 transition-all ${
                   plan.featured
-                    ? "rounded-[1.75rem] border border-cyan-100/20 bg-[#10141e] shadow-[0_25px_90px_rgba(34,211,238,0.08)] lg:-mt-3 lg:mb-3"
-                    : "rounded-[1.5rem] border border-white/[0.08] bg-[#0c0f17]/90"
+                    ? "border-white/30 bg-[#0e121a] shadow-xl ring-1 ring-white/20"
+                    : "border-white/10 bg-[#0c0f16] hover:border-white/20"
                 }`}
               >
                 {plan.featured && (
-                  <>
-                    <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-cyan-100/70 to-transparent" />
-                    <div className="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full bg-cyan-200/[0.10] blur-[90px]" />
-                    <span className="absolute right-5 top-5 rounded-full border border-cyan-100/20 bg-cyan-100/[0.08] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-cyan-50">
-                      Most popular
-                    </span>
-                  </>
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full border border-white/20 bg-white px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black">
+                    {plan.badge}
+                  </div>
                 )}
 
-                <div className="relative flex h-full flex-col p-5 sm:p-6">
+                <div>
                   <div className="flex items-center justify-between">
-                    <span className={`flex h-10 w-10 items-center justify-center rounded-xl border ${
-                      plan.featured
-                        ? "border-cyan-100/20 bg-gradient-to-br from-cyan-100/[0.12] to-violet-200/[0.08] text-cyan-100"
-                        : "border-white/10 bg-white/[0.035] text-zinc-300"
-                    }`}>
+                    <span className="text-sm font-semibold text-white">{plan.name}</span>
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-zinc-300">
                       <Icon className="h-4 w-4" />
                     </span>
-                    <span className="font-mono text-[9px] tracking-[0.16em] text-zinc-600">0{index + 1}</span>
                   </div>
 
-                  <div className="mt-6">
-                    <h3 className="text-xl font-semibold text-white">{plan.name}</h3>
-                    <p className="mt-1.5 min-h-10 text-xs leading-5 text-zinc-400">{plan.description}</p>
+                  <div className="mt-4 flex items-baseline gap-1">
+                    <span className="font-mono text-4xl font-bold tracking-tight text-white">
+                      {plan.price}
+                    </span>
+                    <span className="text-xs text-zinc-500">
+                      {plan.name === "Hobby" ? "" : isAnnual ? "/mo" : "/mo"}
+                    </span>
                   </div>
+                  <p className="mt-1 text-[11px] text-zinc-500">{plan.cadence}</p>
 
-                  <div className="mt-5 border-y border-white/[0.08] py-5">
-                    <div className="flex items-baseline gap-1">
-                      <span className={`text-4xl font-semibold tracking-tight ${
-                        plan.featured ? "bg-gradient-to-r from-white to-cyan-100 bg-clip-text text-transparent" : "text-white"
-                      }`}>
-                        {plan.price}
-                      </span>
-                      {plan.price !== "Custom" && <span className="text-xs text-zinc-500">/ month</span>}
-                    </div>
-                    {plan.featured && <p className="mt-1 text-[10px] text-zinc-500">{isAnnual ? "Billed annually" : "Billed monthly"}</p>}
-                  </div>
+                  <p className="mt-4 text-xs text-zinc-400 leading-relaxed">
+                    {plan.description}
+                  </p>
 
-                  <ul className="my-6 flex-1 space-y-3">
+                  <ul className="mt-6 border-t border-white/[0.08] pt-4 space-y-2.5">
                     {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-2.5 text-xs leading-5 text-zinc-300">
-                        <Check className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${plan.featured ? "text-cyan-100" : "text-zinc-500"}`} />
-                        {feature}
+                      <li key={feature} className="flex items-start gap-2 text-xs text-zinc-300">
+                        <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                        <span>{feature}</span>
                       </li>
                     ))}
                   </ul>
+                </div>
 
+                <div className="mt-8">
                   <Link
                     href={plan.href}
-                    className={`group/cta inline-flex h-11 items-center justify-center gap-2 rounded-xl text-xs font-semibold transition ${
+                    className={`flex h-10 w-full items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition ${
                       plan.featured
-                        ? "bg-gradient-to-r from-cyan-200 to-cyan-300 text-[#071013] shadow-[0_6px_25px_rgba(34,211,238,0.12)] hover:shadow-[0_6px_35px_rgba(34,211,238,0.25)]"
-                        : "border border-white/10 bg-white/[0.025] text-zinc-200 hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
+                        ? "bg-white text-black hover:bg-zinc-200"
+                        : "border border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
                     }`}
                   >
                     {plan.button}
-                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/cta:translate-x-1" />
+                    <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </div>
-              </motion.article>
+              </div>
             );
           })}
-        </div>
-
-        <div className="mt-20 grid gap-8 lg:mt-28 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16">
-          <motion.div
-            initial={{ opacity: 0, x: -18 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.5 }}
-            className="lg:sticky lg:top-28 lg:self-start"
-          >
-            <p className="mb-4 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-100">
-              <Sparkles className="h-3.5 w-3.5" />
-              A few details
-            </p>
-            <h3 className="text-3xl font-semibold leading-tight tracking-tight text-white sm:text-4xl">
-              Good questions
-              <span className="block text-zinc-500">deserve clear answers.</span>
-            </h3>
-            <p className="mt-4 max-w-sm text-sm leading-7 text-zinc-400">
-              Find a little more context about plans, access, and getting started.
-            </p>
-            <Link href="/register" className="group mt-7 inline-flex items-center gap-2 text-xs font-medium text-cyan-100 transition hover:text-white">
-              Start exploring GitInsight
-              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-            </Link>
-          </motion.div>
-
-          <div className="divide-y divide-white/[0.08] border-y border-white/[0.08]">
-            {faqs.map((faq, index) => {
-              const isOpen = openFaq === index;
-              return (
-                <motion.div
-                  key={faq.question}
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.3 }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setOpenFaq(isOpen ? null : index)}
-                    aria-expanded={isOpen}
-                    className="group flex w-full items-center gap-4 py-5 text-left"
-                  >
-                    <span className="w-7 shrink-0 font-mono text-[9px] text-zinc-600">0{index + 1}</span>
-                    <span className="flex-1 text-sm font-medium text-zinc-200 transition-colors group-hover:text-white">{faq.question}</span>
-                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors ${
-                      isOpen ? "border-cyan-100/20 bg-cyan-100/[0.06] text-cyan-100" : "border-white/10 text-zinc-500 group-hover:text-white"
-                    }`}>
-                      {isOpen ? <Minus className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
-                    </span>
-                  </button>
-                  <AnimatePresence initial={false}>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.25 }}
-                        className="overflow-hidden"
-                      >
-                        <p className="max-w-2xl pb-5 pl-11 text-sm leading-6 text-zinc-400">{faq.answer}</p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="mt-16 flex flex-col gap-5 border-t border-white/[0.08] pt-7 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-zinc-500">Need a hand choosing a setup for your team?</p>
-          <a
-            href="mailto:hello@gitinsight.ai"
-            className="group inline-flex items-center gap-2 text-xs font-medium text-cyan-100 transition hover:text-white"
-          >
-            Talk to the GitInsight team
-            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-          </a>
         </div>
       </div>
     </section>
